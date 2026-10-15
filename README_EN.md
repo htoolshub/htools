@@ -77,17 +77,36 @@ The application reads the following environment variables:
 
 ## Local Development
 
+Use Node.js 22.17 or newer. Create `.dev.vars` in the project root with a local admin password, `ADMIN_PASSWORD="your-local-password"`, then run:
+
 ```bash
-npm install
-npm run dev
+npm ci
+npm run pages:dev
 ```
 
-For manual D1 initialization or troubleshooting:
+Open `http://127.0.0.1:8788` for the frontend, Pages Functions, and local D1. The first request initializes the database. After code changes, rerun `npm run pages:dev` to rebuild and reuse the running preview. This command uses a local AI placeholder without calling remote Workers AI.
+
+Use `npm run dev` for frontend hot reload only; it does not serve backend APIs. `.dev.vars`, local Wrangler configuration, and database state remain untracked.
+
+For manual D1 initialization or troubleshooting, first configure the `DB` binding in the untracked `wrangler.local.toml`:
 
 ```bash
 npm run db:init:local
 npm run db:init:remote
 ```
+
+## Checks
+
+```bash
+npm test
+npm run build
+npm run test:build
+npm run test:integration
+```
+
+CI runs these checks. D1 integration checks use temporary databases and random ports without Cloudflare credentials.
+
+With Edge installed, run `npm run test:browser` to check critical flows on an isolated temporary site. With the local preview running, use `npm run test:categories` to check pagination and retries during category API failures using data simulated only in the test browser. Set `EDGE_PATH` to override the browser location. Test artifacts are stored in `tmp/`.
 
 ## Data Sources
 

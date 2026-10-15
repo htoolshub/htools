@@ -77,17 +77,36 @@ HTools 是一款运行于 Cloudflare Pages Functions + D1 的开源工具导航�
 
 ## 本地开发
 
+使用 Node.js 22.17 或更高版本。在项目根目录创建 `.dev.vars`，设置本地后台密码 `ADMIN_PASSWORD="你的本地密码"`，然后运行：
+
 ```bash
-npm install
-npm run dev
+npm ci
+npm run pages:dev
 ```
 
-如需手动初始化或排查 D1：
+访问 `http://127.0.0.1:8788`，可使用前端、Pages Functions 和本地 D1。首次请求会自动初始化数据库；修改代码后重新运行 `npm run pages:dev` 会构建并复用已有预览。该命令使用本地 AI 占位绑定，不调用远端 Workers AI。
+
+仅调试前端热更新时可用 `npm run dev`；该命令不提供后端 API。`.dev.vars`、Wrangler 本地配置与数据库状态不会提交。
+
+如需手动初始化或排查 D1，先在未提交的 `wrangler.local.toml` 中配置 `DB` 绑定：
 
 ```bash
 npm run db:init:local
 npm run db:init:remote
 ```
+
+## 检查
+
+```bash
+npm test
+npm run build
+npm run test:build
+npm run test:integration
+```
+
+CI 会运行上述检查；D1 集成检查使用临时数据库和随机端口，无需 Cloudflare 凭据。
+
+本机安装 Edge 后，可运行 `npm run test:browser` 检查独立临时站点的关键操作。已启动本地预览时，运行 `npm run test:categories` 检查分类接口失败后的翻页与重试，数据仅在测试浏览器中模拟。可通过 `EDGE_PATH` 指定浏览器路径，测试产物位于 `tmp/`。
 
 ## 数据源
 

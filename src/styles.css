@@ -871,6 +871,16 @@ html[data-theme="dark"] .global-search-shortcut {
   overflow: hidden;
 }
 
+.public-category-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  color: var(--muted);
+}
+
 .category-results {
   position: relative;
   display: grid;
@@ -4360,6 +4370,7 @@ html[data-theme="light"] .admin-workspace {
    于是键盘聚焦既没有自己的环、又和悬停长得一样，键盘用户分不出来。
    按 CHANGELOG「键盘态使用 :focus-visible」补一份可区分的内描边；
    用 outline 而不是背景，避免和容器的半透明灰底叠成两层。 */
+.admin-category-filter-arrow:focus-visible,
 .admin-category-filter-trigger:focus-visible {
   outline: 2px solid var(--text);
   outline-offset: -3px;
@@ -4424,14 +4435,6 @@ html[data-theme="light"] .admin-workspace {
 
 .admin-category-filter-arrow-indicator {
   pointer-events: none;
-}
-
-.admin-category-filter-arrow:hover,
-.admin-category-filter-arrow:focus-visible {
-  border-color: transparent;
-  background: var(--admin-borderless-hover-bg);
-  color: var(--text);
-  outline: 0;
 }
 
 .admin-search-field input {

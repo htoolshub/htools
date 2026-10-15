@@ -277,6 +277,12 @@ BEGIN
   DELETE FROM content_items_search WHERE item_id = old.id;
 END;
 
+CREATE TRIGGER IF NOT EXISTS content_items_article_unlink_ad
+AFTER DELETE ON content_items
+BEGIN
+  UPDATE articles SET content_item_id = NULL WHERE content_item_id = old.id;
+END;
+
 CREATE TRIGGER IF NOT EXISTS content_sources_search_au
 AFTER UPDATE OF title ON content_sources
 BEGIN
@@ -309,8 +315,12 @@ SELECT content_items.id, content_items.source_id, content_items.title,
 FROM content_items
 JOIN content_sources ON content_sources.id = content_items.source_id;
 
+UPDATE articles SET content_item_id = NULL
+WHERE content_item_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM content_items WHERE id = articles.content_item_id);
+
 INSERT INTO app_settings (key, value, updated_at)
-VALUES ('database_schema_version', '16', CURRENT_TIMESTAMP)
+VALUES ('database_schema_version', '17', CURRENT_TIMESTAMP)
 ON CONFLICT(key) DO UPDATE SET
   value = excluded.value,
   updated_at = CURRENT_TIMESTAMP;

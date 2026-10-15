@@ -12,10 +12,9 @@ wrangler.toml
 # Local agent workspace
 .agents/
 .logs/
+*.log
 .claude/settings.local.json
-scripts/
 tmp/
-tests/
 
 # Local private docs
 CHANGELOG.md
@@ -24,7 +23,12 @@ CLAUDE.md
 DESIGN.md
 
 # Local secrets
+.env
+.env.*
+!.env.example
 .dev.vars
+.dev.vars.*
+!.dev.vars.example
 *.local
 
 # TypeScript cache

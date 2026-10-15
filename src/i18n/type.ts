@@ -55,6 +55,7 @@ export type Messages = {
     termsDescription: string;
   };
   actions: {
+    retry: string;
     submitTool: string;
     toggleTheme: string;
     toggleLanguage: string;
@@ -86,6 +87,7 @@ export type Messages = {
     system: string;
   };
   empty: {
+    categoriesUnavailable: string;
     libraryTitle: string;
     libraryDescription: string;
     libraryAction: string;

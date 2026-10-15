@@ -1,5 +1,5 @@
 import { CheckCircle2, ChevronDown, Circle, SquarePen, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { formatAdminDate } from "../admin-helpers";
 import { cleanArticleDisplayText } from "../article-helpers";
 import type { Locale, Messages } from "../i18n";
@@ -11,7 +11,9 @@ import type { ProxySettings, TelegramPushRecord } from "../types";
 import { useAdminCardActionMenu } from "../useAdminCardActionMenu";
 import { AdminEmptyState, AdminInitialLoadError } from "./AdminPanelStates";
 import { AdminResourceCardSkeletonGrid } from "./admin-skeletons";
-import MarkdownContent from "./MarkdownContent";
+import { ArticleBodySkeleton } from "./ArticleDetailContent";
+
+const MarkdownContent = lazy(() => import("./MarkdownContent"));
 
 type TelegramManagementText = ReturnType<typeof getTelegramText>["management"];
 
@@ -316,11 +318,13 @@ export function TelegramMessagePreview({
           </div>
         </div>
       ) : null}
-      <MarkdownContent
-        content={escapeTelegramPreviewHashtags(content)}
-        locale={locale}
-        proxySettings={proxySettings}
-      />
+      <Suspense fallback={<ArticleBodySkeleton />}>
+        <MarkdownContent
+          content={escapeTelegramPreviewHashtags(content)}
+          locale={locale}
+          proxySettings={proxySettings}
+        />
+      </Suspense>
     </div>
   );
 }

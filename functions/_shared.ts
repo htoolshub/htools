@@ -519,7 +519,7 @@ const initializedTelegramMessageDatabases = new WeakSet<D1Database>();
 const telegramMessageInitializationPromises = new WeakMap<D1Database, Promise<void>>();
 const DATABASE_SCHEMA_VERSION_KEY = "database_schema_version";
 // Increment this whenever SCHEMA_STATEMENTS or compatibility column upgrades change.
-const DATABASE_SCHEMA_VERSION = 16;
+const DATABASE_SCHEMA_VERSION = 17;
 const TELEGRAM_MESSAGE_COLUMNS = `id, resource_type, resource_id, custom_title,
   resource_data, category,
   chat_id, target_ref, message_id, message_markdown, media_enabled, media_url,
@@ -784,6 +784,11 @@ const SCHEMA_STATEMENTS = [
    AFTER DELETE ON content_items
    BEGIN
      DELETE FROM content_items_search WHERE item_id = old.id;
+   END`,
+  `CREATE TRIGGER IF NOT EXISTS content_items_article_unlink_ad
+   AFTER DELETE ON content_items
+   BEGIN
+     UPDATE articles SET content_item_id = NULL WHERE content_item_id = old.id;
    END`,
   `CREATE TRIGGER IF NOT EXISTS content_sources_search_au
    AFTER UPDATE OF title ON content_sources
@@ -1736,6 +1741,12 @@ async function ensureArticleColumns(db: D1Database) {
 }
 
 async function backfillArticleContentItemLinks(db: D1Database) {
+  await db.prepare(
+    `UPDATE articles SET content_item_id = NULL
+     WHERE content_item_id IS NOT NULL
+       AND NOT EXISTS (SELECT 1 FROM content_items WHERE id = articles.content_item_id)`
+  ).run();
+
   await db.prepare(
     `UPDATE articles
      SET content_item_id = (

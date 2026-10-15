@@ -357,9 +357,11 @@ export function App() {
   const [isToolsLoadingMore, setIsToolsLoadingMore] = useState(false);
   const [toolHasMore, setToolHasMore] = useState(false);
   const [toolPage, setToolPage] = useState(1);
-  const [toolCategoryCounts, setToolCategoryCounts] = useState<Record<string, number>>(
-    {}
+  const [toolCategoryCounts, setToolCategoryCounts] = useState<Record<string, number> | null>(
+    null
   );
+  const [categoryRequestStatus, setCategoryRequestStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [categoryRetryCount, setCategoryRetryCount] = useState(0);
   const [featuredToolTotal, setFeaturedToolTotal] = useState(0);
   const [isArticlesLoading, setIsArticlesLoading] = useState(true);
   const [isArticlesLoadingMore, setIsArticlesLoadingMore] = useState(false);
@@ -595,10 +597,12 @@ export function App() {
     if (!shouldLoadPublicCategories) return;
 
     let active = true;
+    const controller = new AbortController();
+    setCategoryRequestStatus("loading");
 
     async function refreshCategorySettings() {
       try {
-        const data = await loadPublicCategoryData();
+        const data = await loadPublicCategoryData({ signal: controller.signal });
 
         if (active) {
           setPublicCategorySettings(data.settings);
@@ -613,10 +617,11 @@ export function App() {
               0
             )
           );
+          setCategoryRequestStatus("ready");
         }
       } catch {
         if (active) {
-          setPublicCategorySettings(initialAdminCategorySettings);
+          setCategoryRequestStatus("error");
         }
       }
     }
@@ -625,8 +630,9 @@ export function App() {
 
     return () => {
       active = false;
+      controller.abort();
     };
-  }, [shouldLoadPublicCategories]);
+  }, [shouldLoadPublicCategories, categoryRetryCount]);
 
   useEffect(() => {
     let active = true;
@@ -978,8 +984,8 @@ export function App() {
   const hasFeaturedTools = featuredToolTotal > 0;
   const categories = useMemo(() => {
     const names = sortCategoriesBySettings(
-      Object.keys(toolCategoryCounts).filter(
-        (category) => Number(toolCategoryCounts[category] ?? 0) > 0
+      Object.keys(toolCategoryCounts ?? {}).filter(
+        (category) => Number(toolCategoryCounts?.[category] ?? 0) > 0
       ),
       publicCategorySettings.tools,
       t
@@ -988,16 +994,16 @@ export function App() {
   }, [hasFeaturedTools, publicCategorySettings.tools, t, toolCategoryCounts]);
 
   useEffect(() => {
-    if (!hasFeaturedTools && isFeaturedCategoryValue(activeCategory)) {
+    if (toolCategoryCounts !== null && !hasFeaturedTools && isFeaturedCategoryValue(activeCategory)) {
       setActiveCategory("All");
     }
-  }, [activeCategory, hasFeaturedTools]);
+  }, [activeCategory, hasFeaturedTools, toolCategoryCounts]);
 
-  const totalPublicToolCount = Object.values(toolCategoryCounts).reduce(
+  const totalPublicToolCount = toolCategoryCounts === null ? null : Object.values(toolCategoryCounts).reduce(
     (sum, count) => sum + Number(count ?? 0),
     0
   );
-  const activeToolTotal = isFeaturedCategoryValue(activeCategory)
+  const activeToolTotal = toolCategoryCounts === null ? null : isFeaturedCategoryValue(activeCategory)
     ? featuredToolTotal
     : isAllCategoryValue(activeCategory)
       ? totalPublicToolCount
@@ -1052,6 +1058,21 @@ export function App() {
     setProxySettingsRequestError(null);
     setProxySettingsRequestSettled(true);
   }
+
+  const categoryNotice = categoryRequestStatus === "error" ||
+    (categoryRetryCount > 0 && categoryRequestStatus === "loading") ? (
+    <div className="public-category-notice" role="status">
+      <span>{t.empty.categoriesUnavailable}</span>
+      <button
+        className="ghost-button"
+        disabled={categoryRequestStatus === "loading"}
+        onClick={() => setCategoryRetryCount((count) => count + 1)}
+        type="button"
+      >
+        {t.actions.retry}
+      </button>
+    </div>
+  ) : null;
 
   const page = isAdminRoute ? (
     <Suspense
@@ -1117,6 +1138,7 @@ export function App() {
       activeCategory={activeArticleCategory}
       articles={articles}
       categories={articleCategories}
+      categoryNotice={categoryNotice}
       currentPage={articlePage}
       error={articleLoadError}
       hasMore={articleHasMore}
@@ -1162,6 +1184,7 @@ export function App() {
     <CategoryPage
       activeCategory={activeCategory}
       categories={categories}
+      categoryNotice={categoryNotice}
       hasMore={toolHasMore}
       currentPage={toolPage}
       isLoading={isInitialToolsLoading}
@@ -1186,6 +1209,7 @@ export function App() {
     <HomePage
       articles={articles}
       articleError={articleLoadError}
+      categoryNotice={categoryNotice}
       isArticlesLoading={isArticlesLoading}
       isLoading={isInitialToolsLoading}
       locale={locale}
@@ -1199,7 +1223,7 @@ export function App() {
       t={t}
       themeMode={themeMode}
       toolLoadError={toolLoadError}
-      toolCategoryCount={Object.keys(toolCategoryCounts).length}
+      toolCategoryCount={toolCategoryCounts === null ? null : Object.keys(toolCategoryCounts).length}
       totalToolCount={totalPublicToolCount}
       tools={tools}
     />
@@ -1239,6 +1263,7 @@ function GlobalToasts({
 function HomePage({
   articleError,
   articles,
+  categoryNotice,
   isLoading,
   isArticlesLoading,
   locale,
@@ -1258,6 +1283,7 @@ function HomePage({
 }: {
   articleError: string;
   articles: ArticleSummary[];
+  categoryNotice: ReactNode;
   isLoading: boolean;
   isArticlesLoading: boolean;
   locale: Locale;
@@ -1271,8 +1297,8 @@ function HomePage({
   t: Messages;
   themeMode: ThemeMode;
   toolLoadError: string;
-  toolCategoryCount: number;
-  totalToolCount: number;
+  toolCategoryCount: number | null;
+  totalToolCount: number | null;
   tools: Tool[];
 }) {
   const latestTools = tools.slice(0, 8);
@@ -1300,7 +1326,7 @@ function HomePage({
           <div className="hero-content">
             <a className="hero-pill" href="/tools">
               <Sparkles size={16} />
-              {t.home.browseCategories(toolCategoryCount)}
+              {toolCategoryCount === null ? t.home.exploreAll : t.home.browseCategories(toolCategoryCount)}
               <ArrowUpRight size={18} />
             </a>
             <div className="home-hero-copy">
@@ -1322,6 +1348,7 @@ function HomePage({
         </section>
 
         <section className="home-section" id="latest-tools">
+          {categoryNotice}
           <SectionTitle icon={<PackagePlus size={25} />} title={t.home.latestTools} />
           <div className="home-tool-grid">
             {isLoading ? (
@@ -1429,6 +1456,7 @@ function HomePage({
 function CategoryPage({
   activeCategory,
   categories,
+  categoryNotice,
   currentPage,
   hasMore,
   isLoading,
@@ -1451,6 +1479,7 @@ function CategoryPage({
 }: {
   activeCategory: string;
   categories: string[];
+  categoryNotice: ReactNode;
   currentPage: number;
   hasMore: boolean;
   isLoading: boolean;
@@ -1468,11 +1497,11 @@ function CategoryPage({
   t: Messages;
   themeMode: ThemeMode;
   toolLoadError: string;
-  totalToolCount: number;
+  totalToolCount: number | null;
   tools: Tool[];
 }) {
-  const totalPages = Math.max(1, Math.ceil(totalToolCount / CATEGORY_PAGE_SIZE));
-  const paginationItems = getPaginationItems(totalPages, currentPage);
+  const totalPages = totalToolCount === null ? null : Math.max(1, Math.ceil(totalToolCount / CATEGORY_PAGE_SIZE));
+  const paginationItems = totalPages === null ? [currentPage] : getPaginationItems(totalPages, currentPage);
   function handleCategorySelect(category: string) {
     setActiveCategory(category);
     scrollPageToTop();
@@ -1532,6 +1561,7 @@ function CategoryPage({
             aria-busy={isRefreshing}
             className={`category-results${isRefreshing ? " is-refreshing" : ""}`}
           >
+            {categoryNotice}
             {isRefreshing ? <span className="results-refresh-indicator" aria-hidden="true" /> : null}
             <div className="tool-grid" id="tools">
               {isLoading ? (
@@ -1582,7 +1612,7 @@ function CategoryPage({
               )}
             </div>
 
-            {tools.length > 0 && totalPages > 1 ? (
+            {currentPage > 1 || (tools.length > 0 && (hasMore || (totalPages ?? 1) > 1)) ? (
               <nav className="category-pagination" aria-label="Pagination">
                 <button
                   aria-label={locale === "zh" ? "上一页" : "Previous page"}
@@ -1619,7 +1649,7 @@ function CategoryPage({
                 <button
                   aria-label={locale === "zh" ? "下一页" : "Next page"}
                   className="pagination-arrow"
-                  disabled={!hasMore || currentPage >= totalPages || isLoadingMore}
+                  disabled={!hasMore || isLoadingMore}
                   type="button"
                   onClick={() => onPageChange(currentPage + 1)}
                 >
@@ -1640,6 +1670,7 @@ function ArticlesPage({
   activeCategory,
   articles,
   categories,
+  categoryNotice,
   currentPage,
   error,
   hasMore,
@@ -1661,6 +1692,7 @@ function ArticlesPage({
   activeCategory: string;
   articles: ArticleSummary[];
   categories: string[];
+  categoryNotice: ReactNode;
   currentPage: number;
   error: string;
   hasMore: boolean;
@@ -1739,6 +1771,7 @@ function ArticlesPage({
             aria-busy={isRefreshing}
             className={`category-results article-results${isRefreshing ? " is-refreshing" : ""}`}
           >
+            {categoryNotice}
             {isRefreshing ? <span className="results-refresh-indicator" aria-hidden="true" /> : null}
             <section className="article-page-list" aria-label={t.articlesPage.title}>
               {isLoading ? (

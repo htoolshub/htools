@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import type { Locale, Messages } from "../i18n";
 import {
   MARKDOWN_EDITOR_ACTIONS,
@@ -7,7 +7,9 @@ import {
   type MarkdownEditorMode
 } from "../markdown-editor";
 import type { ProxySettings } from "../types";
-import MarkdownContent from "./MarkdownContent";
+import { ArticleBodySkeleton } from "./ArticleDetailContent";
+
+const MarkdownContent = lazy(() => import("./MarkdownContent"));
 
 export default function AdminMarkdownEditor({
   actions = MARKDOWN_EDITOR_ACTIONS,
@@ -71,7 +73,7 @@ export default function AdminMarkdownEditor({
     if (!panel) return;
 
     const updateHeight = () => {
-      const nextHeight = panel.getBoundingClientRect().height;
+      const nextHeight = panel.offsetHeight;
       if (nextHeight > 0) {
         setEditPanelHeight((currentHeight) =>
           currentHeight === nextHeight ? currentHeight : nextHeight
@@ -196,17 +198,19 @@ export default function AdminMarkdownEditor({
             className={`admin-markdown-editor-preview ${previewClassName}`.trim()}
             style={editPanelHeight > 0 ? { height: `${editPanelHeight}px` } : undefined}
           >
-            {preview ?? (
-              value.trim() ? (
-                <MarkdownContent
-                  content={value}
-                  locale={previewLocale ?? locale}
-                  proxySettings={proxySettings}
-                />
-              ) : (
-                <p className="admin-markdown-editor-empty">{text.previewEmpty}</p>
-              )
-            )}
+            <Suspense fallback={<ArticleBodySkeleton />}>
+              {preview ?? (
+                value.trim() ? (
+                  <MarkdownContent
+                    content={value}
+                    locale={previewLocale ?? locale}
+                    proxySettings={proxySettings}
+                  />
+                ) : (
+                  <p className="admin-markdown-editor-empty">{text.previewEmpty}</p>
+                )
+              )}
+            </Suspense>
           </section>
         )}
       </div>

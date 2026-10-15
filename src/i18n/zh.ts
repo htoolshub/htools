@@ -49,6 +49,7 @@ export const zh: Messages = {
     termsDescription: "了解使用本站工具目录、文章内容和提交功能时适用的规则。"
   },
   actions: {
+    retry: "重试",
     submitTool: "提交工具",
     toggleTheme: "切换主题",
     toggleLanguage: "切换语言",
@@ -80,6 +81,7 @@ export const zh: Messages = {
     system: "跟随系统"
   },
   empty: {
+    categoriesUnavailable: "分类暂时无法加载，你仍可继续浏览。",
     libraryTitle: "工具库为空",
     libraryDescription:
       "当前还没有工具。可以前往 检测/导入，导入默认订阅源。",

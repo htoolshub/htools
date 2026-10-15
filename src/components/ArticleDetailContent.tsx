@@ -152,7 +152,7 @@ function ArticleDetailCover({
   );
 }
 
-function ArticleBodySkeleton() {
+export function ArticleBodySkeleton() {
   return (
     <SkeletonLayoutMask className="markdown-content article-body-skeleton">
       <h2>Article section heading</h2>

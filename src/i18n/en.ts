@@ -55,6 +55,7 @@ export const en: Messages = {
       "Review the rules that apply when using this site's directory, articles, and submission features."
   },
   actions: {
+    retry: "Retry",
     submitTool: "Submit Tool",
     toggleTheme: "Toggle theme",
     toggleLanguage: "Switch language",
@@ -86,6 +87,7 @@ export const en: Messages = {
     system: "System"
   },
   empty: {
+    categoriesUnavailable: "Categories are temporarily unavailable. You can continue browsing.",
     libraryTitle: "The tool library is empty",
     libraryDescription:
       "There are no tools yet. Go to Check / Import and import the default subscription source.",

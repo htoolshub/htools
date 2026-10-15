@@ -59,7 +59,7 @@ export async function confirmTimedOutWrite<T>({
 
 export async function readJson<T>(response: Response): Promise<T> {
   const payload = await response.json().catch((error) => {
-    if (error instanceof Error && error.name === "AbortError") {
+    if (response.ok || (error instanceof Error && error.name === "AbortError")) {
       throw error;
     }
 

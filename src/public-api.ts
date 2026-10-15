@@ -128,13 +128,29 @@ export async function loadArticle(slug: string): Promise<Article> {
   return data.article;
 }
 
-export async function loadPublicCategoryData(): Promise<PublicCategorySettingsResponse> {
-  const response = await fetch("/api/categories", {
-    headers: {
-      Accept: "application/json"
-    }
-  });
-  return readJson<PublicCategorySettingsResponse>(response);
+export async function loadPublicCategoryData(
+  options: { signal?: AbortSignal; timeoutMs?: number } = {}
+): Promise<PublicCategorySettingsResponse> {
+  const data = await requestJsonWithTimeout<PublicCategorySettingsResponse>(
+    "/api/categories",
+    { signal: options.signal, headers: { Accept: "application/json" } },
+    { timeoutMs: options.timeoutMs }
+  );
+  if (
+    !Array.isArray(data?.categories) ||
+    !data.categories.every((row) =>
+      row && typeof row.category === "string" &&
+      Number.isSafeInteger(row.total) && row.total >= 0 &&
+      Number.isSafeInteger(row.featured_total) && row.featured_total >= 0
+    ) ||
+    !(["tools", "articles", "push", "content"] as const).every((scope) => {
+      const categories = data.settings?.[scope];
+      return Array.isArray(categories) && categories.every((category) => typeof category === "string");
+    })
+  ) {
+    throw new Error("Invalid category response.");
+  }
+  return data;
 }
 
 export async function loadProxySettings(
