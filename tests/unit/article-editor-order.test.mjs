@@ -32,8 +32,8 @@ test("article editor keeps content fields in the shared information order", () =
   assert.match(helperSource, /slugPlaceholder: "用于文章访问地址，留空会自动生成"/);
   assert.match(helperSource, /slugPlaceholder: "Used in the article URL\. Leave empty to generate automatically"/);
   assert.doesNotMatch(helperSource, /(?:slug|summary|content)Placeholder: "[^"]*[。.]"/);
-  assert.doesNotMatch(helperSource, /addArticleDescription|slugHelp/);
-  assert.match(adminSource, /description=\{\s*editingArticle \? articleText\.editArticleDescription : undefined\s*\}/);
+  assert.doesNotMatch(helperSource, /slugHelp/);
+  assert.match(adminSource, /description=\{\s*editingArticle \? articleText\.editArticleDescription : articleText\.addArticleDescription\s*\}/);
 });
 
 test("article helpers sit beside their fields and explanatory text precedes inputs", () => {

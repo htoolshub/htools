@@ -545,7 +545,7 @@ test("admin navigation resets the shared content scroller for every section", ()
 test("admin dialogs reuse shared top actions, publish mode, footer and confirmation components", () => {
   assert.equal((adminSource.match(/<EditorTopActions/g) ?? []).length, 2);
   assert.equal((adminSource.match(/<PublishModeField/g) ?? []).length, 3);
-  assert.equal((adminSource.match(/<BooleanSegmentedToggle/g) ?? []).length, 2);
+  assert.equal((adminSource.match(/<BooleanSegmentedToggle/g) ?? []).length, 3);
   const actionTags = [
     ...(adminSource.match(/<AdminDialogActions[\s\S]*?\/>/g) ?? []),
     ...(dialogComponentSource.match(/<AdminDialogActions[\s\S]*?\/>/g) ?? [])
@@ -711,6 +711,29 @@ test("admin category popovers use the shared action and body typography", () => 
   assert.match(emptyRule, /color:\s*var\(--text\)/);
 });
 
+test("后台分类选项留出行间距，操作按钮与选项等高且独立于卡片尺寸", () => {
+  const listRule = ruleFor("\n.admin-category-filter-list {");
+  const optionRule = ruleFor(".admin-category-create-option,");
+  const actionRule = ruleFor(".admin-category-filter-list .admin-category-option-action {");
+
+  assert.match(listRule, /row-gap:\s*4px/);
+  assert.match(optionRule, /min-height:\s*38px/);
+  assert.match(optionRule, /border-radius:\s*6px/);
+  for (const property of ["width", "min-width", "height", "min-height"]) {
+    assert.match(actionRule, new RegExp(`(?:^|[;\\s])${property}:\\s*38px`));
+  }
+  assert.equal(
+    (styles.match(/\.admin-category-filter-list \.admin-category-option-action\s*\{/g) ?? []).length,
+    1,
+    "分类操作尺寸只在公共分类规则中定义，不跟随卡片断点覆盖"
+  );
+  assert.match(styles, /\n\.admin-tool-card-actions \.icon-button \{[^}]*height:\s*32px/);
+  assert.match(
+    styles,
+    /@media \(max-width: 760px\) \{\s*\.admin-tool-card-actions \.icon-button \{[^}]*height:\s*36px/
+  );
+});
+
 test("admin sidebar, cards, statistics and tables use only the shared text tiers", () => {
   const labelRules = [
     ".admin-sidebar-section {",
@@ -753,7 +776,7 @@ test("subscription content uses a compact list, shared actions, and the three-pa
   const cardSource = adminSource.slice(cardStart, cardEnd);
 
   assert.match(cardSource, /useAdminCardActionMenu/);
-  assert.match(cardSource, /className="admin-tool-action-menu"/);
+  assert.match(cardSource, /<AdminCardActionMenu/);
   assert.match(cardSource, /className="content-item-select"/);
   assert.match(cardSource, /admin-article-publish-button/);
   assert.match(cardSource, /contentText\.convert/);

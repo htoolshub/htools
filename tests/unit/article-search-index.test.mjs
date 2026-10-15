@@ -43,7 +43,7 @@ function createDatabase(handler) {
           return this;
         },
         async first() {
-          if (sql.includes("SELECT value FROM app_settings")) return { value: "17" };
+          if (sql.includes("SELECT value FROM app_settings")) return { value: "18" };
           return null;
         },
         async all() {

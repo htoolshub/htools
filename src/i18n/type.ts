@@ -49,12 +49,20 @@ export type Messages = {
     title: string;
     description: string;
   };
+  pagination: {
+    label: string;
+    previous: string;
+    next: string;
+    page: (page: number) => string;
+    more: string;
+  };
   publicMeta: {
     aboutDescription: string;
     privacyDescription: string;
     termsDescription: string;
   };
   actions: {
+    menu: (name: string) => string;
     retry: string;
     submitTool: string;
     toggleTheme: string;
@@ -95,9 +103,6 @@ export type Messages = {
     connectionDescription: string;
     title: string;
     description: string;
-  };
-  footer: {
-    version: string;
   };
   submit: {
     title: string;

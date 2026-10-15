@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { loadImageBedSettings, saveImageBedSettings } from "../../admin-api";
 import { getLocalizedErrorMessage } from "../../site-helpers";
 import { SkeletonVisibility } from "../../shared-ui";
@@ -34,11 +34,13 @@ const IMAGE_BED_UPLOAD_NAME_TYPES: ImageBedUploadNameType[] = [
 
 export function ImageBedSettingsCard({
   maintenanceText,
+  reloadKey,
   setStatus,
   t,
   token
 }: {
   maintenanceText: ReturnType<typeof getAdminMaintenanceText>;
+  reloadKey: number;
   setStatus: (status: string) => void;
   t: Messages;
   token: string;
@@ -56,6 +58,7 @@ export function ImageBedSettingsCard({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const loadRequestRef = useRef(0);
 
   function applySettings(next: ImageBedSettings, syncForm = true) {
     setSettings(next);
@@ -66,22 +69,30 @@ export function ImageBedSettingsCard({
   }
 
   async function loadSettings(signal?: AbortSignal) {
+    const requestId = ++loadRequestRef.current;
     setLoading(true);
     setLoadError("");
     try {
-      applySettings(await loadImageBedSettings(token, { signal }));
+      const loaded = await loadImageBedSettings(token, { signal });
+      if (signal?.aborted || loadRequestRef.current !== requestId) return;
+      applySettings(loaded);
     } catch (error) {
-      if (!signal?.aborted) setLoadError(getLocalizedErrorMessage(error, t));
+      if (!signal?.aborted && loadRequestRef.current === requestId) {
+        setLoadError(getLocalizedErrorMessage(error, t));
+      }
     } finally {
-      if (!signal?.aborted) setLoading(false);
+      if (!signal?.aborted && loadRequestRef.current === requestId) setLoading(false);
     }
   }
 
   useEffect(() => {
     const controller = new AbortController();
     void loadSettings(controller.signal);
-    return () => controller.abort();
-  }, [token]);
+    return () => {
+      controller.abort();
+      loadRequestRef.current += 1;
+    };
+  }, [reloadKey, token]);
 
   const hasSavedConfig = Boolean(settings?.baseUrl);
   const dirty = Boolean(settings && (
@@ -92,13 +103,17 @@ export function ImageBedSettingsCard({
     form.uploadFolder.trim().replace(/^\/+|\/+$/g, "") !== settings.uploadFolder
   ));
 
-  async function persist(next: Omit<ImageBedSettings, "available">, message: string) {
+  async function persist(
+    next: Omit<ImageBedSettings, "available">,
+    message: string,
+    syncForm = true
+  ) {
     if (saving) return;
     setSaving(true);
     setStatus("");
     try {
       const saved = await saveImageBedSettings(next, token);
-      applySettings(saved);
+      applySettings(saved, syncForm);
       setStatus(message);
     } catch (error) {
       setStatus(getLocalizedErrorMessage(error, t));
@@ -120,7 +135,8 @@ export function ImageBedSettingsCard({
       { ...stored, enabled },
       enabled
         ? maintenanceText.imageBedEnabledMessage
-        : maintenanceText.imageBedDisabledMessage
+        : maintenanceText.imageBedDisabledMessage,
+      false
     );
   }
 

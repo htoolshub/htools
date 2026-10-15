@@ -1,4 +1,4 @@
-import { CheckCircle2, ChevronDown, Circle, SquarePen, Trash2 } from "lucide-react";
+import { CheckCircle2, Circle, SquarePen, Trash2 } from "lucide-react";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { formatAdminDate } from "../admin-helpers";
 import { cleanArticleDisplayText } from "../article-helpers";
@@ -12,6 +12,7 @@ import { useAdminCardActionMenu } from "../useAdminCardActionMenu";
 import { AdminEmptyState, AdminInitialLoadError } from "./AdminPanelStates";
 import { AdminResourceCardSkeletonGrid } from "./admin-skeletons";
 import { ArticleBodySkeleton } from "./ArticleDetailContent";
+import { AdminCardActionMenu } from "./AdminCardActionMenu";
 
 const MarkdownContent = lazy(() => import("./MarkdownContent"));
 
@@ -70,12 +71,12 @@ export function AdminTelegramPushPanel({
         <p className="telegram-push-service-note">{text.serviceDisabled}</p>
       ) : null}
 
-      {isLoading && records.length === 0 ? (
+      {isLoading && records.length === 0 && !loadError ? (
         <SkeletonVisibility visible={showSkeletons}>
           <AdminResourceCardSkeletonGrid ariaLabel={text.title} />
         </SkeletonVisibility>
-      ) : loadError && records.length === 0 ? (
-        <AdminInitialLoadError message={loadError} onRetry={onRetry} t={t} />
+      ) : loadError ? (
+        <AdminInitialLoadError isRetrying={isLoading} message={loadError} onRetry={onRetry} t={t} />
       ) : records.length ? (
         <>
           <section className="admin-tool-grid" aria-label={text.title}>
@@ -89,6 +90,7 @@ export function AdminTelegramPushPanel({
                 onView={() => onView(record)}
                 record={record}
                 serviceEnabled={serviceEnabled}
+                t={t}
                 text={text}
               />
             ))}
@@ -145,6 +147,7 @@ function TelegramPushRecordCard({
   onView,
   record,
   serviceEnabled,
+  t,
   text
 }: {
   onDelete: () => void;
@@ -154,6 +157,7 @@ function TelegramPushRecordCard({
   onView: () => void;
   record: TelegramPushRecord;
   serviceEnabled: boolean;
+  t: Messages;
   text: TelegramManagementText;
 }) {
   const actions = useAdminCardActionMenu(`telegram-push:${record.id}`);
@@ -196,53 +200,28 @@ function TelegramPushRecordCard({
           >
             {pushed ? <CheckCircle2 size={16} /> : <Circle size={16} />}
           </button>
-          <button aria-expanded={actions.open}
-            aria-haspopup="menu"
-            aria-label={`${record.title} actions`}
-            className={`icon-button admin-tool-menu-trigger ${
-              actions.open ? "is-active" : ""
-            }`}
-            ref={actions.triggerRef}
-            type="button"
-            onClick={() => actions.setOpen((current) => !current)}
-            onKeyDown={actions.handleTriggerKeyDown}
-          >
-            <ChevronDown size={17} />
-          </button>
-          {actions.open ? (
-            <div
-              className="admin-tool-action-menu"
-              onKeyDown={actions.handleMenuKeyDown}
-              role="menu"
-            >
-              {record.resource ? (
-                <button disabled={!serviceEnabled}
-                  role="menuitem"
-                  type="button"
-                  onClick={() => {
-                    actions.close();
-                    onEdit();
-                  }}
-                >
-                  <SquarePen size={18} />
-                  <span className="admin-action-label-full">{text.editAction}</span>
-                  <span className="admin-action-label-short">{text.editActionShort}</span>
-                </button>
-              ) : null}
-              <button className="danger"
-                role="menuitem"
-                type="button"
-                onClick={() => {
-                  actions.close();
-                  onDelete();
-                }}
-              >
-                <Trash2 size={16} />
-                <span className="admin-action-label-full">{text.deleteAction}</span>
-                <span className="admin-action-label-short">{text.deleteActionShort}</span>
-              </button>
-            </div>
-          ) : null}
+          <AdminCardActionMenu
+            actions={actions}
+            label={t.actions.menu(record.title)}
+            items={[
+              ...(record.resource ? [{
+                key: "edit",
+                label: text.editAction,
+                shortLabel: text.editActionShort,
+                icon: <SquarePen size={18} />,
+                disabled: !serviceEnabled,
+                onSelect: onEdit
+              }] : []),
+              {
+                key: "delete",
+                label: text.deleteAction,
+                shortLabel: text.deleteActionShort,
+                icon: <Trash2 size={16} />,
+                danger: true,
+                onSelect: onDelete
+              }
+            ]}
+          />
         </div>
       </div>
       <p className="admin-tool-description">{summary}</p>

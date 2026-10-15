@@ -179,8 +179,8 @@ test("subscription entries reuse site avatars while actions stay in the selected
   assert.doesNotMatch(sourceButton, /<Rss/);
   assert.doesNotMatch(contentPanel, /content-source-all-icon/);
   assert.match(contentPanel, /useAdminCardActionMenu\([\s\S]*content-source-header:/);
-  assert.match(contentPanel, /<RefreshCw[\s\S]*?admin-tool-menu-trigger/);
-  assert.match(contentPanel, /className="admin-tool-action-menu"[\s\S]*?onEditSource\(selectedSource\)[\s\S]*?onDeleteSource\(selectedSource\)/);
+  assert.match(contentPanel, /<RefreshCw[\s\S]*?<AdminCardActionMenu/);
+  assert.match(contentPanel, /<AdminCardActionMenu[\s\S]*?onEditSource\(selectedSource\)[\s\S]*?onDeleteSource\(selectedSource\)/);
   assert.match(contentPanel, /showSourceIcon=\{!selectedSource\}/);
   assert.match(contentPanel, /source=\{contentSources\.find\(\(source\) => source\.id === item\.sourceId\)/);
   assert.doesNotMatch(

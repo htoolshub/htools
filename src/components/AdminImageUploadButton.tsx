@@ -1,5 +1,5 @@
 import { Upload } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ADMIN_IMAGE_UPLOAD_MIME_TYPES,
   getAdminImageUploadValidationCode
@@ -29,25 +29,35 @@ export default function AdminImageUploadButton({
   token: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const requestRef = useRef<symbol | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  useEffect(() => () => {
+    requestRef.current = null;
+  }, []);
+
   async function upload(file: File) {
-    if (uploading) return;
+    if (requestRef.current) return;
     const validationCode = getAdminImageUploadValidationCode(file);
     if (validationCode) {
       onError(createValidationError(validationCode));
       if (inputRef.current) inputRef.current.value = "";
       return;
     }
+    const request = Symbol();
+    requestRef.current = request;
     setUploading(true);
     try {
       const image = await uploadAdminImage(file, token);
-      onUploaded(image.url);
+      if (requestRef.current === request) onUploaded(image.url);
     } catch (error) {
-      onError(error);
+      if (requestRef.current === request) onError(error);
     } finally {
-      setUploading(false);
-      if (inputRef.current) inputRef.current.value = "";
+      if (requestRef.current === request) {
+        requestRef.current = null;
+        setUploading(false);
+        if (inputRef.current) inputRef.current.value = "";
+      }
     }
   }
 

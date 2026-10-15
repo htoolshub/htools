@@ -14,6 +14,10 @@ const telegramPushSource = await readFile(
   new URL("../../src/components/AdminTelegramPush.tsx", import.meta.url),
   "utf8"
 );
+const cardActionMenuSource = await readFile(
+  new URL("../../src/components/AdminCardActionMenu.tsx", import.meta.url),
+  "utf8"
+);
 const cardSources = await Promise.all([
   "../../src/components/admin-cards/AdminToolCard.tsx",
   "../../src/components/admin-cards/AdminArticleCard.tsx"
@@ -51,11 +55,11 @@ test("admin utility menus use the shared keyboard hook", () => {
 test("login and sidebar utility menus keep the shared ARIA contract", () => {
   assert.match(source, /<UtilityMenuControls/);
   assert.equal(
-    [source, telegramPushSource, ...cardSources].reduce(
+    [source, telegramPushSource, ...cardSources, cardActionMenuSource].reduce(
       (total, text) => total + (text.match(/aria-haspopup="menu"/g) ?? []).length,
       0
     ),
-    5
+    1
   );
   assert.equal((sharedControls.match(/aria-haspopup="menu"/g) ?? []).length, 1);
   assert.equal((sharedControls.match(/data-utility-menu=\{getMenuId\(menu\)\}/g) ?? []).length, 1);

@@ -19,6 +19,7 @@ test("browser regression defaults to the full local preview scope", () => {
   assert.equal(options.command, "run");
   assert.equal(options.scope, "full");
   assert.equal(options.origin, "http://127.0.0.1:8788");
+  assert.equal(Object.hasOwn(options, "maxTmpMb"), false);
   assert.ok(options.routes.some((route) => route.path === "/admin/settings/services"));
 });
 
@@ -64,7 +65,7 @@ test("browser regression exposes isolated critical interaction flows", async () 
 
 test("browser regression rejects unsafe or ambiguous command options", () => {
   assert.throws(() => parseCliArgs(["--scope=other"]), /不支持的回归范围/);
-  assert.throws(() => parseCliArgs(["--max-tmp-mb=20"]), /不小于 100/);
+  assert.throws(() => parseCliArgs(["--max-tmp-mb=20"]), /不支持的参数/);
   assert.throws(() => parseCliArgs(["--unknown"]), /不支持的参数/);
 });
 
@@ -75,4 +76,30 @@ test("browser regression distinguishes the login shell from password settings", 
   );
   assert.match(source, /\.auth-shell \.auth-form, \.auth-shell \.auth-card/);
   assert.doesNotMatch(source, /querySelectorAll\('input\[type="password"\]'\)/);
+});
+
+test("浏览器回归遍历公共通知队列并匹配同一条可见通知", async () => {
+  const source = await readFile(new URL("../../scripts/browser-regression.mjs", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /\.admin-status|querySelector\(["']\.global-toast["']\)/);
+  const start = source.indexOf("const findToast =");
+  const end = source.indexOf("const waitFor =", start);
+  assert.ok(start >= 0 && end > start);
+  const previousSuccess = { textContent: "保存成功", visible: true };
+  const hiddenError = { textContent: "请求超时", visible: false };
+  const currentError = { textContent: "请求超时，请稍后重试。", visible: true };
+  const document = {
+    querySelectorAll(selector) {
+      assert.equal(selector, ".global-toast");
+      return [previousSuccess, hiddenError, currentError];
+    }
+  };
+  const findToast = new Function("document", "visible", "text", `${source.slice(start, end)}; return findToast;`)(
+    document,
+    (element) => element.visible,
+    (element) => element.textContent
+  );
+  assert.equal(findToast("请求超时"), currentError);
+  assert.equal(findToast("请求超时", "重试"), currentError);
+  assert.equal(findToast("保存成功", "请求超时"), undefined);
+  assert.equal(findToast("不存在的提示"), undefined);
 });

@@ -1,4 +1,5 @@
 import {
+  CONTENT_SOURCE_SYNC_EPOCH_KEY,
   getDatabase,
   invalidatePublicApiCache,
   badRequest,
@@ -209,7 +210,8 @@ async function readBackupData(db: D1Database): Promise<BackupData> {
           `SELECT id, resource_type, resource_id, custom_title, resource_data, category,
                   chat_id, target_ref,
                   message_id, message_markdown,
-                   media_enabled, media_url, last_pushed_hash, sent_at, updated_at
+                   media_enabled, media_url, last_pushed_hash, sent_at, updated_at,
+                   last_pushed_media_enabled
            FROM telegram_messages
            ORDER BY updated_at DESC, id DESC`
         )
@@ -237,6 +239,10 @@ async function readBackupData(db: D1Database): Promise<BackupData> {
 
 async function restoreBackupData(db: D1Database, data: BackupData) {
   const statements: D1PreparedStatement[] = [
+    db.prepare(
+      `INSERT INTO app_settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP`
+    ).bind(CONTENT_SOURCE_SYNC_EPOCH_KEY, crypto.randomUUID()),
     db.prepare("DELETE FROM telegram_push_locks"),
     db.prepare("DELETE FROM telegram_messages"),
     db.prepare("DELETE FROM content_items"),
@@ -277,9 +283,10 @@ async function restoreBackupData(db: D1Database, data: BackupData) {
           `INSERT INTO telegram_messages (
              id, resource_type, resource_id, custom_title, resource_data, category, chat_id, target_ref,
              message_id, message_markdown,
-             media_enabled, media_url, last_pushed_hash, sent_at, updated_at
+             media_enabled, media_url, last_pushed_hash, sent_at, updated_at,
+             last_pushed_media_enabled
            )
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         )
         .bind(
           row.id,
@@ -296,7 +303,8 @@ async function restoreBackupData(db: D1Database, data: BackupData) {
           row.media_url,
           row.last_pushed_hash,
           row.sent_at,
-          row.updated_at
+          row.updated_at,
+          row.last_pushed_media_enabled
         )
     ),
     ...data.articles.map((row) =>
@@ -705,6 +713,9 @@ function normalizeTelegramMessageRow(
     media_enabled: readIntegerFlag(row.media_enabled),
     media_url: readString(row.media_url),
     last_pushed_hash: readString(row.last_pushed_hash),
+    last_pushed_media_enabled: row.last_pushed_media_enabled === 0 || row.last_pushed_media_enabled === 1
+      ? row.last_pushed_media_enabled
+      : null,
     sent_at: sentAt,
     updated_at: readString(row.updated_at) || sentAt
   };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlignLeft, Tags, Type } from "lucide-react";
 import { generateAdminAi } from "../admin-api";
 import type { AdminAiResult, AdminAiTask } from "../types";
@@ -30,6 +30,7 @@ export default function AdminAiAction({
   task: AdminAiTask;
   token: string;
 }) {
+  const requestRef = useRef<symbol | null>(null);
   const [loading, setLoading] = useState(false);
   const unavailable = !available || !enabled;
   const title = !enabled && disabledTitle ? disabledTitle : label;
@@ -48,18 +49,27 @@ export default function AdminAiAction({
           ? locale === "zh" ? "\u540d\u79f0" : "Name"
           : locale === "zh" ? "\u6807\u9898" : "Title";
 
+  useEffect(() => () => {
+    requestRef.current = null;
+  }, []);
+
   if (!available) return null;
 
   async function run() {
-    if (disabled || unavailable || loading) return;
+    if (disabled || unavailable || requestRef.current) return;
+    const request = Symbol();
+    requestRef.current = request;
     setLoading(true);
     try {
       const result = await generateAdminAi(task, input, locale, token);
-      onResult(result);
+      if (requestRef.current === request) onResult(result);
     } catch (error) {
-      onError(error);
+      if (requestRef.current === request) onError(error);
     } finally {
-      setLoading(false);
+      if (requestRef.current === request) {
+        requestRef.current = null;
+        setLoading(false);
+      }
     }
   }
 

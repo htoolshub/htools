@@ -77,8 +77,9 @@ test("后台删分类走的是守卫，而不是直接看给人看的那个数�
   );
   assert.notEqual(deleteSource.length, 0);
 
-  // 订阅内容必须过守卫,其他三个栏目仍按内容条数判断
+  // 订阅内容必须过守卫；推送分页不能用于断言整个分类为空。
   assert.match(deleteSource, /hasDeletableContentCategoryPayload\(contentCount, sourceCount\)/);
+  assert.match(deleteSource, /scope === "push" \|\|/);
   assert.match(deleteSource, /if \(hasDeletablePayload\) \{/);
   // 弹窗要两个数,必须在打开弹窗时就存进 state
   assert.match(deleteSource, /sourceCount: getAdminCategorySourceCount\(scope, normalized\)/);
@@ -210,7 +211,7 @@ test("订阅源结果不按内容列表的轮次丢弃，只看它自己那条�
   assert.match(adminSource, /const contentSourcesRequestGenerationRef = useRef\(0\)/);
   assert.match(
     refreshSource,
-    /contentSourcesRequestGenerationRef\.current === sourcesGeneration/
+    /contentSourcesRequestGenerationRef\.current !== sourcesGeneration/
   );
 
   // 顺序必须是:先落地订阅源,再做内容列表的轮次判断
@@ -226,21 +227,40 @@ test("订阅源结果不按内容列表的轮次丢弃，只看它自己那条�
   );
 });
 
-test("刷新失败的提示存在，且订阅内容那条成功提示会带上它", () => {
+test("各栏目共用刷新结果反馈，失败时保留操作成功的事实", () => {
   assert.equal(zhCategory.refreshFailedHint, "列表刷新失败，请重新加载页面。");
   assert.equal(
     enCategory.refreshFailedHint,
     "The list failed to refresh. Please reload the page."
   );
 
-  const applySource = adminSource.slice(
-    adminSource.indexOf("async function applyCategoryAction("),
-    adminSource.indexOf("const adminFilterCategories = useMemo(")
+  const refreshSource = adminSource.slice(
+    adminSource.indexOf("async function refreshAfterMutation("),
+    adminSource.indexOf("async function refreshTelegramSettings(")
   );
-  assert.notEqual(applySource.length, 0);
-  assert.match(applySource, /contentResult\.sourcesOk && contentResult\.itemsOk/);
-  assert.match(
-    applySource,
-    /contentRefreshOk\s*\?\s*resultMessage\s*:\s*`\$\{resultMessage\}\$\{categoryText\.refreshFailedHint\}`/
-  );
+  assert.match(refreshSource, /refreshAction\(\{ reportError: false \}\)/);
+  assert.match(refreshSource, /setStatus\(resultMessage\)/);
+  assert.match(refreshSource, /if \(result === "failed"\) setStatus\(`\$\{resultMessage\} \$\{categoryText\.refreshFailedHint\}`\)/);
+});
+
+test("恢复写入成功后先关闭确认，再报告后续读取失败", () => {
+  for (const [name, nextFunction, pendingSetter, writeCall] of [
+    ["factoryReset", "async function resetPrivacyPage(", "setPendingFactoryReset", "resetFactorySettings(token)"],
+    ["restoreBackup", "const publicSourceEnabled", "setPendingBackupRestore", "restoreBackupData(backupPayload, token)"]
+  ]) {
+    const source = adminSource.slice(
+      adminSource.indexOf(`async function ${name}(`),
+      adminSource.indexOf(nextFunction)
+    );
+    const writeIndex = source.indexOf(`await ${writeCall}`);
+    const closeIndex = source.indexOf(`${pendingSetter}(false)`);
+    const refreshIndex = source.indexOf("await refreshSettingsAfterMaintenance()");
+    const notifyIndex = source.indexOf("await onDataRestored(");
+
+    assert.ok(writeIndex !== -1, `${name} 没有执行写入`);
+    assert.ok(closeIndex > writeIndex, `${name} 写入成功后没有先关闭确认框`);
+    assert.ok(refreshIndex > closeIndex, `${name} 关闭确认框前仍在等待设置读取`);
+    assert.ok(notifyIndex > refreshIndex, `${name} 设置读取失败后没有进入统一刷新反馈`);
+    assert.match(source, /refreshSettingsAfterMaintenance\(\)\.then\([\s\S]*=> "failed" as const/);
+  }
 });

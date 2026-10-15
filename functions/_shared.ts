@@ -519,11 +519,11 @@ const initializedTelegramMessageDatabases = new WeakSet<D1Database>();
 const telegramMessageInitializationPromises = new WeakMap<D1Database, Promise<void>>();
 const DATABASE_SCHEMA_VERSION_KEY = "database_schema_version";
 // Increment this whenever SCHEMA_STATEMENTS or compatibility column upgrades change.
-const DATABASE_SCHEMA_VERSION = 17;
+const DATABASE_SCHEMA_VERSION = 18;
 const TELEGRAM_MESSAGE_COLUMNS = `id, resource_type, resource_id, custom_title,
   resource_data, category,
   chat_id, target_ref, message_id, message_markdown, media_enabled, media_url,
-  last_pushed_hash, sent_at, updated_at`;
+  last_pushed_hash, sent_at, updated_at, last_pushed_media_enabled`;
 const TELEGRAM_MESSAGE_MIGRATION_TABLE = "telegram_messages_migrate";
 
 function createTelegramMessageTableStatement(table: string) {
@@ -541,6 +541,7 @@ function createTelegramMessageTableStatement(table: string) {
   media_enabled INTEGER NOT NULL DEFAULT 0,
   media_url TEXT NOT NULL DEFAULT '',
   last_pushed_hash TEXT NOT NULL DEFAULT '',
+  last_pushed_media_enabled INTEGER,
   sent_at TEXT NOT NULL DEFAULT '',
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(resource_type, resource_id, chat_id)
@@ -1140,6 +1141,13 @@ export class InvalidRequestError extends Error {
   }
 }
 
+export class ConflictError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ConflictError";
+  }
+}
+
 export class UpstreamServiceError extends Error {
   constructor(message: string) {
     super(message);
@@ -1158,6 +1166,10 @@ export function writeErrorResponse(
   headers?: HeadersInit
 ) {
   const message = error instanceof Error ? error.message : fallbackMessage;
+
+  if (error instanceof ConflictError) {
+    return jsonError(message, "CONFLICT", { status: 409, headers });
+  }
 
   if (error instanceof SyntaxError || error instanceof InvalidRequestError) {
     return jsonError(message, "INVALID_REQUEST", { status: 400, headers });
@@ -1463,6 +1475,10 @@ async function initializeDatabaseSchema(db: D1Database) {
   await ensureToolColumns(db);
   await ensureArticleColumns(db);
   await ensureTelegramMessageSchema(db);
+  if (storedVersion < 18) {
+    // 旧版更新可能包含替换发送；遗留操作不能按新版原地编辑直接重试。
+    await db.prepare("UPDATE telegram_push_locks SET operation = 'send' WHERE operation = 'update'").run();
+  }
   await removeLegacySourceUpdateColumns(db);
   await db.prepare(
     `CREATE UNIQUE INDEX IF NOT EXISTS idx_articles_content_item_id
@@ -1953,6 +1969,9 @@ async function upgradeTelegramMessageTable(db: D1Database) {
   const customTitle = columns.has("custom_title") ? "custom_title" : "''";
   const resourceData = columns.has("resource_data") ? "resource_data" : "''";
   const category = columns.has("category") ? "category" : "''";
+  const pushedMediaEnabled = columns.has("last_pushed_media_enabled")
+    ? "last_pushed_media_enabled"
+    : "NULL";
 
   await db.batch([
     db.prepare(`DROP TABLE IF EXISTS ${TELEGRAM_MESSAGE_MIGRATION_TABLE}`),
@@ -1962,7 +1981,7 @@ async function upgradeTelegramMessageTable(db: D1Database) {
        SELECT id, resource_type, resource_id, ${customTitle},
               ${resourceData}, ${category},
               chat_id, target_ref, message_id, message_markdown, media_enabled,
-              media_url, last_pushed_hash, sent_at, updated_at
+               media_url, last_pushed_hash, sent_at, updated_at, ${pushedMediaEnabled}
        FROM telegram_messages`
     ),
     db.prepare("DROP TABLE telegram_messages"),
@@ -1978,7 +1997,7 @@ async function ensureTelegramMessageColumns(db: D1Database) {
     `SELECT sql FROM sqlite_master
      WHERE type = 'table' AND name = 'telegram_messages'`
   ).first<{ sql: string | null }>();
-  if (!table?.sql || (table.sql.includes("resource_data") && table.sql.includes("category"))) {
+  if (!table?.sql || (table.sql.includes("resource_data") && table.sql.includes("category") && table.sql.includes("last_pushed_media_enabled"))) {
     return;
   }
   const existing = await db.prepare("PRAGMA table_info(telegram_messages)").all<{ name: string }>();
@@ -1989,6 +2008,9 @@ async function ensureTelegramMessageColumns(db: D1Database) {
   }
   if (!names.has("category")) {
     statements.push(db.prepare("ALTER TABLE telegram_messages ADD COLUMN category TEXT NOT NULL DEFAULT ''"));
+  }
+  if (!names.has("last_pushed_media_enabled")) {
+    statements.push(db.prepare("ALTER TABLE telegram_messages ADD COLUMN last_pushed_media_enabled INTEGER"));
   }
   if (statements.length) await db.batch(statements);
   await backfillTelegramMessageResources(db);
@@ -2298,10 +2320,16 @@ function parseFeedIpv6Words(hostname: string) {
   return [...leading, ...Array<number>(missing).fill(0), ...trailing];
 }
 
+export const CONTENT_SOURCE_SYNC_EPOCH_KEY = "content_source_sync_epoch";
+
 export async function syncContentSource(db: D1Database, sourceId: string) {
-  const source = await db.prepare("SELECT * FROM content_sources WHERE id = ?")
-    .bind(sourceId)
-    .first<ContentSourceRow>();
+  const source = await db.prepare(
+    `SELECT content_sources.*,
+       COALESCE((SELECT value FROM app_settings WHERE key = ?), '') AS sync_epoch
+     FROM content_sources WHERE id = ?`
+  )
+    .bind(CONTENT_SOURCE_SYNC_EPOCH_KEY, sourceId)
+    .first<ContentSourceRow & { sync_epoch: string }>();
 
   if (!source) {
     throw new InvalidRequestError("Content source not found.");
@@ -2340,19 +2368,15 @@ export async function syncContentSource(db: D1Database, sourceId: string) {
   const existingByExternalId = new Map(
     existingRows.results.map((row) => [row.external_id, row])
   );
-  const statements: D1PreparedStatement[] = [
-    db.prepare(
-      `UPDATE content_sources
-       SET site_url = ?, description = ?, updated_at = ?, last_synced_at = ?
-       WHERE id = ?`
-    ).bind(
-      source.site_url || feed.siteUrl,
-      source.description || feed.description,
-      now,
-      now,
-      source.id
-    )
+  const sourceCondition = `id = ? AND updated_at = ? AND url = ?
+    AND category = ? AND tags = ? AND enabled = ? AND site_url = ? AND description = ?
+    AND COALESCE((SELECT value FROM app_settings WHERE key = ?), '') = ?`;
+  const sourceConditionValues = [
+    source.id, source.updated_at, source.url, source.category, source.tags,
+    source.enabled, source.site_url, source.description,
+    CONTENT_SOURCE_SYNC_EPOCH_KEY, source.sync_epoch
   ];
+  const statements: D1PreparedStatement[] = [];
   const upsertRows: Array<Array<string | number | null>> = [];
 
   for (const item of syncItems) {
@@ -2390,6 +2414,7 @@ export async function syncContentSource(db: D1Database, sourceId: string) {
     }
   }
 
+  // ponytail: 每条 15 个参数，另有 10 个源守卫参数；6 条正好达到 D1 单条 SQL 的 100 参数上限。
   const upsertBatchSize = 6;
   for (let index = 0; index < upsertRows.length; index += upsertBatchSize) {
     const rows = upsertRows.slice(index, index + upsertBatchSize);
@@ -2398,11 +2423,16 @@ export async function syncContentSource(db: D1Database, sourceId: string) {
       .join(", ");
     statements.push(
       db.prepare(
-        `INSERT INTO content_items
+        `WITH incoming
+          (id, source_id, external_id, title, summary, content, url, author,
+           cover_image, category, tags, published_at, synced_at,
+           created_at, updated_at) AS (VALUES ${placeholders})
+         INSERT INTO content_items
           (id, source_id, external_id, title, summary, content, url, author,
            cover_image, category, tags, published_at, synced_at,
            created_at, updated_at)
-         VALUES ${placeholders}
+         SELECT * FROM incoming
+         WHERE EXISTS (SELECT 1 FROM content_sources WHERE ${sourceCondition})
          ON CONFLICT(source_id, external_id) DO UPDATE SET
            title = excluded.title,
            summary = excluded.summary,
@@ -2415,11 +2445,26 @@ export async function syncContentSource(db: D1Database, sourceId: string) {
            published_at = excluded.published_at,
            synced_at = excluded.synced_at,
            updated_at = excluded.updated_at`
-      ).bind(...rows.flat())
+      ).bind(...rows.flat(), ...sourceConditionValues)
     );
   }
 
-  await db.batch(statements);
+  // 同一事务内先按源快照写内容，再更新时间；删除、改配置或恢复后，整批旧结果均不写入。
+  statements.push(db.prepare(
+    `UPDATE content_sources
+     SET site_url = ?, description = ?, updated_at = ?, last_synced_at = ?
+     WHERE ${sourceCondition}`
+  ).bind(
+    source.site_url || feed.siteUrl,
+    source.description || feed.description,
+    now,
+    now,
+    ...sourceConditionValues
+  ));
+  const results = await db.batch(statements);
+  if (!results.at(-1)?.meta.changes) {
+    throw new ConflictError("Content source changed during synchronization. Please retry.");
+  }
 
   const syncResultLimit = 50;
   const rows = await db.prepare(

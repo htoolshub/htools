@@ -1,37 +1,119 @@
 [
   {
-    "updatedAt": "2026-07-10",
-    "id": "cloudssh-06884a89",
-    "name": "CloudSSH",
-    "description": "一个基于纯 Cloudflare 平台的 Web SSH 终端工具，用户通过浏览器即可远程管理目标 Linux 服务器，执行命令并实时查看输出，无需部署任何传统服务器，绝对的安全与可靠。",
-    "url": "https://github.com/newbietan/CloudSSH",
-    "demoUrl": "https://ssh.newbietan.cn/",
-    "image": "https://opengraph.githubassets.com/htools/newbietan/CloudSSH",
-    "category": "Developer Tools",
+    "createdAt": "2026-09-26T14:46:22.110Z",
+    "updatedAt": "2026-09-26T14:47:16.942Z",
+    "id": "zrfme-835c7aec",
+    "name": "ZRF.ME 聚合直播",
+    "description": "打开网页即可观看虎牙、斗鱼、哔哩哔哩、抖音、快手、网易CC、SOOP、YY 等平台的直播，不用安装客户端。",
+    "url": "https://github.com/shaoyouvip/zrfme-live",
+    "demoUrl": "https://live.zrfme.com/",
+    "image": "https://github.com/shaoyouvip/zrfme-live/raw/main/img/og.png",
+    "category": "Other Tools",
     "tags": [
-      "Cloudflare",
-      "Workers",
-      "SSH"
+      "直播",
+      "虎牙",
+      "斗鱼",
+      "哔哩哔哩",
+      "抖音",
+      "快手",
+      "网易CC"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": false
   },
   {
-    "updatedAt": "2026-07-05",
-    "id": "gptsession2cpaandsub2api-0dba2559",
-    "name": "GPTSession2CPAandSub2API",
-    "description": "将已有 ChatGPT Web session、OAuth JSON 或 Codex auth.json 转换为常见工具可导入格式。",
-    "url": "https://github.com/gtxx3600/GPTSession2CPAandSub2API",
-    "demoUrl": "https://blog.zrf.me/tool/GPTSession2CPAandSub2API/",
-    "image": "https://opengraph.githubassets.com/htools/gtxx3600/GPTSession2CPAandSub2API",
+    "createdAt": "2026-09-23T08:52:13.086Z",
+    "updatedAt": "2026-09-23T08:52:13.086Z",
+    "id": "expo-backdrop-83ee60f5",
+    "name": "expo-backdrop",
+    "description": "提供 React Native 和 Expo 原生模糊视图组件，包括 BlurView、GaussianBlurView 和 ProgressiveBlurView",
+    "url": "https://github.com/rit3zh/expo-backdrop",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/rit3zh/expo-backdrop",
+    "category": "Developer Tools",
+    "tags": [
+      "React Native",
+      "Expo",
+      "Native Blur Views",
+      "BlurView",
+      "GaussianBlurView",
+      "ProgressiveBlurView",
+      "Developer Tools"
+    ],
+    "githubLanguage": "Kotlin",
+    "githubLicense": "MIT",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-09-15T02:56:31.264Z",
+    "updatedAt": "2026-09-15T02:56:31.264Z",
+    "id": "cf-workers-webssh-fd242a46",
+    "name": "CF-Workers-WebSSH",
+    "description": "一个运行在 Cloudflare Workers 上的无依赖 WebSSH 终端：纯 TypeScript 实现 SSH 2.0 客户端，借助 Durable Objects 直连公网 SSH 服务器，前端基于 xterm.js。",
+    "url": "https://github.com/cmliu/CF-Workers-WebSSH",
+    "demoUrl": "https://webssh.hidns.vip/",
+    "image": "https://opengraph.githubassets.com/htools/cmliu/CF-Workers-WebSSH",
+    "category": "Developer Tools",
+    "tags": [
+      "Cloudflare Workers",
+      "WebSSH",
+      "SSH",
+      "TypeScript",
+      "xterm.js",
+      "Durable Objects"
+    ],
+    "githubLanguage": "TypeScript",
+    "githubLicense": "Apache-2.0",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-09-01T14:15:17.350Z",
+    "updatedAt": "2026-09-01T14:15:17.350Z",
+    "id": "edgeever-18895c85",
+    "name": "EdgeEver",
+    "description": "开源、AI 原生Evernote替代品，支持云flare或自托管Docker部署，零成本，提供三栏布局和AI助手集成",
+    "url": "https://github.com/tianma-if/edgeever",
+    "demoUrl": "https://edgeever.org/",
+    "image": "https://opengraph.githubassets.com/htools/tianma-if/edgeever",
     "category": "Other Tools",
     "tags": [
+      "Evernote",
+      "Cloudflare",
+      "Docker",
       "AI",
-      "ChatGPT"
+      "Markdown",
+      "Note-taking",
+      "Self-hosted"
     ],
+    "githubLanguage": "HTML",
+    "githubLicense": "AGPL-3.0",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-05T00:00:00.000Z",
+    "updatedAt": "2026-08-29T17:47:20.882Z",
+    "id": "nodewarden-fb7dd307",
+    "name": "nodewarden",
+    "description": "运行在 Cloudflare Workers 上的 Bitwarden 兼容服务器",
+    "url": "https://github.com/shuaiplus/nodewarden",
+    "demoUrl": "https://demo.nodewarden.app/",
+    "image": "https://opengraph.githubassets.com/htools/shuaiplus/nodewarden",
+    "category": "Other Tools",
+    "tags": [
+      "Cloudflare",
+      "Workers",
+      "D1",
+      "R2",
+      "Bitwarden"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": true
   },
   {
-    "updatedAt": "2026-07-05",
+    "createdAt": "2026-07-05T00:00:00.000Z",
+    "updatedAt": "2026-07-05T00:00:00.000Z",
     "id": "serverless-dns-e64e2aca",
     "name": "serverless-dns",
     "description": "RethinkDNS 解析器可部署到 Cloudflare Workers、Deno Deploy、Fastly 和 Fly.io。",
@@ -44,24 +126,13 @@
       "Workers",
       "DNS"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": false
   },
   {
-    "updatedAt": "2026-07-05",
-    "id": "portfolio-8687edfa",
-    "name": "Portfolio",
-    "description": "一个现代化的、响应式的个人作品集，采用 React、Vite、TypeScript、Tailwind CSS v4 和 Framer Motion 构建，具有项目/博客路由、GitHub 活动、主题切换和本地访客跟踪等功能。",
-    "url": "https://github.com/CharanMunur/portfolio",
-    "demoUrl": "https://www.charanmunur.in/",
-    "image": "https://opengraph.githubassets.com/htools/CharanMunur/portfolio",
-    "category": "Blog",
-    "tags": [
-      "Blog"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-05",
+    "createdAt": "2026-07-05T00:00:00.000Z",
+    "updatedAt": "2026-07-05T00:00:00.000Z",
     "id": "renewlet-22b25165",
     "name": "renewlet",
     "description": "一个自托管订阅账本，把 AI 辅助录入、订阅、续费日、预算、通知、日历和公开状态页放在同一个地方。适合小 VPS、NAS 和 homelab 长期运行。",
@@ -74,10 +145,47 @@
       "Workers",
       "Docker"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": false
   },
   {
-    "updatedAt": "2026-07-05",
+    "createdAt": "2026-07-05T00:00:00.000Z",
+    "updatedAt": "2026-07-05T00:00:00.000Z",
+    "id": "portfolio-8687edfa",
+    "name": "Portfolio",
+    "description": "一个现代化的、响应式的个人作品集，采用 React、Vite、TypeScript、Tailwind CSS v4 和 Framer Motion 构建，具有项目/博客路由、GitHub 活动、主题切换和本地访客跟踪等功能。",
+    "url": "https://github.com/CharanMunur/portfolio",
+    "demoUrl": "https://www.charanmunur.in/",
+    "image": "https://opengraph.githubassets.com/htools/CharanMunur/portfolio",
+    "category": "Blog",
+    "tags": [
+      "Blog"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-05T00:00:00.000Z",
+    "updatedAt": "2026-07-05T00:00:00.000Z",
+    "id": "onlyofficepersonal-21e9e114",
+    "name": "OnlyofficePersonal",
+    "description": "ONLYOFFICE Personal 是一款基于wasm运行的Office办公套件，无需服务端直接运行。",
+    "url": "https://github.com/fernfei/OnlyofficePersonal",
+    "demoUrl": "https://fernfei.github.io/office.html",
+    "image": "https://opengraph.githubassets.com/htools/fernfei/OnlyofficePersonal",
+    "category": "Other Tools",
+    "tags": [
+      "Office"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-05T00:00:00.000Z",
+    "updatedAt": "2026-07-05T00:00:00.000Z",
     "id": "html-tools-cbde9e93",
     "name": "html-tools",
     "description": "1087+ 纯前端在线工具集 | 单文件·零构建·可离线·隐私优先 | Pure HTML Tools - Single file, Zero build, Offline-ready, Privacy-first",
@@ -90,38 +198,13 @@
       "Pages",
       "Cloudflare"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": false
   },
   {
-    "updatedAt": "2026-07-05",
-    "id": "githubstarsmanager-c8b7b880",
-    "name": "GithubStarsManager",
-    "description": "一款用于管理GitHub星标仓库的应用程序。",
-    "url": "https://github.com/AmintaCCCP/GithubStarsManager",
-    "demoUrl": "https://gsm.aminta.top/",
-    "image": "https://opengraph.githubassets.com/htools/AmintaCCCP/GithubStarsManager",
-    "category": "Developer Tools",
-    "tags": [
-      "GitHub"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-05",
-    "id": "onlyofficepersonal-21e9e114",
-    "name": "OnlyofficePersonal",
-    "description": "ONLYOFFICE Personal 是一款基于wasm运行的Office办公套件，无需服务端直接运行。",
-    "url": "https://github.com/fernfei/OnlyofficePersonal",
-    "demoUrl": "https://fernfei.github.io/office.html",
-    "image": "https://opengraph.githubassets.com/htools/fernfei/OnlyofficePersonal",
-    "category": "Other Tools",
-    "tags": [
-      "Office"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-05",
+    "createdAt": "2026-07-05T00:00:00.000Z",
+    "updatedAt": "2026-07-05T00:00:00.000Z",
     "id": "hexo-theme-solitude-7273e40d",
     "name": "hexo-theme-solitude",
     "description": "一款设计师风格的 Hexo 主题，支持懒加载、PWA、Latex以及多种评论系统。",
@@ -133,28 +216,31 @@
       "Hexo",
       "blog"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": false
   },
   {
-    "updatedAt": "2026-07-05",
-    "id": "nodewarden-fb7dd307",
-    "name": "nodewarden",
-    "description": "运行在 Cloudflare Workers 上的 Bitwarden 兼容服务器",
-    "url": "https://github.com/shuaiplus/nodewarden",
-    "demoUrl": "https://nodewarden.app/",
-    "image": "https://opengraph.githubassets.com/htools/shuaiplus/nodewarden",
+    "createdAt": "2026-07-05T00:00:00.000Z",
+    "updatedAt": "2026-07-05T00:00:00.000Z",
+    "id": "gptsession2cpaandsub2api-0dba2559",
+    "name": "GPTSession2CPAandSub2API",
+    "description": "将已有 ChatGPT Web session、OAuth JSON 或 Codex auth.json 转换为常见工具可导入格式。",
+    "url": "https://github.com/gtxx3600/GPTSession2CPAandSub2API",
+    "demoUrl": "https://blog.zrf.me/tool/GPTSession2CPAandSub2API/",
+    "image": "https://opengraph.githubassets.com/htools/gtxx3600/GPTSession2CPAandSub2API",
     "category": "Other Tools",
     "tags": [
-      "Cloudflare",
-      "Workers",
-      "D1",
-      "R2",
-      "Bitwarden"
+      "AI",
+      "ChatGPT"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": true
   },
   {
-    "updatedAt": "2026-07-05",
+    "createdAt": "2026-07-05T00:00:00.000Z",
+    "updatedAt": "2026-07-05T00:00:00.000Z",
     "id": "gmailalias-81785bd3",
     "name": "GmailAlias",
     "description": "Gmail Alias 是一个纯静态的 Gmail 别名生成器，用于快速生成和检测 Gmail 点号别名、加号别名以及综合别名。",
@@ -167,10 +253,30 @@
       "GmailAlias",
       "Pages"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": false
   },
   {
-    "updatedAt": "2026-07-05",
+    "createdAt": "2026-07-05T00:00:00.000Z",
+    "updatedAt": "2026-07-05T00:00:00.000Z",
+    "id": "githubstarsmanager-c8b7b880",
+    "name": "GithubStarsManager",
+    "description": "一款用于管理GitHub星标仓库的应用程序。",
+    "url": "https://github.com/AmintaCCCP/GithubStarsManager",
+    "demoUrl": "https://gsm.aminta.top/",
+    "image": "https://opengraph.githubassets.com/htools/AmintaCCCP/GithubStarsManager",
+    "category": "Developer Tools",
+    "tags": [
+      "GitHub"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-05T00:00:00.000Z",
+    "updatedAt": "2026-07-05T00:00:00.000Z",
     "id": "cloudflaretempemail",
     "name": "cloudflaretempemail",
     "description": "使用 cloudflare 免费服务，搭建临时邮箱，D1 作为数据库，带有前端及后端，支持多国语言及自动回复功能，支持附件 IMAP SMTP",
@@ -183,10 +289,13 @@
       "D1",
       "Open Source"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": true
   },
   {
-    "updatedAt": "2026-07-04",
+    "createdAt": "2026-07-04T00:00:00.000Z",
+    "updatedAt": "2026-07-04T00:00:00.000Z",
     "id": "edgeone-proxy-a5605bd6",
     "name": "Edgeone-proxy",
     "description": "一个基于 EdgeOne Pages Functions 的轻量代理页面，包含静态前端和两个 Functions 代理入口。",
@@ -199,10 +308,13 @@
       "Pages",
       "proxy"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": false
   },
   {
-    "updatedAt": "2026-07-04",
+    "createdAt": "2026-07-04T00:00:00.000Z",
+    "updatedAt": "2026-07-04T00:00:00.000Z",
     "id": "cloudflare-imgbed",
     "name": "CloudFlare-ImgBed",
     "description": "基于CloudFlare和Telegraph的免费图床，本仓库基于https://github.com/cf-pages/Telegraph-Image ，是原项目前端页面的重制版。开源、清晰、美观、动画丝滑、玩法多样！",
@@ -216,323 +328,13 @@
       "Image",
       "Open Source"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": false
   },
   {
-    "updatedAt": "2026-07-02",
-    "id": "openclaw-monitor",
-    "name": "OpenClaw Monitor",
-    "description": "Real-time AI agent monitoring dashboard for OpenClaw. Tracks Gateway status, sessions, token usage & trends with Vue 3 + ECharts.",
-    "url": "https://github.com/flik2002/openclaw-monitor",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/flik2002/openclaw-monitor",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "AI",
-      "Monitor",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "telegraph-image-hosting",
-    "name": "Telegraph-Image-Hosting",
-    "description": "使用 Telegraph 构建免费图像托管",
-    "url": "https://github.com/missuo/Telegraph-Image-Hosting",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/missuo/Telegraph-Image-Hosting",
-    "category": "Image Hosting",
-    "tags": [
-      "Image Hosting",
-      "Image",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cf-image-hosting",
-    "name": "cf-image-hosting",
-    "description": "在 Telegraph 上免费无限制地托管图像，部署在 Cloudflare 上。",
-    "url": "https://github.com/ifyour/cf-image-hosting",
-    "demoUrl": "https://images.mingming.dev",
-    "image": "https://opengraph.githubassets.com/htools/ifyour/cf-image-hosting",
-    "category": "Image Hosting",
-    "tags": [
-      "Image Hosting",
-      "Image",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "img-mom",
-    "name": "img-mom",
-    "description": "基于 Cloudflare Workers 运行时构建, 轻量使用完全免费，支持多种图床（Telegram/Cloudfalre R2/Backblaze B2, 更多图床正在支持中），快速部署。使用 Wrangler 可快速实现自部署",
-    "url": "https://github.com/beilunyang/img-mom",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/beilunyang/img-mom",
-    "category": "Image Hosting",
-    "tags": [
-      "Image Hosting",
-      "Workers",
-      "R2",
-      "Image",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "workers-image-hosting",
-    "name": "workers-image-hosting",
-    "description": "基于cloudflare workers数据存储于KV的图床",
-    "url": "https://github.com/iiop123/workers-image-hosting",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/iiop123/workers-image-hosting",
-    "category": "Image Hosting",
-    "tags": [
-      "Image Hosting",
-      "Workers",
-      "KV",
-      "Image",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "telegraph-image",
-    "name": "Telegraph-Image",
-    "description": "免费图片托管解决方案，Flickr/imgur 替代品。使用 Cloudflare Pages 和 Telegraph。",
-    "url": "https://github.com/cf-pages/Telegraph-Image",
-    "demoUrl": "https://im.gurl.eu.org",
-    "image": "https://opengraph.githubassets.com/htools/cf-pages/Telegraph-Image",
-    "category": "Image Hosting",
-    "tags": [
-      "Image Hosting",
-      "Pages",
-      "Image",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cloudflare-worker-image",
-    "name": "cloudflare-worker-image",
-    "description": "使用 Cloudflare Worker 处理图片, 依赖 Photon，支持缩放、剪裁、水印、滤镜等功能。",
-    "url": "https://github.com/ccbikai/cloudflare-worker-image",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/ccbikai/cloudflare-worker-image",
-    "category": "Image Hosting",
-    "tags": [
-      "Image Hosting",
-      "Workers",
-      "Image",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "tgstate",
-    "name": "tgState",
-    "description": "使用Telegram作为存储的外链系统，不限制大小和格式。",
-    "url": "https://github.com/csznet/tgState",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/csznet/tgState",
-    "category": "Image Hosting",
-    "tags": [
-      "Image Hosting",
-      "Image",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "telegraph-image-2",
-    "name": "telegraph-Image",
-    "description": "一个图床。",
-    "url": "https://github.com/x-dr/telegraph-Image",
-    "demoUrl": "https://img.131213.xyz",
-    "image": "https://opengraph.githubassets.com/htools/x-dr/telegraph-Image",
-    "category": "Image Hosting",
-    "tags": [
-      "Image Hosting",
-      "Image",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "roim-picx",
-    "name": "roim-picx",
-    "description": "基于CloudFlare Pages和R2实现的免费图床。",
-    "url": "https://github.com/roimdev/roim-picx",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/roimdev/roim-picx",
-    "category": "Image Hosting",
-    "tags": [
-      "Image Hosting",
-      "Pages",
-      "R2",
-      "Image",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "imguu",
-    "name": "imgUU",
-    "description": "一个基于Cloudflare D1和R2构建的免费图片上传应用Github登陆管理。",
-    "url": "https://github.com/yestool/imgUU",
-    "demoUrl": "https://imguu.net",
-    "image": "https://opengraph.githubassets.com/htools/yestool/imgUU",
-    "category": "Image Hosting",
-    "tags": [
-      "Image Hosting",
-      "D1",
-      "R2",
-      "Image",
-      "Open Source"
-    ],
-    "featured": true
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cloudflare-r2-telegram-bot",
-    "name": "cloudflare-r2-telegram-bot",
-    "description": "基于cloudflare worker与R2存储桶的图床机器人。",
-    "url": "https://github.com/xinycai/cloudflare-r2-telegram-bot",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/xinycai/cloudflare-r2-telegram-bot",
-    "category": "Image Hosting",
-    "tags": [
-      "Image Hosting",
-      "Workers",
-      "R2",
-      "Image",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "pixr2",
-    "name": "PixR2",
-    "description": "基于 Cloudflare Workers + R2 的多入口图床与图片管理平台",
-    "url": "https://github.com/WangQueXL/PixR2",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/WangQueXL/PixR2",
-    "category": "Image Hosting",
-    "tags": [
-      "Image Hosting",
-      "Workers",
-      "R2",
-      "Image",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "vmail",
-    "name": "vmail",
-    "description": "📫 Open source temporary email tool. 开源临时邮箱工具，支持收发邮件。",
-    "url": "https://github.com/oiov/vmail",
-    "demoUrl": "https://vmail.dev",
-    "image": "https://opengraph.githubassets.com/htools/oiov/vmail",
-    "category": "Email",
-    "tags": [
-      "Email",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "smail",
-    "name": "smail",
-    "description": "临时邮箱服务",
-    "url": "https://github.com/akazwz/smail",
-    "demoUrl": "https://smail.pw",
-    "image": "https://opengraph.githubassets.com/htools/akazwz/smail",
-    "category": "Email",
-    "tags": [
-      "Email",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "email-ml",
-    "name": "Email.ML",
-    "description": "一个运行在 Cloudflare 网络中的临时邮箱",
-    "url": "https://email.ml",
-    "demoUrl": "",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://email.ml",
-    "category": "Email",
-    "tags": [
-      "Email"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "mail2telegram",
-    "name": "mail2telegram",
-    "description": "这是一个基于 Cloudflare Email Routing Worker 的 Telegram Bot，可以将电子邮件转换为 Telegram 消息。您可以将任何前缀的收件人的电子邮件转发到 Bot，然后将创建一个具有无限地址的临时邮箱 Bot。",
-    "url": "https://github.com/TBXark/mail2telegram",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/TBXark/mail2telegram",
-    "category": "Email",
-    "tags": [
-      "Email",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "authinbox",
-    "name": "AuthInbox",
-    "description": "一个自建的开源多邮箱验证码的接码平台，基于 Cloudflare 的免费服务。它可以自动处理收到的邮件，提取验证码或链接，并将其存储在数据库中。管理员可以通过一个用户友好的网页界面轻松查看提取的信息。AuthInbox 还支持通过 Bark 进行实时通知，使其成为一个全面且省心的邮件认证管理解决方案。",
-    "url": "https://github.com/TooonyChen/AuthInbox",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/TooonyChen/AuthInbox",
-    "category": "Email",
-    "tags": [
-      "Email",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "moemail",
-    "name": "moemail",
-    "description": "MoeMail - 基于 NextJS + Cloudflare 技术栈构建的可爱临时邮箱服务 。",
-    "url": "https://github.com/beilunyang/moemail",
-    "demoUrl": "https://moemail.app",
-    "image": "https://opengraph.githubassets.com/htools/beilunyang/moemail",
-    "category": "Email",
-    "tags": [
-      "Email",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
     "id": "zmail",
     "name": "zmail",
     "description": "Z-Mail - 基于 CloudFlare 的 pages、worker 以及 D1 SQL 搭建的极简临时邮箱服务，支持接收附件。",
@@ -547,836 +349,13 @@
       "D1",
       "Open Source"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": false
   },
   {
-    "updatedAt": "2026-07-02",
-    "id": "cloud-mail",
-    "name": "cloud-mail",
-    "description": "用Vue3开发的响应式简约邮箱服务，支持邮件发送附件收发，可以部署到Cloudflare云平台。",
-    "url": "https://github.com/LaziestRen/cloud-mail",
-    "demoUrl": "https://skymail.ink",
-    "image": "https://opengraph.githubassets.com/htools/LaziestRen/cloud-mail",
-    "category": "Email",
-    "tags": [
-      "Email",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "alle",
-    "name": "Alle",
-    "description": "AI识别的邮件聚合客户端，支持验证码提取、链接分类、临时邮箱服务。基于Cloudflare Workers + Next.js构建，无需服务器，仅需一个域名即可部署。",
-    "url": "https://github.com/bestruirui/Alle",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/bestruirui/Alle",
-    "category": "Email",
-    "tags": [
-      "Email",
-      "Workers",
-      "AI",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "freetempmail",
-    "name": "FreeTempMail",
-    "description": "清爽简约风的永久免费临时邮件服务。保护用户隐私数据，支持i18n国际化，即用即走。基于NuxtPro模板和CF开发。",
-    "url": "https://github.com/PennyJoly/FreeTempMail",
-    "demoUrl": "https://mail.aitre.cc",
-    "image": "https://opengraph.githubassets.com/htools/PennyJoly/FreeTempMail",
-    "category": "Email",
-    "tags": [
-      "Email",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cloudflare-workers-blog",
-    "name": "cloudflare-workers-blog",
-    "description": "这是一个运行在cloudflare workers 上的博客程序,使用 cloudflare KV作为数据库,无其他依赖. 兼容静态博客的速度,以及动态博客的灵活性,方便搭建不折腾.",
-    "url": "https://github.com/gdtool/cloudflare-workers-blog",
-    "demoUrl": "https://blog.gezhong.vip",
-    "image": "https://opengraph.githubassets.com/htools/gdtool/cloudflare-workers-blog",
-    "category": "Blog",
-    "tags": [
-      "Blog",
-      "Workers",
-      "KV",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cloudflare-workers-blog-2",
-    "name": "cloudflare-workers-blog",
-    "description": "Cloudflare workers + Github 实现的动态博客系统，使用边缘计算，无需服务器",
-    "url": "https://github.com/kasuganosoras/cloudflare-worker-blog",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/kasuganosoras/cloudflare-worker-blog",
-    "category": "Blog",
-    "tags": [
-      "Blog",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "microfeed",
-    "name": "microfeed",
-    "description": "一个在 Cloudflare 上自托管的轻量级内容管理系统 (CMS)。通过 microfeed，您可以轻松地将各种内容（例如音频、视频、照片、文档、博客文章和外部 URL）以 Web、RSS 和 JSON 的形式发布到 feed。对于想要自行托管自己的 CMS 而无需运行自己的服务器的精通技术的个人来说，这是完美的解决方案。",
-    "url": "https://github.com/microfeed/microfeed",
-    "demoUrl": "https://www.microfeed.org",
-    "image": "https://opengraph.githubassets.com/htools/microfeed/microfeed",
-    "category": "Blog",
-    "tags": [
-      "Blog",
-      "Short Link",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "emaction-frontend",
-    "name": "emaction.frontend",
-    "description": "基于Cloudflare D1实现的 GitHub 风格的 Reactions 点赞功能， 本项目是前端。",
-    "url": "https://github.com/emaction/emaction.frontend",
-    "demoUrl": "https://emaction.cool",
-    "image": "https://opengraph.githubassets.com/htools/emaction/emaction.frontend",
-    "category": "Blog",
-    "tags": [
-      "Blog",
-      "D1",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "emaction-backend",
-    "name": "emaction.backend",
-    "description": "基于Cloudflare D1实现的 GitHub 风格的 Reactions 点赞功能， 本项目是后端。",
-    "url": "https://github.com/emaction/emaction.backend",
-    "demoUrl": "https://emaction.cool",
-    "image": "https://opengraph.githubassets.com/htools/emaction/emaction.backend",
-    "category": "Blog",
-    "tags": [
-      "Blog",
-      "D1",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "serverless-cloud-notepad",
-    "name": "serverless-cloud-notepad",
-    "description": "基于 Cloudflare Worker 实现的Serverless Cloud Notepad 云笔记。",
-    "url": "https://github.com/s0urcelab/serverless-cloud-notepad",
-    "demoUrl": "https://note.src.moe/y6y",
-    "image": "https://opengraph.githubassets.com/htools/s0urcelab/serverless-cloud-notepad",
-    "category": "Blog",
-    "tags": [
-      "Blog",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "rin",
-    "name": "Rin",
-    "description": "Rin 是一个基于 Cloudflare Pages + Workers + D1 + R2 全家桶的博客，无需服务器无需备案，只需要一个解析到 Cloudflare 的域名即可部署。",
-    "url": "https://github.com/openRin/Rin",
-    "demoUrl": "https://docs.openrin.org",
-    "image": "https://opengraph.githubassets.com/htools/openRin/Rin",
-    "category": "Blog",
-    "tags": [
-      "Blog",
-      "Workers",
-      "Pages",
-      "D1",
-      "R2"
-    ],
-    "featured": true
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cf-comment",
-    "name": "cf-comment",
-    "description": "一个基于 Cloudflare Workers 运行的简单评论系统，支持回复、点赞、举报以及管理员后台管理功能；同时提供中英双语切换，方便更广泛地使用。",
-    "url": "https://github.com/joyance-professional/cf-comment",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/joyance-professional/cf-comment",
-    "category": "Blog",
-    "tags": [
-      "Blog",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "gins-blog",
-    "name": "Gins-Blog",
-    "description": "一个高性能、Agentic-First 的博客平台。完全基于 Cloudflare 生态 (Workers, Pages, D1, KV, R2, Vectorize)。内置 MCP 协议，支持通过 OpenClaw 零人工自动部署。",
-    "url": "https://github.com/IchimaruGin728/Gins-Blog",
-    "demoUrl": "https://blog.ichimarugin728.com",
-    "image": "https://opengraph.githubassets.com/htools/IchimaruGin728/Gins-Blog",
-    "category": "Blog",
-    "tags": [
-      "Blog",
-      "Workers",
-      "Pages",
-      "D1",
-      "R2"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "tool",
-    "name": "讀角獸",
-    "description": "使用 Cloudflare Pages + Workers + D1 + KV + R2 全家桶構建的繁體中文深度分析出版物。Astro 4 hybrid SSR，零外部服務依賴。",
-    "url": "https://ducorn.com",
-    "demoUrl": "https://ducorn.com",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://ducorn.com",
-    "category": "Blog",
-    "tags": [
-      "Blog",
-      "Workers",
-      "Pages",
-      "D1",
-      "R2"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "one-stroke-fan",
-    "name": "One Stroke Fan",
-    "description": "基于 Astro 构建并部署在 Cloudflare Pages 的多语言粉丝站。支持 9 种语言、100+ 页面、sitemap / hreflang / JSON-LD / llms.txt，纯静态零成本运行。",
-    "url": "https://one-stroke.savetimefor.fun",
-    "demoUrl": "",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://one-stroke.savetimefor.fun",
-    "category": "Blog",
-    "tags": [
-      "Blog",
-      "Pages",
-      "AI",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "nextflare",
-    "name": "nextflare",
-    "description": "Next.js App running with Lemon Squeezy on Cloudflare.",
-    "url": "https://github.com/ccbikai/nextflare",
-    "demoUrl": "https://nextflare-template.pages.dev",
-    "image": "https://opengraph.githubassets.com/htools/ccbikai/nextflare",
-    "category": "Web Framework",
-    "tags": [
-      "Web Framework",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "short-2",
-    "name": "short",
-    "description": "一个使用 Cloudflare Pages 创建的 URL 缩短器。",
-    "url": "https://github.com/x-dr/short",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/x-dr/short",
-    "category": "Short Link",
-    "tags": [
-      "Short Link",
-      "Pages",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "linklet",
-    "name": "linklet",
-    "description": "一个使用 Cloudflare Pages 创建的 URL 缩短器。这个是基于API模式实现，使用场景更多一些",
-    "url": "https://github.com/harrisonwang/linklet",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/harrisonwang/linklet",
-    "category": "Short Link",
-    "tags": [
-      "Short Link",
-      "Pages",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "url-shorten-worker",
-    "name": "Url-Shorten-Worker",
-    "description": "使用秘密路径访问操作页面。支持自定义短链。API 不公开服务。页面缓存设置过的短链。长链接文本框预搜索localStorage。增加删除某条短链的按钮。增加读取KV的按钮。变身网络记事本 Pastebin。变身图床 Image Hosting。A URL Shortener created using Cloudflare worker and KV",
-    "url": "https://github.com/crazypeace/Url-Shorten-Worker",
-    "demoUrl": "https://urlsrv.crazypeace.workers.dev/bodongshouqulveweifengci",
-    "image": "https://opengraph.githubassets.com/htools/crazypeace/Url-Shorten-Worker",
-    "category": "Short Link",
-    "tags": [
-      "Short Link",
-      "Workers",
-      "KV",
-      "Image",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "duanwangzhi",
-    "name": "duanwangzhi",
-    "description": "无需服务即可缩短您的链接，因为它基于 Cloudflare 工作人员功能，具有极简风格。",
-    "url": "https://github.com/Closty/duanwangzhi",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/Closty/duanwangzhi",
-    "category": "Short Link",
-    "tags": [
-      "Short Link",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "url-shorten-worker-2",
-    "name": "Url-Shorten-Worker",
-    "description": "这个是fork的crazypeace的Url-Shorten-Worker， 使用秘密路径访问操作页面。支持自定义短链。API 不公开服务。页面缓存设置过的短链。长链接文本框预搜索localStorage。增加删除某条短链的按钮。增加读取KV的按钮。变身网络记事本 Pastebin。变身图床 Image Hosting。A URL Shortener created using Cloudflare worker and KV。",
-    "url": "https://github.com/horsemail/Url-Shorten-Worker",
-    "demoUrl": "https://1way.eu.org/bodongshouqulveweifengci",
-    "image": "https://opengraph.githubassets.com/htools/horsemail/Url-Shorten-Worker",
-    "category": "Short Link",
-    "tags": [
-      "Short Link",
-      "Workers",
-      "KV",
-      "Email",
-      "Image"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cloudflare-pages-urlshorten",
-    "name": "CloudFlare-Pages-UrlShorten",
-    "description": "一个多功能的URL短链工具。",
-    "url": "https://github.com/Jiaocz/CloudFlare-Pages-UrlShorten",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/Jiaocz/CloudFlare-Pages-UrlShorten",
-    "category": "Short Link",
-    "tags": [
-      "Short Link",
-      "Pages",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "url-shorten-worker-3",
-    "name": "Url-Shorten-Worker",
-    "description": "在原分支和 crazypeace 分支部分功能基础上优化了页面，增加了管理员用户、访客身份，增加正则表达式匹配功能，支持了环境变量配置，以及其他细节性改进。",
-    "url": "https://github.com/Monopink/Url-Shorten-Worker",
-    "demoUrl": "https://url-shortener-demo.jhw.li",
-    "image": "https://opengraph.githubassets.com/htools/Monopink/Url-Shorten-Worker",
-    "category": "Short Link",
-    "tags": [
-      "Short Link",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cloudflareworker-kv-urlshort",
-    "name": "CloudflareWorker-KV-UrlShort",
-    "description": "使用Cloudflare Worker创建的URL缩短器, 支持自定义首页, 支持Menu Short, 支持短网址、文本、网页分享 URL。",
-    "url": "https://github.com/Ai-Yolo/CloudflareWorker-KV-UrlShort",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/Ai-Yolo/CloudflareWorker-KV-UrlShort",
-    "category": "Short Link",
-    "tags": [
-      "Short Link",
-      "Workers",
-      "KV",
-      "AI",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "sink",
-    "name": "Sink",
-    "description": "ccbikai/Sink 是一个在 Cloudflare 上完全运行的简单、快速、安全的链接缩短器，具备分析功能和控制台面板.",
-    "url": "https://github.com/ccbikai/Sink",
-    "demoUrl": "https://sink.cool",
-    "image": "https://opengraph.githubassets.com/htools/ccbikai/Sink",
-    "category": "Short Link",
-    "tags": [
-      "Short Link",
-      "Analytics",
-      "Open Source"
-    ],
-    "featured": true
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cfworkerurls",
-    "name": "CFWorkerUrls",
-    "description": "一个基于CF Worker的短链接跳转服务，支持Lucky STUN自动化 。",
-    "url": "https://github.com/PIKACHUIM/CFWorkerUrls",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/PIKACHUIM/CFWorkerUrls",
-    "category": "Short Link",
-    "tags": [
-      "Short Link",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "analyticswithcloudflare",
-    "name": "analyticswithcloudflare",
-    "description": "免费开源网页访客计数器, Webviso 是一个基于Cloudflare worker服务+Cloudflare D1数据库实现的完全免费的在线web访客统计服务。 功能与目前常用的 不蒜子 - 极简网页计数器 相同。Webviso完全开源，你可以实现自定义需求。 基于Cloudflare的微服务架构可快速自行部署上线。",
-    "url": "https://github.com/yestool/analytics_with_cloudflare",
-    "demoUrl": "https://webviso.yestool.org",
-    "image": "https://opengraph.githubassets.com/htools/yestool/analytics_with_cloudflare",
-    "category": "Analytics",
-    "tags": [
-      "Analytics",
-      "Workers",
-      "D1",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "counterscale",
-    "name": "counterscale",
-    "description": "Counterscale 是一个简单的 Web 分析跟踪器和仪表板，效果和 umami 类似，您可以在 Cloudflare 上自行托管。它的设计易于部署和维护，即使在高流量的情况下，您的操作成本也应该接近于零（Cloudflare 的免费套餐假设可以支持每天高达 10 万次点击）。",
-    "url": "https://github.com/benvinegar/counterscale",
-    "demoUrl": "https://counterscale.dev",
-    "image": "https://opengraph.githubassets.com/htools/benvinegar/counterscale",
-    "category": "Analytics",
-    "tags": [
-      "Analytics",
-      "Open Source"
-    ],
-    "featured": true
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "hananalytics",
-    "name": "HanAnalytics",
-    "description": "一个部署在Cloudflare Pages上的简单的网络分析跟踪器和仪表板，是umami的精简版，它支持设备查看、来源查看、国家地区及设备OS等数据查看分析，支持密码访问，域名白名单等功能。",
-    "url": "https://github.com/uxiaohan/HanAnalytics",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/uxiaohan/HanAnalytics",
-    "category": "Analytics",
-    "tags": [
-      "Analytics",
-      "Pages",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "pageguard",
-    "name": "PageGuard",
-    "description": "免费网站健康扫描器，基于 Cloudflare Workers + D1 + Workers AI（Llama 3.1）。检查 SEO、性能（Core Web Vitals）、无障碍（WCAG 2.1）、最佳实践，30 秒出 AI 诊断报告，无需注册登录。",
-    "url": "https://pageguard.org",
-    "demoUrl": "",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://pageguard.org",
-    "category": "Analytics",
-    "tags": [
-      "Analytics",
-      "Workers",
-      "D1",
-      "AI",
-      "Open Source"
-    ],
-    "featured": true
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "beam",
-    "name": "Beam",
-    "description": "轻量级、无 Cookie、GDPR 合规的网页分析服务，基于 Cloudflare Workers + D1 构建。无需 Cookie 即可收集页面浏览数据，隐私友好，可自部署。",
-    "url": "https://github.com/scobb/beam",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/scobb/beam",
-    "category": "Analytics",
-    "tags": [
-      "Analytics",
-      "Workers",
-      "D1",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cloudflared-web",
-    "name": "Cloudflared-web",
-    "description": "Cloudflared-web 是一个 docker 镜像，它打包了 cloudflared cli 和简单的 Web UI，以便轻松启动/停止 cloudflare 隧道。",
-    "url": "https://github.com/WisdomSky/Cloudflared-web",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/WisdomSky/Cloudflared-web",
-    "category": "Tunnel",
-    "tags": [
-      "Tunnel",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "gh-proxy",
-    "name": "gh-proxy",
-    "description": "github release、archive以及项目的加速项目，支持clone，有Cloudflare Workers无服务器版本以及Python版本。",
-    "url": "https://github.com/hunshcn/gh-proxy",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/hunshcn/gh-proxy",
-    "category": "Acceleration",
-    "tags": [
-      "Acceleration",
-      "Workers",
-      "Proxy",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "githubbox",
-    "name": "githubbox",
-    "description": "在 CodeSandbox 中快速打开任何 GitHub 存储库。",
-    "url": "https://github.com/dferber90/githubbox",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/dferber90/githubbox",
-    "category": "Acceleration",
-    "tags": [
-      "Acceleration",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "gh-proxy-2",
-    "name": "gh-proxy",
-    "description": "github release、archive以及项目文件的加速项目. 支持 api.github.com, git.io.",
-    "url": "https://github.com/crazypeace/gh-proxy",
-    "demoUrl": "https://ghproxy.lvedong.eu.org",
-    "image": "https://opengraph.githubassets.com/htools/crazypeace/gh-proxy",
-    "category": "Acceleration",
-    "tags": [
-      "Acceleration",
-      "Proxy",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cf-proxy-ex",
-    "name": "cf-proxy-ex",
-    "description": "Cloudflare超级代理，Duckduckgo代理（可用AI聊天），OpenAI/ChatGPT代理，Github加速，在线代理。Cloudflare super proxy, setting up a free proxy by using Cloudflare worker.",
-    "url": "https://github.com/1234567Yang/cf-proxy-ex",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/1234567Yang/cf-proxy-ex",
-    "category": "Acceleration",
-    "tags": [
-      "Acceleration",
-      "Workers",
-      "AI",
-      "Proxy",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cloudflare-docker-proxy",
-    "name": "cloudflare-docker-proxy",
-    "description": "一个名为 cloudflare-docker-proxy 的项目，这是一个在 Cloudflare Worker 上运行的 Docker Hub 注册代理.",
-    "url": "https://github.com/ciiiii/cloudflare-docker-proxy",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/ciiiii/cloudflare-docker-proxy",
-    "category": "Acceleration",
-    "tags": [
-      "Acceleration",
-      "Workers",
-      "Proxy",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cf-workers-docker-io",
-    "name": "CF-Workers-docker.io",
-    "description": "这个项目是一个基于 Cloudflare Workers 的 Docker 镜像代理工具。它能够中转对 Docker 官方镜像仓库的请求，解决一些访问限制和加速访问的问题.",
-    "url": "https://github.com/cmliu/CF-Workers-docker.io",
-    "demoUrl": "https://docker.fxxk.dedyn.io",
-    "image": "https://opengraph.githubassets.com/htools/cmliu/CF-Workers-docker.io",
-    "category": "Acceleration",
-    "tags": [
-      "Acceleration",
-      "Workers",
-      "Proxy",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "page-api-forwarder",
-    "name": "Page-api-forwarder",
-    "description": "它可以帮助您绕过某些API上的IP限制，并且由于它通过Cloudflare，因此速度很快。",
-    "url": "https://github.com/xinjianzhanghao/page-api-forwarder",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/xinjianzhanghao/page-api-forwarder",
-    "category": "Acceleration",
-    "tags": [
-      "Acceleration",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "ai-worker",
-    "name": "AI-worker",
-    "description": "通过Cloudflare免费、私有化访问和管理Gemini摆脱地域限制无烦恼，完全由自己掌控。",
-    "url": "https://github.com/qyjoy/AI-worker",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/qyjoy/AI-worker",
-    "category": "Acceleration",
-    "tags": [
-      "Acceleration",
-      "Workers",
-      "AI",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "gemini-balance-do",
-    "name": "gemini-balance-do",
-    "description": "基于 Cloudflare Worker 和 Durable Objects 实现的 Gemini API 中转（多key负载均衡），稳定美国 IP 访问 Gemini",
-    "url": "https://github.com/zaunist/gemini-balance-do",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/zaunist/gemini-balance-do",
-    "category": "Acceleration",
-    "tags": [
-      "Acceleration",
-      "Workers",
-      "AI",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "llmkit",
-    "name": "LLMKit",
-    "description": "Open-source AI API gateway built on CF Workers + Durable Objects. Cost tracking, budget enforcement, rate limiting for 11 LLM providers (OpenAI, Anthropic, Gemini, etc). TypeScript SDK, CLI, MCP server. MIT license.",
-    "url": "https://github.com/smigolsmigol/llmkit",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/smigolsmigol/llmkit",
-    "category": "Acceleration",
-    "tags": [
-      "Acceleration",
-      "Workers",
-      "AI",
-      "Open Source"
-    ],
-    "featured": true
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "pastebin-worker",
-    "name": "pastebin-worker",
-    "description": "介绍一个部署在 Cloudflare Workers 上的开源 Pastebin，通过URL分享\"文本\"或\"文件\"。如CF免费套餐：每天允许 10W 次读取、1000 次写入和 删除操作，大小限制在 25 MB 以下，轻量用足够了。自己部署或直接用。它还有“删除时间设置”和“密码”功能，可以设置一段时间后删除您的paste。用于twitter分享文件和文本，极好",
-    "url": "https://github.com/SharzyL/pastebin-worker",
-    "demoUrl": "https://shz.al",
-    "image": "https://opengraph.githubassets.com/htools/SharzyL/pastebin-worker",
-    "category": "File Sharing",
-    "tags": [
-      "File Sharing",
-      "Workers",
-      "Short Link",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "fileworker",
-    "name": "FileWorker",
-    "description": "运行在Cloudflare Worker上的在线剪贴板/文件共享",
-    "url": "https://github.com/yllhwa/FileWorker",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/yllhwa/FileWorker",
-    "category": "File Sharing",
-    "tags": [
-      "File Sharing",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "dingding",
-    "name": "dingding",
-    "description": "一款基于cloudflare workers的文件传输工具，文件存储在cloudflare KV中",
-    "url": "https://github.com/iiop123/dingding",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/iiop123/dingding",
-    "category": "File Sharing",
-    "tags": [
-      "File Sharing",
-      "Workers",
-      "KV",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cf-files-sharing",
-    "name": "cf-files-sharing",
-    "description": "在该项目中，利用 Cloudflare Workers 的全球加速优势，实现了一个支持密码保护的文件分享工具，并集成了 Cloudflare 的 D1 数据库和 R2 存储，以满足不同大小文件的存储需求",
-    "url": "https://github.com/joyance-professional/cf-files-sharing",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/joyance-professional/cf-files-sharing",
-    "category": "File Sharing",
-    "tags": [
-      "File Sharing",
-      "Workers",
-      "D1",
-      "R2",
-      "Proxy"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cloudpaste",
-    "name": "CloudPaste",
-    "description": "基于Cloudflare的在线文本/大文件分享平台，支持多种语法 Markdown 渲染、阅后即焚、S3/WebDav/TG/OneDrive等多存储聚合、密码保护等功能，可作为WebDav挂载，支持Docker部署。",
-    "url": "https://github.com/ling-drag0n/CloudPaste",
-    "demoUrl": "https://doc.cloudpaste.qzz.io",
-    "image": "https://opengraph.githubassets.com/htools/ling-drag0n/CloudPaste",
-    "category": "File Sharing",
-    "tags": [
-      "File Sharing",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cf-drop",
-    "name": "cf-drop",
-    "description": "一个「文件传输助手」，运行在 Cloudflare Worker + R2 + D1。具备PWA移动端优化、支持多线程文件下载、访问密码、打包下载tarball 等功能。界面简单易用，可放到浏览器侧栏，或者添加到手机桌面上快速使用。",
-    "url": "https://github.com/lyonbot/cf-drop",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/lyonbot/cf-drop",
-    "category": "File Sharing",
-    "tags": [
-      "File Sharing",
-      "Workers",
-      "D1",
-      "R2",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "serverless-webdav",
-    "name": "serverless-webdav",
-    "description": "基于 Cloudflare Workers 和 Cloudflare D1 数据库 构建的轻量级、可扩展的 WebDAV 服务器实现。",
-    "url": "https://github.com/jiacai2050/my-works/blob/main/serverless-webdav/README.zh-CN.md",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/jiacai2050/my-works",
-    "category": "File Sharing",
-    "tags": [
-      "File Sharing",
-      "Workers",
-      "D1",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "r2drop",
-    "name": "R2Drop",
-    "description": "Native macOS menu bar app for uploading files to Cloudflare R2. Built with Swift + Rust, supports drag-and-drop, automatic URL copying, and multiple bucket management.",
-    "url": "https://github.com/superhumancorp/r2drop",
-    "demoUrl": "https://r2drop.com",
-    "image": "https://opengraph.githubassets.com/htools/superhumancorp/r2drop",
-    "category": "File Sharing",
-    "tags": [
-      "File Sharing",
-      "R2",
-      "Short Link",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "k-vault",
-    "name": "K-Vault",
-    "description": "基于 Cloudflare 的 Serverless 聚合云盘。以 Telegram 为核心，兼容 R2、S3、Discord、HuggingFace 等多存储后端，支持 Webhook 直传、2GB 扩展、内容审核和自定义域名。",
-    "url": "https://github.com/katelya77/K-Vault",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/katelya77/K-Vault",
-    "category": "File Sharing",
-    "tags": [
-      "File Sharing",
-      "R2",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
     "id": "zerolink",
     "name": "ZeroLink",
     "description": "零知识安全传递工具，无账号、端到端加密、服务器无法解密；支持 Password / Passkey 双模式，适合安全传递密码、API Token、恢复码、私密消息和敏感文件。基于 Cloudflare Workers + Durable Objects + R2 构建。",
@@ -1390,89 +369,13 @@
       "R2",
       "Open Source"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": false
   },
   {
-    "updatedAt": "2026-07-02",
-    "id": "cloudflarespeedtest",
-    "name": "CloudflareSpeedTest",
-    "description": "国外很多网站都在使用 Cloudflare CDN，但分配给中国内地访客的 IP 并不友好（延迟高、丢包多、速度慢）。虽然 Cloudflare 公开了所有 IP 段 ，但想要在这么多 IP 中找到适合自己的，怕是要累死，于是就有了这个软件。",
-    "url": "https://github.com/XIU2/CloudflareSpeedTest",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/XIU2/CloudflareSpeedTest",
-    "category": "Speed Test",
-    "tags": [
-      "Speed Test",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "speedtest",
-    "name": "SpeedTest",
-    "description": "官方的SpeedTest工具。",
-    "url": "https://speed.cloudflare.com",
-    "demoUrl": "",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://speed.cloudflare.com",
-    "category": "Speed Test",
-    "tags": [
-      "Speed Test"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "ip-check",
-    "name": "ip-check",
-    "description": "Python 实现的Cloudflare CDN 测速工具，支持多种方式传入ip（文本、ipv4/ipv6、端口、优选域名等）、自定义端口、ip 归属地筛选、ip 组织名筛选等。",
-    "url": "https://github.com/lovegitgit/ip-check",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/lovegitgit/ip-check",
-    "category": "Speed Test",
-    "tags": [
-      "Speed Test",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "uptimeflare",
-    "name": "UptimeFlare",
-    "description": "基于 Cloudflare Worker 的无服务器站点监控工具， 支持 HTTP/HTTPS/TCP 多种协议的端口监控， 可以从全球数百个城市发起地理位置特定的检查， 自定义的请求参数和响应校验规则,灵活适配各类监控场景。",
-    "url": "https://github.com/lyc8503/UptimeFlare",
-    "demoUrl": "https://uptimeflare.pages.dev",
-    "image": "https://opengraph.githubassets.com/htools/lyc8503/UptimeFlare",
-    "category": "Monitoring",
-    "tags": [
-      "Monitoring",
-      "Workers",
-      "Monitor",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cf-workers-status-page",
-    "name": "cf-workers-status-page",
-    "description": "监控您的网站，展示状态（包括每日历史记录），并在网站状态发生变化时收到 Slack 通知。使用 Cloudflare Workers、CRON 触发器和 KV 存储。",
-    "url": "https://github.com/eidam/cf-workers-status-page",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/eidam/cf-workers-status-page",
-    "category": "Monitoring",
-    "tags": [
-      "Monitoring",
-      "Workers",
-      "KV",
-      "Monitor",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
     "id": "xugou",
     "name": "xugou",
     "description": "基于 CloudFlare 的站点监控以及服务器监控工具。",
@@ -1485,62 +388,71 @@
       "Monitor",
       "Open Source"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": false
   },
   {
-    "updatedAt": "2026-07-02",
-    "id": "cf-vps-monitor",
-    "name": "cf-vps-monitor",
-    "description": "一个部署在 Cloudflare Workers 上的简单 VPS 监控 + 网站监测 面板，使用 Cloudflare D1 数据库存储数据。",
-    "url": "https://github.com/kadidalax/cf-vps-monitor",
-    "demoUrl": "https://vps-monitor.abo-vendor289.workers.dev",
-    "image": "https://opengraph.githubassets.com/htools/kadidalax/cf-vps-monitor",
-    "category": "Monitoring",
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "wr-do",
+    "name": "wr.do",
+    "description": "基于 Cloudflare 的多租户 DNS 分发系统。开源且免费提供 DNS 解析、短链接生成。",
+    "url": "https://github.com/oiov/wr.do",
+    "demoUrl": "https://wr.do",
+    "image": "https://opengraph.githubassets.com/htools/oiov/wr.do",
+    "category": "Other Tools",
     "tags": [
-      "Monitoring",
+      "Other Tools",
+      "Short Link",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "workers-image-hosting",
+    "name": "workers-image-hosting",
+    "description": "基于cloudflare workers数据存储于KV的图床",
+    "url": "https://github.com/iiop123/workers-image-hosting",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/iiop123/workers-image-hosting",
+    "category": "Image Hosting",
+    "tags": [
+      "Image Hosting",
       "Workers",
-      "D1",
-      "Monitor",
+      "KV",
+      "Image",
       "Open Source"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": false
   },
   {
-    "updatedAt": "2026-07-02",
-    "id": "ssl-certificate-monitor",
-    "name": "SSL Certificate Monitor",
-    "description": "SSL 证书到期监控工具，检查 SSL 证书有效期并通过 RESTful API 提供服务。",
-    "url": "https://github.com/brancogao/ssl-certificate-monitor",
-    "demoUrl": "https://ssl-certificate-monitor.autocompany.workers.dev",
-    "image": "https://opengraph.githubassets.com/htools/brancogao/ssl-certificate-monitor",
-    "category": "Monitoring",
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "whispercloudflare",
+    "name": "whispercloudflare",
+    "description": "基于 Whisper 模型的在线音频转写工具，部署在 Cloudflare 上。可以将音频文件转换为文字，并支持生成 SRT 格式的字幕文件。",
+    "url": "https://github.com/thun888/whisper_cloudflare",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/thun888/whisper_cloudflare",
+    "category": "Other Tools",
     "tags": [
-      "Monitoring",
-      "Monitor",
+      "Other Tools",
       "Open Source"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": false
   },
   {
-    "updatedAt": "2026-07-02",
-    "id": "deploy-mcp",
-    "name": "deploy-mcp",
-    "description": "为AI助手提供的通用部署跟踪器，支持实时状态徽章和部署监控，包括对 Cloudflare Pages 的支持。",
-    "url": "https://github.com/alexpota/deploy-mcp",
-    "demoUrl": "https://deploy-mcp.io",
-    "image": "https://opengraph.githubassets.com/htools/alexpota/deploy-mcp",
-    "category": "Monitoring",
-    "tags": [
-      "Monitoring",
-      "Pages",
-      "AI",
-      "Monitor",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
     "id": "what-broke-today",
     "name": "What Broke Today",
     "description": "AI 驱动的宕机聚合器，追踪 100+ 云服务（包括 Cloudflare）的状态，提供实时 Telegram 警报、RSS 订阅和 JSON API。",
@@ -1553,44 +465,13 @@
       "AI",
       "Monitor"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": false
   },
   {
-    "updatedAt": "2026-07-02",
-    "id": "oddin-status",
-    "name": "oddin-status",
-    "description": "精美的状态页与在线率监控系统。生产级环境就绪，开箱即用。",
-    "url": "https://github.com/oddinpay/oddin-status",
-    "demoUrl": "https://status.oddinpay.com",
-    "image": "https://opengraph.githubassets.com/htools/oddinpay/oddin-status",
-    "category": "Monitoring",
-    "tags": [
-      "Monitoring",
-      "Monitor",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "aiwatch",
-    "name": "AIWatch",
-    "description": "30 个 AI 服务（Claude、OpenAI、Gemini、Mistral、Groq、ElevenLabs 等）的实时状态监控仪表板。基于 Cloudflare Workers + KV + Workers AI（Gemma 4 26B 用于事件分析）构建，提供 Discord/Slack 告警、AI 驱动的事件分析和综合可靠性评分。",
-    "url": "https://github.com/bentleypark/aiwatch",
-    "demoUrl": "https://ai-watch.dev",
-    "image": "https://opengraph.githubassets.com/htools/bentleypark/aiwatch",
-    "category": "Monitoring",
-    "tags": [
-      "Monitoring",
-      "Workers",
-      "KV",
-      "AI",
-      "Analytics"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
     "id": "webhook-debugger",
     "name": "Webhook Debugger",
     "description": "自托管 Webhook 调试工具，支持签名验证（Stripe/GitHub/Slack/Shopify）、90天历史、全文搜索、一键重放。基于 Cloudflare Workers + D1 构建。",
@@ -1604,74 +485,13 @@
       "D1",
       "Open Source"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": true
   },
   {
-    "updatedAt": "2026-07-02",
-    "id": "cloudflare-wechat-notifier",
-    "name": "Cloudflare-WeChat-Notifier",
-    "description": "基于 Cloudflare Workers + Hono + D1 + Queues 的微信通知桥接服务。支持扫码登录、Webhook 入站、异步投递、失败重试和日志追踪，适用于 CI/CD、监控告警等通知场景。",
-    "url": "https://github.com/krapnikkk/Cloudflare-WeChat-Notifier",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/krapnikkk/Cloudflare-WeChat-Notifier",
-    "category": "Developer Tools",
-    "tags": [
-      "Developer Tools",
-      "Workers",
-      "D1",
-      "Monitor",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "getweb",
-    "name": "GetWeb",
-    "description": "基于 Cloudflare Workers + GitHub Actions + Electron 的网页打包 EXE 工具。在线填写网址即可生成 Windows 桌面应用，支持自定义图标、构建历史和多 Token 负载均衡。",
-    "url": "https://github.com/ZhangShengFan/GetWeb",
-    "demoUrl": "https://jishuguai.cc.cd",
-    "image": "https://opengraph.githubassets.com/htools/ZhangShengFan/GetWeb",
-    "category": "Developer Tools",
-    "tags": [
-      "Developer Tools",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "hackmyip",
-    "name": "HackMyIP",
-    "description": "基于 Cloudflare Workers 构建的在线隐私与网络工具集，提供 IP 查询、DNS/WebRTC 泄露检测、端口扫描、邮箱泄露检查、密码强度检测、网速测试等 20+ 工具，免费无需注册。",
-    "url": "https://hackmyip.com",
-    "demoUrl": "https://hackmyip.com",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://hackmyip.com",
-    "category": "Developer Tools",
-    "tags": [
-      "Developer Tools",
-      "Workers",
-      "Email"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "silk-privacy-pass-client",
-    "name": "silk-privacy-pass-client",
-    "description": "频繁出现Cloudflare人机验证，可以用这个Cloudflare官方插件解决，装了之后，再也不会动不动跳出人机验证了。",
-    "url": "https://chromewebstore.google.com/detail/silk-privacy-pass-client/ajhmfdgkijocedmfjonnpjfojldioehi",
-    "demoUrl": "",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://chromewebstore.google.com/detail/silk-privacy-pass-client/ajhmfdgkijocedmfjonnpjfojldioehi",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
     "id": "warp-clash-api",
     "name": "WARP-Clash-API",
     "description": "该项目可以让你通过订阅的方式使用WARP+，支持Clash、Shadowrocket等客户端。项目内置了 刷取WARP+流量的功能，可以让你的WARP+流量不再受限制（每18秒可获得1GB流量），同时， 配备了IP选优功能。支持Docker compose 一键部署，无需额外操作，即可享受你自己的WARP+私 有高速节点！",
@@ -1683,858 +503,13 @@
       "Other Tools",
       "Open Source"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": false
   },
   {
-    "updatedAt": "2026-07-02",
-    "id": "ip-api",
-    "name": "ip-api",
-    "description": "利用 Cloudflare Workers / Vercel Edge / Netlify Edge 快速搭一个获取 IP 地址和地理位置信息的接口。",
-    "url": "https://github.com/ccbikai/ip-api",
-    "demoUrl": "https://html.zone/ip",
-    "image": "https://opengraph.githubassets.com/htools/ccbikai/ip-api",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "chatgpt-telegram-workers",
-    "name": "ChatGPT-Telegram-Workers",
-    "description": "轻松在 Cloudflare Workers 上部署您自己的 Telegram ChatGPT 机器人，有详细的视频和图文教程，搭建过程也不复杂，小白也能上手。",
-    "url": "https://github.com/TBXark/ChatGPT-Telegram-Workers",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/TBXark/ChatGPT-Telegram-Workers",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "rssworker",
-    "name": "RSSWorker",
-    "description": "RSSWorker 是一个轻量级的 RSS 订阅工具，可以部署在 Cloudflare Worker 上。",
-    "url": "https://github.com/yllhwa/RSSWorker",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/yllhwa/RSSWorker",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "deeplx-for-cloudflare",
-    "name": "deeplx-for-cloudflare",
-    "description": "Deploy DeepLX on Cloudflare。",
-    "url": "https://github.com/ifyour/deeplx-for-cloudflare",
-    "demoUrl": "https://deeplx.mingming.dev",
-    "image": "https://opengraph.githubassets.com/htools/ifyour/deeplx-for-cloudflare",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "subconverterconvert",
-    "name": "subconverterconvert",
-    "description": "转换ssr/v2ray订阅链接转换的工具。",
-    "url": "https://github.com/zzNeutrino/sub_converter_convert",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/zzNeutrino/sub_converter_convert",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "telegram-counter",
-    "name": "telegram-counter",
-    "description": "用纯粹的 Cloudflare Worker 和 D1 数据库写了个 Telegram 的后端，方便可以随时随地的做一些打卡的记录……。",
-    "url": "https://github.com/iamshaynez/telegram-counter",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/iamshaynez/telegram-counter",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "D1",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cloudflare-no-tracked",
-    "name": "Cloudflare-No-Tracked",
-    "description": "用于去除 b 站以及小红书的跟踪链接，同时也有 tg 的 bot 版本",
-    "url": "https://github.com/xunmeiruxue/Cloudflare-No-Tracked",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/xunmeiruxue/Cloudflare-No-Tracked",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "dnschecker",
-    "name": "dnschecker",
-    "description": "Cloudflare官方推荐的，检测域名解析",
-    "url": "https://dnschecker.org",
-    "demoUrl": "",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://dnschecker.org",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "blockedinchina",
-    "name": "blockedinchina",
-    "description": "Cloudflare官方推荐的，检测域名是否被墙",
-    "url": "https://www.comparitech.com/privacy-security-tools/blockedinchina",
-    "demoUrl": "",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://www.comparitech.com/privacy-security-tools/blockedinchina",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cohere2openai-cf-worker",
-    "name": "cohere2openai-cf-worker",
-    "description": "这是一个简单的 Cloudflare Worker，可将 Cohere API 转换为 OpenAI API，可轻松部署到 Cloudflare Workers。",
-    "url": "https://github.com/ckt1031/cohere2openai-cf-worker",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/ckt1031/cohere2openai-cf-worker",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "AI",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cohere2openai",
-    "name": "cohere2openai",
-    "description": "Cloudflare Worker 将 Cohere API 转换为 OpenAI API。",
-    "url": "https://github.com/beanqi/cohere2openai",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/beanqi/cohere2openai",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "AI",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "locnode",
-    "name": "locnode",
-    "description": "selfhost light federated community app runs on cloudflare,第一款能在cf上运行的自建轻量联合社区🚀🎉。",
-    "url": "https://github.com/minlearn/locnode",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/minlearn/locnode",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "siri-ultra",
-    "name": "Siri Ultra",
-    "description": "The assistant is run on Cloudflare Workers and can work with any LLM model。",
-    "url": "https://github.com/fatwang2/siri-ultra",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/fatwang2/siri-ultra",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "AI",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "gitpush",
-    "name": "GitPush",
-    "description": "基于 Cloudflare Workflow、Workers AI 和 Email Routing 构建的 GitHub 项目更新订阅工具。可以订阅关注的 GitHub 项目，通过 AI 总结更新内容并通过邮件发送通知。",
-    "url": "https://github.com/fatwang2/gitpush",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/fatwang2/gitpush",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "AI",
-      "Email",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cobalt-page-function",
-    "name": "cobalt page function",
-    "description": "利用页面函数调用 cobalt 接口，获取视频下载地址。",
-    "url": "https://github.com/jiacai2050/blog-snippets/blob/main/cloudflare/cobalt.js",
-    "demoUrl": "https://liujiacai.net/api/cobalt",
-    "image": "https://opengraph.githubassets.com/htools/jiacai2050/blog-snippets",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cloudflare-radar",
-    "name": "CloudFlare Radar",
-    "description": "看某个网站的技术栈。",
-    "url": "https://radar.cloudflare.com/scan",
-    "demoUrl": "",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://radar.cloudflare.com/scan",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "wr-do",
-    "name": "wr.do",
-    "description": "基于 Cloudflare 的多租户 DNS 分发系统。开源且免费提供 DNS 解析、短链接生成。",
-    "url": "https://github.com/oiov/wr.do",
-    "demoUrl": "https://wr.do",
-    "image": "https://opengraph.githubassets.com/htools/oiov/wr.do",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Short Link",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cloudflare-proxy-sites",
-    "name": "cloudflare-proxy-sites",
-    "description": "Cloudflare Workers web proxy 二级域名访问方式。",
-    "url": "https://github.com/seadfeng/cloudflare-proxy-sites",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/seadfeng/cloudflare-proxy-sites",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Proxy",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "sublink-worker",
-    "name": "sublink-worker",
-    "description": "一个部署在Cloudflare worker上的轻量级代理节点订阅转换工具，它可以将各种代理协议的分享 URL 转换为不同客户端可用的订阅链接。同时还提供灵活的自定义规则与API支持。",
-    "url": "https://github.com/7Sageer/sublink-worker",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/7Sageer/sublink-worker",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Short Link",
-      "Proxy",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "melody-auth",
-    "name": "melody-auth",
-    "description": "一个基于Cloudflare workers, D1, KV的OAuth及身份认证系统。",
-    "url": "https://github.com/ValueMelody/melody-auth",
-    "demoUrl": "https://auth.valuemelody.com",
-    "image": "https://opengraph.githubassets.com/htools/ValueMelody/melody-auth",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "D1",
-      "KV",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cloudflare-kv-manager",
-    "name": "Cloudflare-KV-Manager",
-    "description": "您的 Cloudflare KV 缺少工具。用于管理 Cloudflare KV 存储的更完整、更简单的解决方案。包括一个 Web 界面和一个小型 Python 库。",
-    "url": "https://github.com/som3canadian/Cloudflare-KV-Manager",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/som3canadian/Cloudflare-KV-Manager",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "KV",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cfworkeracme",
-    "name": "CFWorkerACME",
-    "description": "SSL证书助手是一个免费、开源的全自动化SSL证书申请和下发平台，依托于Cloudflare运行",
-    "url": "https://github.com/PIKACHUIM/CFWorkerACME",
-    "demoUrl": "https://newssl.524228.xyz",
-    "image": "https://opengraph.githubassets.com/htools/PIKACHUIM/CFWorkerACME",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "libretv",
-    "name": "LibreTV",
-    "description": "LibreTV - 免费在线视频搜索与观看平台",
-    "url": "https://github.com/bestZwei/LibreTV",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/bestZwei/LibreTV",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "moepush",
-    "name": "MoePush",
-    "description": "一个基于 NextJS + Cloudflare 技术栈构建的可爱消息推送服务, 支持多种消息推送渠道✨",
-    "url": "https://github.com/beilunyang/moepush",
-    "demoUrl": "https://moepush.app",
-    "image": "https://opengraph.githubassets.com/htools/beilunyang/moepush",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "text2img-cloudflare-workers",
-    "name": "Text2img-Cloudflare-Workers",
-    "description": "一个基于 Cloudflare AI & Workers 的在线文生图服务✨",
-    "url": "https://github.com/huarzone/Text2img-Cloudflare-Workers",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/huarzone/Text2img-Cloudflare-Workers",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "AI",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "edgebin",
-    "name": "Edgebin",
-    "description": "类似与 httpbin 的 HTTP 测试服务",
-    "url": "https://github.com/jiacai2050/edgebin",
-    "demoUrl": "https://edgebin.liujiacai.net",
-    "image": "https://opengraph.githubassets.com/htools/jiacai2050/edgebin",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cf-tools",
-    "name": "CF-TOOLS",
-    "description": "整合常用开发工具，AI 助手等。",
-    "url": "https://github.com/MainPoser/cf-tools",
-    "demoUrl": "https://cf-tools.tianyao.qzz.io",
-    "image": "https://opengraph.githubassets.com/htools/MainPoser/cf-tools",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "AI",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "subpool-worker",
-    "name": "subpool-worker",
-    "description": "轻量级订阅池服务，用于管理和分发代理订阅链接",
-    "url": "https://github.com/illusionlie/subpool-worker",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/illusionlie/subpool-worker",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Proxy",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "aws-accessbridge",
-    "name": "AWS-AccessBridge",
-    "description": "AWS 多账号管理和登录服务",
-    "url": "https://github.com/Rexezuge-CloudflareWorkers/AWS-AccessBridge",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/Rexezuge-CloudflareWorkers/AWS-AccessBridge",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cloudflare-clist",
-    "name": "Cloudflare-Clist",
-    "description": "基于cloudflare worker的类alist聚合存储管理服务",
-    "url": "https://github.com/ooyyh/Cloudflare-Clist",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/ooyyh/Cloudflare-Clist",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "sync-your-cookie",
-    "name": "sync-your-cookie",
-    "description": "基于cloudflare KV、Github Gist Cookie同步浏览器拓展。支持同步 Cookie 到 Cloudflare 或者 github Gist (支持LocalStorage)，支持为不同站点配置Auto Merge和Auto Push规则，Cookie数据经过 protobuf 编码传输，提供了管理面板。",
-    "url": "https://github.com/jackluson/sync-your-cookie",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/jackluson/sync-your-cookie",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "KV",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "myip",
-    "name": "myip",
-    "description": "基于Cloudflare Workers的IP信息探测网站。支持一键部署，基于hoajs实现。",
-    "url": "https://github.com/hoa-js/examples/tree/master/myip",
-    "demoUrl": "https://myip.hoa-js.com",
-    "image": "https://opengraph.githubassets.com/htools/hoa-js/examples",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "2fa",
-    "name": "2fa",
-    "description": "基于Cloudflare Workers的2FA生成网站。支持一键部署，基于hoajs实现。",
-    "url": "https://github.com/hoa-js/examples/blob/master/2fa/index.js",
-    "demoUrl": "https://2fa.hoa-js.com",
-    "image": "https://opengraph.githubassets.com/htools/hoa-js/examples",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "tempnote",
-    "name": "tempnote",
-    "description": "基于Cloudflare Workers & KV 的随记网站。随机生成笔记地址、响应式设计、支持自定义笔记地址、支持一键部署，基于hoajs实现。",
-    "url": "https://github.com/hoa-js/examples/blob/master/tempnote/tempnote.js",
-    "demoUrl": "https://tempnote.hoa-js.com",
-    "image": "https://opengraph.githubassets.com/htools/hoa-js/examples",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "KV",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cloudnav",
-    "name": "CloudNav-",
-    "description": "可以托管在cloudflare上的导航，带chrome插件，可一键收藏网页到导航。轻量级导航，主打实用。",
-    "url": "https://github.com/sese972010/CloudNav-",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/sese972010/CloudNav-",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "memos-worker",
-    "name": "memos-worker",
-    "description": "由 Cloudflare 驱动的笔记与知识库。Markdown 全功能支持、文件与附件、公开分享、Telegram 集成、强大组织能力、知识库、高度可定制、极致性能与低成本、数据自主。",
-    "url": "https://github.com/souvenp/memos-worker",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/souvenp/memos-worker",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "whispercloudflare",
-    "name": "whispercloudflare",
-    "description": "基于 Whisper 模型的在线音频转写工具，部署在 Cloudflare 上。可以将音频文件转换为文字，并支持生成 SRT 格式的字幕文件。",
-    "url": "https://github.com/thun888/whisper_cloudflare",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/thun888/whisper_cloudflare",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "micro-notepad",
-    "name": "micro-notepad",
-    "description": "迷你笔记本，对 pereorga/minimalist-web-notepad 的cloudflare worker实现。",
-    "url": "https://github.com/thun888/micro-notepad",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/thun888/micro-notepad",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "cf-page-publish-mcp",
-    "name": "cf-page-publish-mcp",
-    "description": "cloudflare 页面发布 mcp 工具，可以将 html 页面发布到 cloudflare，worker 上。可以mcp对接ai。",
-    "url": "https://github.com/Actrue/cf-page-publish-mcp",
-    "demoUrl": "",
-    "image": "https://opengraph.githubassets.com/htools/Actrue/cf-page-publish-mcp",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "AI",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "shotog",
-    "name": "ShotOG",
-    "description": "开源 OG 图片生成 API，运行在 Cloudflare Workers 上。8 个模板、批量生成、自定义字体、边缘渲染 50ms。",
-    "url": "https://github.com/nicepkg/shotog",
-    "demoUrl": "https://shotog.2214962083.workers.dev",
-    "image": "https://opengraph.githubassets.com/htools/nicepkg/shotog",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Image",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "redirect-checker",
-    "name": "redirect-checker",
-    "description": "基于 Cloudflare Workers 的 HTTP 重定向链分析器，支持检测重定向循环、性能测量、多种 User-Agent 预设（含 Googlebot/Bingbot）。提供 RESTful API 和响应式 Web UI。",
-    "url": "https://github.com/brancogao/redirect-checker",
-    "demoUrl": "https://redirect-checker.autocompany.workers.dev",
-    "image": "https://opengraph.githubassets.com/htools/brancogao/redirect-checker",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Analytics",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "metareview",
-    "name": "MetaReview",
-    "description": "免费在线 Meta 分析平台，基于 Cloudflare Pages + Workers AI + KV 构建。支持 120+ 功能：森林图/漏斗图等 11 种统计图表（D3.js）、5 种效应量、AI 文献筛选（Llama 3.1 8B）、PDF 数据提取、DOCX/HTML 报告导出、PRISMA 流程图。中英双语，医学研究者 5 分钟从数据到森林图。",
-    "url": "https://metareview-8c1.pages.dev",
-    "demoUrl": "",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://metareview-8c1.pages.dev",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Pages",
-      "KV",
-      "AI"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "keep-my-claw",
-    "name": "Keep My Claw",
-    "description": "基于 Cloudflare Workers + D1 + R2 的 AI 代理加密云备份工具。支持自动定时备份、客户端 AES-256 加密、一键恢复到任意设备，专为 OpenClaw 工作空间设计。",
-    "url": "https://keepmyclaw.com",
-    "demoUrl": "",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://keepmyclaw.com",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "D1",
-      "R2",
-      "AI"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "2fauth-worker",
-    "name": "2FAuth Worker",
-    "description": "支持 Cloudflare Workers 与 Docker 双模式部署的高安全 2FA/TOTP 管理系统。提供 PWA、离线验证码生成、Health Shield 和 WebDAV/S3/Telegram 多通道备份。",
-    "url": "https://github.com/nodeauth/2fauth-worker",
-    "demoUrl": "https://2fauth.pp.ua",
-    "image": "https://opengraph.githubassets.com/htools/nodeauth/2fauth-worker",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "ai-maze-generator",
-    "name": "AI Maze Generator",
-    "description": "基于 Next.js + OpenNext 部署在 Cloudflare Workers 上的在线迷宫生成器与游戏。支持 10 种迷宫模式、每日挑战、排行榜、自定义生成和 PDF 导出。",
-    "url": "https://ai-mazegenerator.com",
-    "demoUrl": "",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://ai-mazegenerator.com",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "AI",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "omniconvert",
-    "name": "OmniConvert",
-    "description": "部署在 Cloudflare Pages + Workers 的免费开源文件与单位转换工具箱。支持 94 种文件格式转换、345 种单位换算、PWA 离线使用、8 种语言以及 API / MCP 接口。",
-    "url": "https://tools.sagasu.art",
-    "demoUrl": "",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://tools.sagasu.art",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "Pages",
-      "Open Source"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "voice-to-instrument",
-    "name": "Voice to Instrument",
-    "description": "免费 AI 音乐工具，可将人声录音转换为钢琴、吉他、鼓等器乐伴奏，适合内容创作与音乐制作。",
-    "url": "https://voicetoinstrument.com?utm_source=github&utm_medium=directory&utm_campaign=backlink",
-    "demoUrl": "https://voicetoinstrument.com?utm_source=github&utm_medium=directory&utm_campaign=backlink",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://voicetoinstrument.com?utm_source=github&utm_medium=directory&utm_campaign=backlink",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "AI"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "tryschedule",
-    "name": "TrySchedule",
-    "description": "免费在线排班与日程构建工具，无需登录即可快速创建和调整时间表。",
-    "url": "https://www.tryschedule.com/?utm_source=github&utm_medium=directory&utm_campaign=backlink",
-    "demoUrl": "https://www.tryschedule.com/?utm_source=github&utm_medium=directory&utm_campaign=backlink",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://www.tryschedule.com/?utm_source=github&utm_medium=directory&utm_campaign=backlink",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "period-calculator",
-    "name": "Period Calculator",
-    "description": "AI 驱动的经期周期计算工具，用于周期跟踪、日期预测与相关信息查询。",
-    "url": "https://www.aiperiodcalculator.com",
-    "demoUrl": "https://www.aiperiodcalculator.com",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://www.aiperiodcalculator.com",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "AI"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "nano-banana-2",
-    "name": "Nano Banana 2",
-    "description": "使用 Cloudflare R2 与 Turnstile 的 AI 图像工作室，支持文生图、图像编辑、广告海报和电商视觉生成。",
-    "url": "https://nanobananas2.org",
-    "demoUrl": "https://nanobananas2.org",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://nanobananas2.org",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "R2",
-      "AI"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "topuplive",
-    "name": "TOPUPlive",
-    "description": "在线充值平台，支持手机充值、直播、游戏、礼品卡等 3000+ 商品类别。",
-    "url": "https://www.topuplive.com/?utm_source=github&utm_medium=directory&utm_campaign=backlink",
-    "demoUrl": "https://www.topuplive.com/?utm_source=github&utm_medium=directory&utm_campaign=backlink",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://www.topuplive.com/?utm_source=github&utm_medium=directory&utm_campaign=backlink",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "slitherlinks",
-    "name": "Slitherlinks",
-    "description": "免费在线 Slitherlink 数字回路谜题平台，提供 1900+ 谜题、每日挑战、全球排行榜，技术栈包含 Cloudflare Workers + D1。",
-    "url": "https://slitherlinks.com",
-    "demoUrl": "https://slitherlinks.com",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://slitherlinks.com",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "Workers",
-      "D1"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
-    "id": "flashify",
-    "name": "Flashify",
-    "description": "AI 驱动的学习工具，可将 PDF 学习资料转换为高质量 Anki 闪卡并导出卡组。",
-    "url": "https://flashify.app?utm_source=github&utm_medium=directory&utm_campaign=backlink-2026q1",
-    "demoUrl": "https://flashify.app?utm_source=github&utm_medium=directory&utm_campaign=backlink-2026q1",
-    "image": "https://image.thum.io/get/width/1200/crop/720/https://flashify.app?utm_source=github&utm_medium=directory&utm_campaign=backlink-2026q1",
-    "category": "Other Tools",
-    "tags": [
-      "Other Tools",
-      "AI"
-    ],
-    "featured": false
-  },
-  {
-    "updatedAt": "2026-07-02",
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
     "id": "voidly-messenger",
     "name": "Voidly Messenger",
     "description": "完全基于 Cloudflare 构建的端到端加密消息 PWA（Pages + Workers + D1 + KV）。采用 Signal Protocol（Double Ratchet + X3DH）与 ML-KEM-768 后量子混合加密，全部加密在客户端完成，Workers 无法读取明文。",
@@ -2549,6 +524,2574 @@
       "D1",
       "KV"
     ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "voice-to-instrument",
+    "name": "Voice to Instrument",
+    "description": "免费 AI 音乐工具，可将人声录音转换为钢琴、吉他、鼓等器乐伴奏，适合内容创作与音乐制作。",
+    "url": "https://voicetoinstrument.com?utm_source=github&utm_medium=directory&utm_campaign=backlink",
+    "demoUrl": "https://voicetoinstrument.com?utm_source=github&utm_medium=directory&utm_campaign=backlink",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://voicetoinstrument.com?utm_source=github&utm_medium=directory&utm_campaign=backlink",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "AI"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "vmail",
+    "name": "vmail",
+    "description": "📫 Open source temporary email tool. 开源临时邮箱工具，支持收发邮件。",
+    "url": "https://github.com/oiov/vmail",
+    "demoUrl": "https://vmail.dev",
+    "image": "https://opengraph.githubassets.com/htools/oiov/vmail",
+    "category": "Email",
+    "tags": [
+      "Email",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "url-shorten-worker-3",
+    "name": "Url-Shorten-Worker",
+    "description": "在原分支和 crazypeace 分支部分功能基础上优化了页面，增加了管理员用户、访客身份，增加正则表达式匹配功能，支持了环境变量配置，以及其他细节性改进。",
+    "url": "https://github.com/Monopink/Url-Shorten-Worker",
+    "demoUrl": "https://url-shortener-demo.jhw.li",
+    "image": "https://opengraph.githubassets.com/htools/Monopink/Url-Shorten-Worker",
+    "category": "Short Link",
+    "tags": [
+      "Short Link",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "url-shorten-worker-2",
+    "name": "Url-Shorten-Worker",
+    "description": "这个是fork的crazypeace的Url-Shorten-Worker， 使用秘密路径访问操作页面。支持自定义短链。API 不公开服务。页面缓存设置过的短链。长链接文本框预搜索localStorage。增加删除某条短链的按钮。增加读取KV的按钮。变身网络记事本 Pastebin。变身图床 Image Hosting。A URL Shortener created using Cloudflare worker and KV。",
+    "url": "https://github.com/horsemail/Url-Shorten-Worker",
+    "demoUrl": "https://1way.eu.org/bodongshouqulveweifengci",
+    "image": "https://opengraph.githubassets.com/htools/horsemail/Url-Shorten-Worker",
+    "category": "Short Link",
+    "tags": [
+      "Short Link",
+      "Workers",
+      "KV",
+      "Email",
+      "Image"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "url-shorten-worker",
+    "name": "Url-Shorten-Worker",
+    "description": "使用秘密路径访问操作页面。支持自定义短链。API 不公开服务。页面缓存设置过的短链。长链接文本框预搜索localStorage。增加删除某条短链的按钮。增加读取KV的按钮。变身网络记事本 Pastebin。变身图床 Image Hosting。A URL Shortener created using Cloudflare worker and KV",
+    "url": "https://github.com/crazypeace/Url-Shorten-Worker",
+    "demoUrl": "https://urlsrv.crazypeace.workers.dev/bodongshouqulveweifengci",
+    "image": "https://opengraph.githubassets.com/htools/crazypeace/Url-Shorten-Worker",
+    "category": "Short Link",
+    "tags": [
+      "Short Link",
+      "Workers",
+      "KV",
+      "Image",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "uptimeflare",
+    "name": "UptimeFlare",
+    "description": "基于 Cloudflare Worker 的无服务器站点监控工具， 支持 HTTP/HTTPS/TCP 多种协议的端口监控， 可以从全球数百个城市发起地理位置特定的检查， 自定义的请求参数和响应校验规则,灵活适配各类监控场景。",
+    "url": "https://github.com/lyc8503/UptimeFlare",
+    "demoUrl": "https://uptimeflare.pages.dev",
+    "image": "https://opengraph.githubassets.com/htools/lyc8503/UptimeFlare",
+    "category": "Monitoring",
+    "tags": [
+      "Monitoring",
+      "Workers",
+      "Monitor",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "tryschedule",
+    "name": "TrySchedule",
+    "description": "免费在线排班与日程构建工具，无需登录即可快速创建和调整时间表。",
+    "url": "https://www.tryschedule.com/?utm_source=github&utm_medium=directory&utm_campaign=backlink",
+    "demoUrl": "https://www.tryschedule.com/?utm_source=github&utm_medium=directory&utm_campaign=backlink",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://www.tryschedule.com/?utm_source=github&utm_medium=directory&utm_campaign=backlink",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "topuplive",
+    "name": "TOPUPlive",
+    "description": "在线充值平台，支持手机充值、直播、游戏、礼品卡等 3000+ 商品类别。",
+    "url": "https://www.topuplive.com/?utm_source=github&utm_medium=directory&utm_campaign=backlink",
+    "demoUrl": "https://www.topuplive.com/?utm_source=github&utm_medium=directory&utm_campaign=backlink",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://www.topuplive.com/?utm_source=github&utm_medium=directory&utm_campaign=backlink",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "tool",
+    "name": "讀角獸",
+    "description": "使用 Cloudflare Pages + Workers + D1 + KV + R2 全家桶構建的繁體中文深度分析出版物。Astro 4 hybrid SSR，零外部服務依賴。",
+    "url": "https://ducorn.com",
+    "demoUrl": "https://ducorn.com",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://ducorn.com",
+    "category": "Blog",
+    "tags": [
+      "Blog",
+      "Workers",
+      "Pages",
+      "D1",
+      "R2"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "tgstate",
+    "name": "tgState",
+    "description": "使用Telegram作为存储的外链系统，不限制大小和格式。",
+    "url": "https://github.com/csznet/tgState",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/csznet/tgState",
+    "category": "Image Hosting",
+    "tags": [
+      "Image Hosting",
+      "Image",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "text2img-cloudflare-workers",
+    "name": "Text2img-Cloudflare-Workers",
+    "description": "一个基于 Cloudflare AI & Workers 的在线文生图服务✨",
+    "url": "https://github.com/huarzone/Text2img-Cloudflare-Workers",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/huarzone/Text2img-Cloudflare-Workers",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "AI",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "tempnote",
+    "name": "tempnote",
+    "description": "基于Cloudflare Workers & KV 的随记网站。随机生成笔记地址、响应式设计、支持自定义笔记地址、支持一键部署，基于hoajs实现。",
+    "url": "https://github.com/hoa-js/examples/blob/master/tempnote/tempnote.js",
+    "demoUrl": "https://tempnote.hoa-js.com",
+    "image": "https://opengraph.githubassets.com/htools/hoa-js/examples",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "KV",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "telegraph-image-hosting",
+    "name": "Telegraph-Image-Hosting",
+    "description": "使用 Telegraph 构建免费图像托管",
+    "url": "https://github.com/missuo/Telegraph-Image-Hosting",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/missuo/Telegraph-Image-Hosting",
+    "category": "Image Hosting",
+    "tags": [
+      "Image Hosting",
+      "Image",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "telegraph-image-2",
+    "name": "telegraph-Image",
+    "description": "一个图床。",
+    "url": "https://github.com/x-dr/telegraph-Image",
+    "demoUrl": "https://img.131213.xyz",
+    "image": "https://opengraph.githubassets.com/htools/x-dr/telegraph-Image",
+    "category": "Image Hosting",
+    "tags": [
+      "Image Hosting",
+      "Image",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "telegraph-image",
+    "name": "Telegraph-Image",
+    "description": "免费图片托管解决方案，Flickr/imgur 替代品。使用 Cloudflare Pages 和 Telegraph。",
+    "url": "https://github.com/cf-pages/Telegraph-Image",
+    "demoUrl": "https://im.gurl.eu.org",
+    "image": "https://opengraph.githubassets.com/htools/cf-pages/Telegraph-Image",
+    "category": "Image Hosting",
+    "tags": [
+      "Image Hosting",
+      "Pages",
+      "Image",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "telegram-counter",
+    "name": "telegram-counter",
+    "description": "用纯粹的 Cloudflare Worker 和 D1 数据库写了个 Telegram 的后端，方便可以随时随地的做一些打卡的记录……。",
+    "url": "https://github.com/iamshaynez/telegram-counter",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/iamshaynez/telegram-counter",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "D1",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "sync-your-cookie",
+    "name": "sync-your-cookie",
+    "description": "基于cloudflare KV、Github Gist Cookie同步浏览器拓展。支持同步 Cookie 到 Cloudflare 或者 github Gist (支持LocalStorage)，支持为不同站点配置Auto Merge和Auto Push规则，Cookie数据经过 protobuf 编码传输，提供了管理面板。",
+    "url": "https://github.com/jackluson/sync-your-cookie",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/jackluson/sync-your-cookie",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "KV",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "subpool-worker",
+    "name": "subpool-worker",
+    "description": "轻量级订阅池服务，用于管理和分发代理订阅链接",
+    "url": "https://github.com/illusionlie/subpool-worker",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/illusionlie/subpool-worker",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Proxy",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "sublink-worker",
+    "name": "sublink-worker",
+    "description": "一个部署在Cloudflare worker上的轻量级代理节点订阅转换工具，它可以将各种代理协议的分享 URL 转换为不同客户端可用的订阅链接。同时还提供灵活的自定义规则与API支持。",
+    "url": "https://github.com/7Sageer/sublink-worker",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/7Sageer/sublink-worker",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Short Link",
+      "Proxy",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "subconverterconvert",
+    "name": "subconverterconvert",
+    "description": "转换ssr/v2ray订阅链接转换的工具。",
+    "url": "https://github.com/zzNeutrino/sub_converter_convert",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/zzNeutrino/sub_converter_convert",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "ssl-certificate-monitor",
+    "name": "SSL Certificate Monitor",
+    "description": "SSL 证书到期监控工具，检查 SSL 证书有效期并通过 RESTful API 提供服务。",
+    "url": "https://github.com/brancogao/ssl-certificate-monitor",
+    "demoUrl": "https://ssl-certificate-monitor.autocompany.workers.dev",
+    "image": "https://opengraph.githubassets.com/htools/brancogao/ssl-certificate-monitor",
+    "category": "Monitoring",
+    "tags": [
+      "Monitoring",
+      "Monitor",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "speedtest",
+    "name": "SpeedTest",
+    "description": "官方的SpeedTest工具。",
+    "url": "https://speed.cloudflare.com",
+    "demoUrl": "",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://speed.cloudflare.com",
+    "category": "Speed Test",
+    "tags": [
+      "Speed Test"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "smail",
+    "name": "smail",
+    "description": "临时邮箱服务",
+    "url": "https://github.com/akazwz/smail",
+    "demoUrl": "https://smail.pw",
+    "image": "https://opengraph.githubassets.com/htools/akazwz/smail",
+    "category": "Email",
+    "tags": [
+      "Email",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "slitherlinks",
+    "name": "Slitherlinks",
+    "description": "免费在线 Slitherlink 数字回路谜题平台，提供 1900+ 谜题、每日挑战、全球排行榜，技术栈包含 Cloudflare Workers + D1。",
+    "url": "https://slitherlinks.com",
+    "demoUrl": "https://slitherlinks.com",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://slitherlinks.com",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "D1"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "siri-ultra",
+    "name": "Siri Ultra",
+    "description": "The assistant is run on Cloudflare Workers and can work with any LLM model。",
+    "url": "https://github.com/fatwang2/siri-ultra",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/fatwang2/siri-ultra",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "AI",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "sink",
+    "name": "Sink",
+    "description": "ccbikai/Sink 是一个在 Cloudflare 上完全运行的简单、快速、安全的链接缩短器，具备分析功能和控制台面板.",
+    "url": "https://github.com/ccbikai/Sink",
+    "demoUrl": "https://sink.cool",
+    "image": "https://opengraph.githubassets.com/htools/ccbikai/Sink",
+    "category": "Short Link",
+    "tags": [
+      "Short Link",
+      "Analytics",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": true
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "silk-privacy-pass-client",
+    "name": "silk-privacy-pass-client",
+    "description": "频繁出现Cloudflare人机验证，可以用这个Cloudflare官方插件解决，装了之后，再也不会动不动跳出人机验证了。",
+    "url": "https://chromewebstore.google.com/detail/silk-privacy-pass-client/ajhmfdgkijocedmfjonnpjfojldioehi",
+    "demoUrl": "",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://chromewebstore.google.com/detail/silk-privacy-pass-client/ajhmfdgkijocedmfjonnpjfojldioehi",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "shotog",
+    "name": "ShotOG",
+    "description": "开源 OG 图片生成 API，运行在 Cloudflare Workers 上。8 个模板、批量生成、自定义字体、边缘渲染 50ms。",
+    "url": "https://github.com/nicepkg/shotog",
+    "demoUrl": "https://shotog.2214962083.workers.dev",
+    "image": "https://opengraph.githubassets.com/htools/nicepkg/shotog",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Image",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "short-2",
+    "name": "short",
+    "description": "一个使用 Cloudflare Pages 创建的 URL 缩短器。",
+    "url": "https://github.com/x-dr/short",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/x-dr/short",
+    "category": "Short Link",
+    "tags": [
+      "Short Link",
+      "Pages",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "serverless-webdav",
+    "name": "serverless-webdav",
+    "description": "基于 Cloudflare Workers 和 Cloudflare D1 数据库 构建的轻量级、可扩展的 WebDAV 服务器实现。",
+    "url": "https://github.com/jiacai2050/my-works/blob/main/serverless-webdav/README.zh-CN.md",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/jiacai2050/my-works",
+    "category": "File Sharing",
+    "tags": [
+      "File Sharing",
+      "Workers",
+      "D1",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "serverless-cloud-notepad",
+    "name": "serverless-cloud-notepad",
+    "description": "基于 Cloudflare Worker 实现的Serverless Cloud Notepad 云笔记。",
+    "url": "https://github.com/s0urcelab/serverless-cloud-notepad",
+    "demoUrl": "https://note.src.moe/y6y",
+    "image": "https://opengraph.githubassets.com/htools/s0urcelab/serverless-cloud-notepad",
+    "category": "Blog",
+    "tags": [
+      "Blog",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "rssworker",
+    "name": "RSSWorker",
+    "description": "RSSWorker 是一个轻量级的 RSS 订阅工具，可以部署在 Cloudflare Worker 上。",
+    "url": "https://github.com/yllhwa/RSSWorker",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/yllhwa/RSSWorker",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "roim-picx",
+    "name": "roim-picx",
+    "description": "基于CloudFlare Pages和R2实现的免费图床。",
+    "url": "https://github.com/roimdev/roim-picx",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/roimdev/roim-picx",
+    "category": "Image Hosting",
+    "tags": [
+      "Image Hosting",
+      "Pages",
+      "R2",
+      "Image",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "rin",
+    "name": "Rin",
+    "description": "Rin 是一个基于 Cloudflare Pages + Workers + D1 + R2 全家桶的博客，无需服务器无需备案，只需要一个解析到 Cloudflare 的域名即可部署。",
+    "url": "https://github.com/openRin/Rin",
+    "demoUrl": "https://docs.openrin.org",
+    "image": "https://opengraph.githubassets.com/htools/openRin/Rin",
+    "category": "Blog",
+    "tags": [
+      "Blog",
+      "Workers",
+      "Pages",
+      "D1",
+      "R2"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": true
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "redirect-checker",
+    "name": "redirect-checker",
+    "description": "基于 Cloudflare Workers 的 HTTP 重定向链分析器，支持检测重定向循环、性能测量、多种 User-Agent 预设（含 Googlebot/Bingbot）。提供 RESTful API 和响应式 Web UI。",
+    "url": "https://github.com/brancogao/redirect-checker",
+    "demoUrl": "https://redirect-checker.autocompany.workers.dev",
+    "image": "https://opengraph.githubassets.com/htools/brancogao/redirect-checker",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Analytics",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "r2drop",
+    "name": "R2Drop",
+    "description": "Native macOS menu bar app for uploading files to Cloudflare R2. Built with Swift + Rust, supports drag-and-drop, automatic URL copying, and multiple bucket management.",
+    "url": "https://github.com/superhumancorp/r2drop",
+    "demoUrl": "https://r2drop.com",
+    "image": "https://opengraph.githubassets.com/htools/superhumancorp/r2drop",
+    "category": "File Sharing",
+    "tags": [
+      "File Sharing",
+      "R2",
+      "Short Link",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "pixr2",
+    "name": "PixR2",
+    "description": "基于 Cloudflare Workers + R2 的多入口图床与图片管理平台",
+    "url": "https://github.com/WangQueXL/PixR2",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/WangQueXL/PixR2",
+    "category": "Image Hosting",
+    "tags": [
+      "Image Hosting",
+      "Workers",
+      "R2",
+      "Image",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "period-calculator",
+    "name": "Period Calculator",
+    "description": "AI 驱动的经期周期计算工具，用于周期跟踪、日期预测与相关信息查询。",
+    "url": "https://www.aiperiodcalculator.com",
+    "demoUrl": "https://www.aiperiodcalculator.com",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://www.aiperiodcalculator.com",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "AI"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "pastebin-worker",
+    "name": "pastebin-worker",
+    "description": "介绍一个部署在 Cloudflare Workers 上的开源 Pastebin，通过URL分享\"文本\"或\"文件\"。如CF免费套餐：每天允许 10W 次读取、1000 次写入和 删除操作，大小限制在 25 MB 以下，轻量用足够了。自己部署或直接用。它还有“删除时间设置”和“密码”功能，可以设置一段时间后删除您的paste。用于twitter分享文件和文本，极好",
+    "url": "https://github.com/SharzyL/pastebin-worker",
+    "demoUrl": "https://shz.al",
+    "image": "https://opengraph.githubassets.com/htools/SharzyL/pastebin-worker",
+    "category": "File Sharing",
+    "tags": [
+      "File Sharing",
+      "Workers",
+      "Short Link",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "pageguard",
+    "name": "PageGuard",
+    "description": "免费网站健康扫描器，基于 Cloudflare Workers + D1 + Workers AI（Llama 3.1）。检查 SEO、性能（Core Web Vitals）、无障碍（WCAG 2.1）、最佳实践，30 秒出 AI 诊断报告，无需注册登录。",
+    "url": "https://pageguard.org",
+    "demoUrl": "",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://pageguard.org",
+    "category": "Analytics",
+    "tags": [
+      "Analytics",
+      "Workers",
+      "D1",
+      "AI",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": true
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "page-api-forwarder",
+    "name": "Page-api-forwarder",
+    "description": "它可以帮助您绕过某些API上的IP限制，并且由于它通过Cloudflare，因此速度很快。",
+    "url": "https://github.com/xinjianzhanghao/page-api-forwarder",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/xinjianzhanghao/page-api-forwarder",
+    "category": "Acceleration",
+    "tags": [
+      "Acceleration",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "openclaw-monitor",
+    "name": "OpenClaw Monitor",
+    "description": "Real-time AI agent monitoring dashboard for OpenClaw. Tracks Gateway status, sessions, token usage & trends with Vue 3 + ECharts.",
+    "url": "https://github.com/flik2002/openclaw-monitor",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/flik2002/openclaw-monitor",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "AI",
+      "Monitor",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "one-stroke-fan",
+    "name": "One Stroke Fan",
+    "description": "基于 Astro 构建并部署在 Cloudflare Pages 的多语言粉丝站。支持 9 种语言、100+ 页面、sitemap / hreflang / JSON-LD / llms.txt，纯静态零成本运行。",
+    "url": "https://one-stroke.savetimefor.fun",
+    "demoUrl": "",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://one-stroke.savetimefor.fun",
+    "category": "Blog",
+    "tags": [
+      "Blog",
+      "Pages",
+      "AI",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "omniconvert",
+    "name": "OmniConvert",
+    "description": "部署在 Cloudflare Pages + Workers 的免费开源文件与单位转换工具箱。支持 94 种文件格式转换、345 种单位换算、PWA 离线使用、8 种语言以及 API / MCP 接口。",
+    "url": "https://tools.sagasu.art",
+    "demoUrl": "",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://tools.sagasu.art",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Pages",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "oddin-status",
+    "name": "oddin-status",
+    "description": "精美的状态页与在线率监控系统。生产级环境就绪，开箱即用。",
+    "url": "https://github.com/oddinpay/oddin-status",
+    "demoUrl": "https://status.oddinpay.com",
+    "image": "https://opengraph.githubassets.com/htools/oddinpay/oddin-status",
+    "category": "Monitoring",
+    "tags": [
+      "Monitoring",
+      "Monitor",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "nextflare",
+    "name": "nextflare",
+    "description": "Next.js App running with Lemon Squeezy on Cloudflare.",
+    "url": "https://github.com/ccbikai/nextflare",
+    "demoUrl": "https://nextflare-template.pages.dev",
+    "image": "https://opengraph.githubassets.com/htools/ccbikai/nextflare",
+    "category": "Web Framework",
+    "tags": [
+      "Web Framework",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "nano-banana-2",
+    "name": "Nano Banana 2",
+    "description": "使用 Cloudflare R2 与 Turnstile 的 AI 图像工作室，支持文生图、图像编辑、广告海报和电商视觉生成。",
+    "url": "https://nanobananas2.org",
+    "demoUrl": "https://nanobananas2.org",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://nanobananas2.org",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "R2",
+      "AI"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "myip",
+    "name": "myip",
+    "description": "基于Cloudflare Workers的IP信息探测网站。支持一键部署，基于hoajs实现。",
+    "url": "https://github.com/hoa-js/examples/tree/master/myip",
+    "demoUrl": "https://myip.hoa-js.com",
+    "image": "https://opengraph.githubassets.com/htools/hoa-js/examples",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "moepush",
+    "name": "MoePush",
+    "description": "一个基于 NextJS + Cloudflare 技术栈构建的可爱消息推送服务, 支持多种消息推送渠道✨",
+    "url": "https://github.com/beilunyang/moepush",
+    "demoUrl": "https://moepush.app",
+    "image": "https://opengraph.githubassets.com/htools/beilunyang/moepush",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "moemail",
+    "name": "moemail",
+    "description": "MoeMail - 基于 NextJS + Cloudflare 技术栈构建的可爱临时邮箱服务 。",
+    "url": "https://github.com/beilunyang/moemail",
+    "demoUrl": "https://moemail.app",
+    "image": "https://opengraph.githubassets.com/htools/beilunyang/moemail",
+    "category": "Email",
+    "tags": [
+      "Email",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "microfeed",
+    "name": "microfeed",
+    "description": "一个在 Cloudflare 上自托管的轻量级内容管理系统 (CMS)。通过 microfeed，您可以轻松地将各种内容（例如音频、视频、照片、文档、博客文章和外部 URL）以 Web、RSS 和 JSON 的形式发布到 feed。对于想要自行托管自己的 CMS 而无需运行自己的服务器的精通技术的个人来说，这是完美的解决方案。",
+    "url": "https://github.com/microfeed/microfeed",
+    "demoUrl": "https://www.microfeed.org",
+    "image": "https://opengraph.githubassets.com/htools/microfeed/microfeed",
+    "category": "Blog",
+    "tags": [
+      "Blog",
+      "Short Link",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "micro-notepad",
+    "name": "micro-notepad",
+    "description": "迷你笔记本，对 pereorga/minimalist-web-notepad 的cloudflare worker实现。",
+    "url": "https://github.com/thun888/micro-notepad",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/thun888/micro-notepad",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "metareview",
+    "name": "MetaReview",
+    "description": "免费在线 Meta 分析平台，基于 Cloudflare Pages + Workers AI + KV 构建。支持 120+ 功能：森林图/漏斗图等 11 种统计图表（D3.js）、5 种效应量、AI 文献筛选（Llama 3.1 8B）、PDF 数据提取、DOCX/HTML 报告导出、PRISMA 流程图。中英双语，医学研究者 5 分钟从数据到森林图。",
+    "url": "https://metareview-8c1.pages.dev",
+    "demoUrl": "",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://metareview-8c1.pages.dev",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Pages",
+      "KV",
+      "AI"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "memos-worker",
+    "name": "memos-worker",
+    "description": "由 Cloudflare 驱动的笔记与知识库。Markdown 全功能支持、文件与附件、公开分享、Telegram 集成、强大组织能力、知识库、高度可定制、极致性能与低成本、数据自主。",
+    "url": "https://github.com/souvenp/memos-worker",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/souvenp/memos-worker",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "melody-auth",
+    "name": "melody-auth",
+    "description": "一个基于Cloudflare workers, D1, KV的OAuth及身份认证系统。",
+    "url": "https://github.com/ValueMelody/melody-auth",
+    "demoUrl": "https://auth.valuemelody.com",
+    "image": "https://opengraph.githubassets.com/htools/ValueMelody/melody-auth",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "D1",
+      "KV",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "mail2telegram",
+    "name": "mail2telegram",
+    "description": "这是一个基于 Cloudflare Email Routing Worker 的 Telegram Bot，可以将电子邮件转换为 Telegram 消息。您可以将任何前缀的收件人的电子邮件转发到 Bot，然后将创建一个具有无限地址的临时邮箱 Bot。",
+    "url": "https://github.com/TBXark/mail2telegram",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/TBXark/mail2telegram",
+    "category": "Email",
+    "tags": [
+      "Email",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "locnode",
+    "name": "locnode",
+    "description": "selfhost light federated community app runs on cloudflare,第一款能在cf上运行的自建轻量联合社区🚀🎉。",
+    "url": "https://github.com/minlearn/locnode",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/minlearn/locnode",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "llmkit",
+    "name": "LLMKit",
+    "description": "Open-source AI API gateway built on CF Workers + Durable Objects. Cost tracking, budget enforcement, rate limiting for 11 LLM providers (OpenAI, Anthropic, Gemini, etc). TypeScript SDK, CLI, MCP server. MIT license.",
+    "url": "https://github.com/smigolsmigol/llmkit",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/smigolsmigol/llmkit",
+    "category": "Acceleration",
+    "tags": [
+      "Acceleration",
+      "Workers",
+      "AI",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": true
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "linklet",
+    "name": "linklet",
+    "description": "一个使用 Cloudflare Pages 创建的 URL 缩短器。这个是基于API模式实现，使用场景更多一些",
+    "url": "https://github.com/harrisonwang/linklet",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/harrisonwang/linklet",
+    "category": "Short Link",
+    "tags": [
+      "Short Link",
+      "Pages",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "libretv",
+    "name": "LibreTV",
+    "description": "LibreTV - 免费在线视频搜索与观看平台",
+    "url": "https://github.com/bestZwei/LibreTV",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/bestZwei/LibreTV",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "keep-my-claw",
+    "name": "Keep My Claw",
+    "description": "基于 Cloudflare Workers + D1 + R2 的 AI 代理加密云备份工具。支持自动定时备份、客户端 AES-256 加密、一键恢复到任意设备，专为 OpenClaw 工作空间设计。",
+    "url": "https://keepmyclaw.com",
+    "demoUrl": "",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://keepmyclaw.com",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "D1",
+      "R2",
+      "AI"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "k-vault",
+    "name": "K-Vault",
+    "description": "基于 Cloudflare 的 Serverless 聚合云盘。以 Telegram 为核心，兼容 R2、S3、Discord、HuggingFace 等多存储后端，支持 Webhook 直传、2GB 扩展、内容审核和自定义域名。",
+    "url": "https://github.com/katelya77/K-Vault",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/katelya77/K-Vault",
+    "category": "File Sharing",
+    "tags": [
+      "File Sharing",
+      "R2",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "ip-check",
+    "name": "ip-check",
+    "description": "Python 实现的Cloudflare CDN 测速工具，支持多种方式传入ip（文本、ipv4/ipv6、端口、优选域名等）、自定义端口、ip 归属地筛选、ip 组织名筛选等。",
+    "url": "https://github.com/lovegitgit/ip-check",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/lovegitgit/ip-check",
+    "category": "Speed Test",
+    "tags": [
+      "Speed Test",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "ip-api",
+    "name": "ip-api",
+    "description": "利用 Cloudflare Workers / Vercel Edge / Netlify Edge 快速搭一个获取 IP 地址和地理位置信息的接口。",
+    "url": "https://github.com/ccbikai/ip-api",
+    "demoUrl": "https://html.zone/ip",
+    "image": "https://opengraph.githubassets.com/htools/ccbikai/ip-api",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "imguu",
+    "name": "imgUU",
+    "description": "一个基于Cloudflare D1和R2构建的免费图片上传应用Github登陆管理。",
+    "url": "https://github.com/yestool/imgUU",
+    "demoUrl": "https://imguu.net",
+    "image": "https://opengraph.githubassets.com/htools/yestool/imgUU",
+    "category": "Image Hosting",
+    "tags": [
+      "Image Hosting",
+      "D1",
+      "R2",
+      "Image",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": true
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "img-mom",
+    "name": "img-mom",
+    "description": "基于 Cloudflare Workers 运行时构建, 轻量使用完全免费，支持多种图床（Telegram/Cloudfalre R2/Backblaze B2, 更多图床正在支持中），快速部署。使用 Wrangler 可快速实现自部署",
+    "url": "https://github.com/beilunyang/img-mom",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/beilunyang/img-mom",
+    "category": "Image Hosting",
+    "tags": [
+      "Image Hosting",
+      "Workers",
+      "R2",
+      "Image",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "hananalytics",
+    "name": "HanAnalytics",
+    "description": "一个部署在Cloudflare Pages上的简单的网络分析跟踪器和仪表板，是umami的精简版，它支持设备查看、来源查看、国家地区及设备OS等数据查看分析，支持密码访问，域名白名单等功能。",
+    "url": "https://github.com/uxiaohan/HanAnalytics",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/uxiaohan/HanAnalytics",
+    "category": "Analytics",
+    "tags": [
+      "Analytics",
+      "Pages",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "hackmyip",
+    "name": "HackMyIP",
+    "description": "基于 Cloudflare Workers 构建的在线隐私与网络工具集，提供 IP 查询、DNS/WebRTC 泄露检测、端口扫描、邮箱泄露检查、密码强度检测、网速测试等 20+ 工具，免费无需注册。",
+    "url": "https://hackmyip.com",
+    "demoUrl": "https://hackmyip.com",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://hackmyip.com",
+    "category": "Developer Tools",
+    "tags": [
+      "Developer Tools",
+      "Workers",
+      "Email"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "gitpush",
+    "name": "GitPush",
+    "description": "基于 Cloudflare Workflow、Workers AI 和 Email Routing 构建的 GitHub 项目更新订阅工具。可以订阅关注的 GitHub 项目，通过 AI 总结更新内容并通过邮件发送通知。",
+    "url": "https://github.com/fatwang2/gitpush",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/fatwang2/gitpush",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "AI",
+      "Email",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "githubbox",
+    "name": "githubbox",
+    "description": "在 CodeSandbox 中快速打开任何 GitHub 存储库。",
+    "url": "https://github.com/dferber90/githubbox",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/dferber90/githubbox",
+    "category": "Acceleration",
+    "tags": [
+      "Acceleration",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "gins-blog",
+    "name": "Gins-Blog",
+    "description": "一个高性能、Agentic-First 的博客平台。完全基于 Cloudflare 生态 (Workers, Pages, D1, KV, R2, Vectorize)。内置 MCP 协议，支持通过 OpenClaw 零人工自动部署。",
+    "url": "https://github.com/IchimaruGin728/Gins-Blog",
+    "demoUrl": "https://blog.ichimarugin728.com",
+    "image": "https://opengraph.githubassets.com/htools/IchimaruGin728/Gins-Blog",
+    "category": "Blog",
+    "tags": [
+      "Blog",
+      "Workers",
+      "Pages",
+      "D1",
+      "R2"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "gh-proxy-2",
+    "name": "gh-proxy",
+    "description": "github release、archive以及项目文件的加速项目. 支持 api.github.com, git.io.",
+    "url": "https://github.com/crazypeace/gh-proxy",
+    "demoUrl": "https://ghproxy.lvedong.eu.org",
+    "image": "https://opengraph.githubassets.com/htools/crazypeace/gh-proxy",
+    "category": "Acceleration",
+    "tags": [
+      "Acceleration",
+      "Proxy",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "gh-proxy",
+    "name": "gh-proxy",
+    "description": "github release、archive以及项目的加速项目，支持clone，有Cloudflare Workers无服务器版本以及Python版本。",
+    "url": "https://github.com/hunshcn/gh-proxy",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/hunshcn/gh-proxy",
+    "category": "Acceleration",
+    "tags": [
+      "Acceleration",
+      "Workers",
+      "Proxy",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "getweb",
+    "name": "GetWeb",
+    "description": "基于 Cloudflare Workers + GitHub Actions + Electron 的网页打包 EXE 工具。在线填写网址即可生成 Windows 桌面应用，支持自定义图标、构建历史和多 Token 负载均衡。",
+    "url": "https://github.com/ZhangShengFan/GetWeb",
+    "demoUrl": "https://jishuguai.cc.cd",
+    "image": "https://opengraph.githubassets.com/htools/ZhangShengFan/GetWeb",
+    "category": "Developer Tools",
+    "tags": [
+      "Developer Tools",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "gemini-balance-do",
+    "name": "gemini-balance-do",
+    "description": "基于 Cloudflare Worker 和 Durable Objects 实现的 Gemini API 中转（多key负载均衡），稳定美国 IP 访问 Gemini",
+    "url": "https://github.com/zaunist/gemini-balance-do",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/zaunist/gemini-balance-do",
+    "category": "Acceleration",
+    "tags": [
+      "Acceleration",
+      "Workers",
+      "AI",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "freetempmail",
+    "name": "FreeTempMail",
+    "description": "清爽简约风的永久免费临时邮件服务。保护用户隐私数据，支持i18n国际化，即用即走。基于NuxtPro模板和CF开发。",
+    "url": "https://github.com/PennyJoly/FreeTempMail",
+    "demoUrl": "https://mail.aitre.cc",
+    "image": "https://opengraph.githubassets.com/htools/PennyJoly/FreeTempMail",
+    "category": "Email",
+    "tags": [
+      "Email",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "flashify",
+    "name": "Flashify",
+    "description": "AI 驱动的学习工具，可将 PDF 学习资料转换为高质量 Anki 闪卡并导出卡组。",
+    "url": "https://flashify.app?utm_source=github&utm_medium=directory&utm_campaign=backlink-2026q1",
+    "demoUrl": "https://flashify.app?utm_source=github&utm_medium=directory&utm_campaign=backlink-2026q1",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://flashify.app?utm_source=github&utm_medium=directory&utm_campaign=backlink-2026q1",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "AI"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "fileworker",
+    "name": "FileWorker",
+    "description": "运行在Cloudflare Worker上的在线剪贴板/文件共享",
+    "url": "https://github.com/yllhwa/FileWorker",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/yllhwa/FileWorker",
+    "category": "File Sharing",
+    "tags": [
+      "File Sharing",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "email-ml",
+    "name": "Email.ML",
+    "description": "一个运行在 Cloudflare 网络中的临时邮箱",
+    "url": "https://email.ml",
+    "demoUrl": "",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://email.ml",
+    "category": "Email",
+    "tags": [
+      "Email"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "emaction-frontend",
+    "name": "emaction.frontend",
+    "description": "基于Cloudflare D1实现的 GitHub 风格的 Reactions 点赞功能， 本项目是前端。",
+    "url": "https://github.com/emaction/emaction.frontend",
+    "demoUrl": "https://emaction.cool",
+    "image": "https://opengraph.githubassets.com/htools/emaction/emaction.frontend",
+    "category": "Blog",
+    "tags": [
+      "Blog",
+      "D1",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "emaction-backend",
+    "name": "emaction.backend",
+    "description": "基于Cloudflare D1实现的 GitHub 风格的 Reactions 点赞功能， 本项目是后端。",
+    "url": "https://github.com/emaction/emaction.backend",
+    "demoUrl": "https://emaction.cool",
+    "image": "https://opengraph.githubassets.com/htools/emaction/emaction.backend",
+    "category": "Blog",
+    "tags": [
+      "Blog",
+      "D1",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "edgebin",
+    "name": "Edgebin",
+    "description": "类似与 httpbin 的 HTTP 测试服务",
+    "url": "https://github.com/jiacai2050/edgebin",
+    "demoUrl": "https://edgebin.liujiacai.net",
+    "image": "https://opengraph.githubassets.com/htools/jiacai2050/edgebin",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "duanwangzhi",
+    "name": "duanwangzhi",
+    "description": "无需服务即可缩短您的链接，因为它基于 Cloudflare 工作人员功能，具有极简风格。",
+    "url": "https://github.com/Closty/duanwangzhi",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/Closty/duanwangzhi",
+    "category": "Short Link",
+    "tags": [
+      "Short Link",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "dnschecker",
+    "name": "dnschecker",
+    "description": "Cloudflare官方推荐的，检测域名解析",
+    "url": "https://dnschecker.org",
+    "demoUrl": "",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://dnschecker.org",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "dingding",
+    "name": "dingding",
+    "description": "一款基于cloudflare workers的文件传输工具，文件存储在cloudflare KV中",
+    "url": "https://github.com/iiop123/dingding",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/iiop123/dingding",
+    "category": "File Sharing",
+    "tags": [
+      "File Sharing",
+      "Workers",
+      "KV",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "deploy-mcp",
+    "name": "deploy-mcp",
+    "description": "为AI助手提供的通用部署跟踪器，支持实时状态徽章和部署监控，包括对 Cloudflare Pages 的支持。",
+    "url": "https://github.com/alexpota/deploy-mcp",
+    "demoUrl": "https://deploy-mcp.io",
+    "image": "https://opengraph.githubassets.com/htools/alexpota/deploy-mcp",
+    "category": "Monitoring",
+    "tags": [
+      "Monitoring",
+      "Pages",
+      "AI",
+      "Monitor",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "deeplx-for-cloudflare",
+    "name": "deeplx-for-cloudflare",
+    "description": "Deploy DeepLX on Cloudflare。",
+    "url": "https://github.com/ifyour/deeplx-for-cloudflare",
+    "demoUrl": "https://deeplx.mingming.dev",
+    "image": "https://opengraph.githubassets.com/htools/ifyour/deeplx-for-cloudflare",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "counterscale",
+    "name": "counterscale",
+    "description": "Counterscale 是一个简单的 Web 分析跟踪器和仪表板，效果和 umami 类似，您可以在 Cloudflare 上自行托管。它的设计易于部署和维护，即使在高流量的情况下，您的操作成本也应该接近于零（Cloudflare 的免费套餐假设可以支持每天高达 10 万次点击）。",
+    "url": "https://github.com/benvinegar/counterscale",
+    "demoUrl": "https://counterscale.dev",
+    "image": "https://opengraph.githubassets.com/htools/benvinegar/counterscale",
+    "category": "Analytics",
+    "tags": [
+      "Analytics",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": true
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cohere2openai-cf-worker",
+    "name": "cohere2openai-cf-worker",
+    "description": "这是一个简单的 Cloudflare Worker，可将 Cohere API 转换为 OpenAI API，可轻松部署到 Cloudflare Workers。",
+    "url": "https://github.com/ckt1031/cohere2openai-cf-worker",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/ckt1031/cohere2openai-cf-worker",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "AI",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cohere2openai",
+    "name": "cohere2openai",
+    "description": "Cloudflare Worker 将 Cohere API 转换为 OpenAI API。",
+    "url": "https://github.com/beanqi/cohere2openai",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/beanqi/cohere2openai",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "AI",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cobalt-page-function",
+    "name": "cobalt page function",
+    "description": "利用页面函数调用 cobalt 接口，获取视频下载地址。",
+    "url": "https://github.com/jiacai2050/blog-snippets/blob/main/cloudflare/cobalt.js",
+    "demoUrl": "https://liujiacai.net/api/cobalt",
+    "image": "https://opengraph.githubassets.com/htools/jiacai2050/blog-snippets",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloudpaste",
+    "name": "CloudPaste",
+    "description": "基于Cloudflare的在线文本/大文件分享平台，支持多种语法 Markdown 渲染、阅后即焚、S3/WebDav/TG/OneDrive等多存储聚合、密码保护等功能，可作为WebDav挂载，支持Docker部署。",
+    "url": "https://github.com/ling-drag0n/CloudPaste",
+    "demoUrl": "https://doc.cloudpaste.qzz.io",
+    "image": "https://opengraph.githubassets.com/htools/ling-drag0n/CloudPaste",
+    "category": "File Sharing",
+    "tags": [
+      "File Sharing",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloudnav",
+    "name": "CloudNav-",
+    "description": "可以托管在cloudflare上的导航，带chrome插件，可一键收藏网页到导航。轻量级导航，主打实用。",
+    "url": "https://github.com/sese972010/CloudNav-",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/sese972010/CloudNav-",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloudflareworker-kv-urlshort",
+    "name": "CloudflareWorker-KV-UrlShort",
+    "description": "使用Cloudflare Worker创建的URL缩短器, 支持自定义首页, 支持Menu Short, 支持短网址、文本、网页分享 URL。",
+    "url": "https://github.com/Ai-Yolo/CloudflareWorker-KV-UrlShort",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/Ai-Yolo/CloudflareWorker-KV-UrlShort",
+    "category": "Short Link",
+    "tags": [
+      "Short Link",
+      "Workers",
+      "KV",
+      "AI",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloudflarespeedtest",
+    "name": "CloudflareSpeedTest",
+    "description": "国外很多网站都在使用 Cloudflare CDN，但分配给中国内地访客的 IP 并不友好（延迟高、丢包多、速度慢）。虽然 Cloudflare 公开了所有 IP 段 ，但想要在这么多 IP 中找到适合自己的，怕是要累死，于是就有了这个软件。",
+    "url": "https://github.com/XIU2/CloudflareSpeedTest",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/XIU2/CloudflareSpeedTest",
+    "category": "Speed Test",
+    "tags": [
+      "Speed Test",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloudflared-web",
+    "name": "Cloudflared-web",
+    "description": "Cloudflared-web 是一个 docker 镜像，它打包了 cloudflared cli 和简单的 Web UI，以便轻松启动/停止 cloudflare 隧道。",
+    "url": "https://github.com/WisdomSky/Cloudflared-web",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/WisdomSky/Cloudflared-web",
+    "category": "Tunnel",
+    "tags": [
+      "Tunnel",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloudflare-workers-blog-2",
+    "name": "cloudflare-workers-blog",
+    "description": "Cloudflare workers + Github 实现的动态博客系统，使用边缘计算，无需服务器",
+    "url": "https://github.com/kasuganosoras/cloudflare-worker-blog",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/kasuganosoras/cloudflare-worker-blog",
+    "category": "Blog",
+    "tags": [
+      "Blog",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloudflare-workers-blog",
+    "name": "cloudflare-workers-blog",
+    "description": "这是一个运行在cloudflare workers 上的博客程序,使用 cloudflare KV作为数据库,无其他依赖. 兼容静态博客的速度,以及动态博客的灵活性,方便搭建不折腾.",
+    "url": "https://github.com/gdtool/cloudflare-workers-blog",
+    "demoUrl": "https://blog.gezhong.vip",
+    "image": "https://opengraph.githubassets.com/htools/gdtool/cloudflare-workers-blog",
+    "category": "Blog",
+    "tags": [
+      "Blog",
+      "Workers",
+      "KV",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloudflare-worker-image",
+    "name": "cloudflare-worker-image",
+    "description": "使用 Cloudflare Worker 处理图片, 依赖 Photon，支持缩放、剪裁、水印、滤镜等功能。",
+    "url": "https://github.com/ccbikai/cloudflare-worker-image",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/ccbikai/cloudflare-worker-image",
+    "category": "Image Hosting",
+    "tags": [
+      "Image Hosting",
+      "Workers",
+      "Image",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloudflare-wechat-notifier",
+    "name": "Cloudflare-WeChat-Notifier",
+    "description": "基于 Cloudflare Workers + Hono + D1 + Queues 的微信通知桥接服务。支持扫码登录、Webhook 入站、异步投递、失败重试和日志追踪，适用于 CI/CD、监控告警等通知场景。",
+    "url": "https://github.com/krapnikkk/Cloudflare-WeChat-Notifier",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/krapnikkk/Cloudflare-WeChat-Notifier",
+    "category": "Developer Tools",
+    "tags": [
+      "Developer Tools",
+      "Workers",
+      "D1",
+      "Monitor",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloudflare-radar",
+    "name": "CloudFlare Radar",
+    "description": "看某个网站的技术栈。",
+    "url": "https://radar.cloudflare.com/scan",
+    "demoUrl": "",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://radar.cloudflare.com/scan",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloudflare-r2-telegram-bot",
+    "name": "cloudflare-r2-telegram-bot",
+    "description": "基于cloudflare worker与R2存储桶的图床机器人。",
+    "url": "https://github.com/xinycai/cloudflare-r2-telegram-bot",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/xinycai/cloudflare-r2-telegram-bot",
+    "category": "Image Hosting",
+    "tags": [
+      "Image Hosting",
+      "Workers",
+      "R2",
+      "Image",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloudflare-proxy-sites",
+    "name": "cloudflare-proxy-sites",
+    "description": "Cloudflare Workers web proxy 二级域名访问方式。",
+    "url": "https://github.com/seadfeng/cloudflare-proxy-sites",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/seadfeng/cloudflare-proxy-sites",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Proxy",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloudflare-pages-urlshorten",
+    "name": "CloudFlare-Pages-UrlShorten",
+    "description": "一个多功能的URL短链工具。",
+    "url": "https://github.com/Jiaocz/CloudFlare-Pages-UrlShorten",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/Jiaocz/CloudFlare-Pages-UrlShorten",
+    "category": "Short Link",
+    "tags": [
+      "Short Link",
+      "Pages",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloudflare-no-tracked",
+    "name": "Cloudflare-No-Tracked",
+    "description": "用于去除 b 站以及小红书的跟踪链接，同时也有 tg 的 bot 版本",
+    "url": "https://github.com/xunmeiruxue/Cloudflare-No-Tracked",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/xunmeiruxue/Cloudflare-No-Tracked",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloudflare-kv-manager",
+    "name": "Cloudflare-KV-Manager",
+    "description": "您的 Cloudflare KV 缺少工具。用于管理 Cloudflare KV 存储的更完整、更简单的解决方案。包括一个 Web 界面和一个小型 Python 库。",
+    "url": "https://github.com/som3canadian/Cloudflare-KV-Manager",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/som3canadian/Cloudflare-KV-Manager",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "KV",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloudflare-docker-proxy",
+    "name": "cloudflare-docker-proxy",
+    "description": "一个名为 cloudflare-docker-proxy 的项目，这是一个在 Cloudflare Worker 上运行的 Docker Hub 注册代理.",
+    "url": "https://github.com/ciiiii/cloudflare-docker-proxy",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/ciiiii/cloudflare-docker-proxy",
+    "category": "Acceleration",
+    "tags": [
+      "Acceleration",
+      "Workers",
+      "Proxy",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloudflare-clist",
+    "name": "Cloudflare-Clist",
+    "description": "基于cloudflare worker的类alist聚合存储管理服务",
+    "url": "https://github.com/ooyyh/Cloudflare-Clist",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/ooyyh/Cloudflare-Clist",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cloud-mail",
+    "name": "cloud-mail",
+    "description": "用Vue3开发的响应式简约邮箱服务，支持邮件发送附件收发，可以部署到Cloudflare云平台。",
+    "url": "https://github.com/LaziestRen/cloud-mail",
+    "demoUrl": "https://skymail.ink",
+    "image": "https://opengraph.githubassets.com/htools/LaziestRen/cloud-mail",
+    "category": "Email",
+    "tags": [
+      "Email",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "chatgpt-telegram-workers",
+    "name": "ChatGPT-Telegram-Workers",
+    "description": "轻松在 Cloudflare Workers 上部署您自己的 Telegram ChatGPT 机器人，有详细的视频和图文教程，搭建过程也不复杂，小白也能上手。",
+    "url": "https://github.com/TBXark/ChatGPT-Telegram-Workers",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/TBXark/ChatGPT-Telegram-Workers",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cfworkerurls",
+    "name": "CFWorkerUrls",
+    "description": "一个基于CF Worker的短链接跳转服务，支持Lucky STUN自动化 。",
+    "url": "https://github.com/PIKACHUIM/CFWorkerUrls",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/PIKACHUIM/CFWorkerUrls",
+    "category": "Short Link",
+    "tags": [
+      "Short Link",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cfworkeracme",
+    "name": "CFWorkerACME",
+    "description": "SSL证书助手是一个免费、开源的全自动化SSL证书申请和下发平台，依托于Cloudflare运行",
+    "url": "https://github.com/PIKACHUIM/CFWorkerACME",
+    "demoUrl": "https://newssl.524228.xyz",
+    "image": "https://opengraph.githubassets.com/htools/PIKACHUIM/CFWorkerACME",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cf-workers-status-page",
+    "name": "cf-workers-status-page",
+    "description": "监控您的网站，展示状态（包括每日历史记录），并在网站状态发生变化时收到 Slack 通知。使用 Cloudflare Workers、CRON 触发器和 KV 存储。",
+    "url": "https://github.com/eidam/cf-workers-status-page",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/eidam/cf-workers-status-page",
+    "category": "Monitoring",
+    "tags": [
+      "Monitoring",
+      "Workers",
+      "KV",
+      "Monitor",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cf-workers-docker-io",
+    "name": "CF-Workers-docker.io",
+    "description": "这个项目是一个基于 Cloudflare Workers 的 Docker 镜像代理工具。它能够中转对 Docker 官方镜像仓库的请求，解决一些访问限制和加速访问的问题.",
+    "url": "https://github.com/cmliu/CF-Workers-docker.io",
+    "demoUrl": "https://docker.fxxk.dedyn.io",
+    "image": "https://opengraph.githubassets.com/htools/cmliu/CF-Workers-docker.io",
+    "category": "Acceleration",
+    "tags": [
+      "Acceleration",
+      "Workers",
+      "Proxy",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cf-vps-monitor",
+    "name": "cf-vps-monitor",
+    "description": "一个部署在 Cloudflare Workers 上的简单 VPS 监控 + 网站监测 面板，使用 Cloudflare D1 数据库存储数据。",
+    "url": "https://github.com/kadidalax/cf-vps-monitor",
+    "demoUrl": "https://vps-monitor.abo-vendor289.workers.dev",
+    "image": "https://opengraph.githubassets.com/htools/kadidalax/cf-vps-monitor",
+    "category": "Monitoring",
+    "tags": [
+      "Monitoring",
+      "Workers",
+      "D1",
+      "Monitor",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cf-tools",
+    "name": "CF-TOOLS",
+    "description": "整合常用开发工具，AI 助手等。",
+    "url": "https://github.com/MainPoser/cf-tools",
+    "demoUrl": "https://cf-tools.tianyao.qzz.io",
+    "image": "https://opengraph.githubassets.com/htools/MainPoser/cf-tools",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "AI",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cf-proxy-ex",
+    "name": "cf-proxy-ex",
+    "description": "Cloudflare超级代理，Duckduckgo代理（可用AI聊天），OpenAI/ChatGPT代理，Github加速，在线代理。Cloudflare super proxy, setting up a free proxy by using Cloudflare worker.",
+    "url": "https://github.com/1234567Yang/cf-proxy-ex",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/1234567Yang/cf-proxy-ex",
+    "category": "Acceleration",
+    "tags": [
+      "Acceleration",
+      "Workers",
+      "AI",
+      "Proxy",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cf-page-publish-mcp",
+    "name": "cf-page-publish-mcp",
+    "description": "cloudflare 页面发布 mcp 工具，可以将 html 页面发布到 cloudflare，worker 上。可以mcp对接ai。",
+    "url": "https://github.com/Actrue/cf-page-publish-mcp",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/Actrue/cf-page-publish-mcp",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "AI",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cf-image-hosting",
+    "name": "cf-image-hosting",
+    "description": "在 Telegraph 上免费无限制地托管图像，部署在 Cloudflare 上。",
+    "url": "https://github.com/ifyour/cf-image-hosting",
+    "demoUrl": "https://images.mingming.dev",
+    "image": "https://opengraph.githubassets.com/htools/ifyour/cf-image-hosting",
+    "category": "Image Hosting",
+    "tags": [
+      "Image Hosting",
+      "Image",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cf-files-sharing",
+    "name": "cf-files-sharing",
+    "description": "在该项目中，利用 Cloudflare Workers 的全球加速优势，实现了一个支持密码保护的文件分享工具，并集成了 Cloudflare 的 D1 数据库和 R2 存储，以满足不同大小文件的存储需求",
+    "url": "https://github.com/joyance-professional/cf-files-sharing",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/joyance-professional/cf-files-sharing",
+    "category": "File Sharing",
+    "tags": [
+      "File Sharing",
+      "Workers",
+      "D1",
+      "R2",
+      "Proxy"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cf-drop",
+    "name": "cf-drop",
+    "description": "一个「文件传输助手」，运行在 Cloudflare Worker + R2 + D1。具备PWA移动端优化、支持多线程文件下载、访问密码、打包下载tarball 等功能。界面简单易用，可放到浏览器侧栏，或者添加到手机桌面上快速使用。",
+    "url": "https://github.com/lyonbot/cf-drop",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/lyonbot/cf-drop",
+    "category": "File Sharing",
+    "tags": [
+      "File Sharing",
+      "Workers",
+      "D1",
+      "R2",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "cf-comment",
+    "name": "cf-comment",
+    "description": "一个基于 Cloudflare Workers 运行的简单评论系统，支持回复、点赞、举报以及管理员后台管理功能；同时提供中英双语切换，方便更广泛地使用。",
+    "url": "https://github.com/joyance-professional/cf-comment",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/joyance-professional/cf-comment",
+    "category": "Blog",
+    "tags": [
+      "Blog",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "blockedinchina",
+    "name": "blockedinchina",
+    "description": "Cloudflare官方推荐的，检测域名是否被墙",
+    "url": "https://www.comparitech.com/privacy-security-tools/blockedinchina",
+    "demoUrl": "",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://www.comparitech.com/privacy-security-tools/blockedinchina",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "beam",
+    "name": "Beam",
+    "description": "轻量级、无 Cookie、GDPR 合规的网页分析服务，基于 Cloudflare Workers + D1 构建。无需 Cookie 即可收集页面浏览数据，隐私友好，可自部署。",
+    "url": "https://github.com/scobb/beam",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/scobb/beam",
+    "category": "Analytics",
+    "tags": [
+      "Analytics",
+      "Workers",
+      "D1",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "aws-accessbridge",
+    "name": "AWS-AccessBridge",
+    "description": "AWS 多账号管理和登录服务",
+    "url": "https://github.com/Rexezuge-CloudflareWorkers/AWS-AccessBridge",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/Rexezuge-CloudflareWorkers/AWS-AccessBridge",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "authinbox",
+    "name": "AuthInbox",
+    "description": "一个自建的开源多邮箱验证码的接码平台，基于 Cloudflare 的免费服务。它可以自动处理收到的邮件，提取验证码或链接，并将其存储在数据库中。管理员可以通过一个用户友好的网页界面轻松查看提取的信息。AuthInbox 还支持通过 Bark 进行实时通知，使其成为一个全面且省心的邮件认证管理解决方案。",
+    "url": "https://github.com/TooonyChen/AuthInbox",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/TooonyChen/AuthInbox",
+    "category": "Email",
+    "tags": [
+      "Email",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "analyticswithcloudflare",
+    "name": "analyticswithcloudflare",
+    "description": "免费开源网页访客计数器, Webviso 是一个基于Cloudflare worker服务+Cloudflare D1数据库实现的完全免费的在线web访客统计服务。 功能与目前常用的 不蒜子 - 极简网页计数器 相同。Webviso完全开源，你可以实现自定义需求。 基于Cloudflare的微服务架构可快速自行部署上线。",
+    "url": "https://github.com/yestool/analytics_with_cloudflare",
+    "demoUrl": "https://webviso.yestool.org",
+    "image": "https://opengraph.githubassets.com/htools/yestool/analytics_with_cloudflare",
+    "category": "Analytics",
+    "tags": [
+      "Analytics",
+      "Workers",
+      "D1",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "alle",
+    "name": "Alle",
+    "description": "AI识别的邮件聚合客户端，支持验证码提取、链接分类、临时邮箱服务。基于Cloudflare Workers + Next.js构建，无需服务器，仅需一个域名即可部署。",
+    "url": "https://github.com/bestruirui/Alle",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/bestruirui/Alle",
+    "category": "Email",
+    "tags": [
+      "Email",
+      "Workers",
+      "AI",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "aiwatch",
+    "name": "AIWatch",
+    "description": "30 个 AI 服务（Claude、OpenAI、Gemini、Mistral、Groq、ElevenLabs 等）的实时状态监控仪表板。基于 Cloudflare Workers + KV + Workers AI（Gemma 4 26B 用于事件分析）构建，提供 Discord/Slack 告警、AI 驱动的事件分析和综合可靠性评分。",
+    "url": "https://github.com/bentleypark/aiwatch",
+    "demoUrl": "https://ai-watch.dev",
+    "image": "https://opengraph.githubassets.com/htools/bentleypark/aiwatch",
+    "category": "Monitoring",
+    "tags": [
+      "Monitoring",
+      "Workers",
+      "KV",
+      "AI",
+      "Analytics"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "ai-worker",
+    "name": "AI-worker",
+    "description": "通过Cloudflare免费、私有化访问和管理Gemini摆脱地域限制无烦恼，完全由自己掌控。",
+    "url": "https://github.com/qyjoy/AI-worker",
+    "demoUrl": "",
+    "image": "https://opengraph.githubassets.com/htools/qyjoy/AI-worker",
+    "category": "Acceleration",
+    "tags": [
+      "Acceleration",
+      "Workers",
+      "AI",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "ai-maze-generator",
+    "name": "AI Maze Generator",
+    "description": "基于 Next.js + OpenNext 部署在 Cloudflare Workers 上的在线迷宫生成器与游戏。支持 10 种迷宫模式、每日挑战、排行榜、自定义生成和 PDF 导出。",
+    "url": "https://ai-mazegenerator.com",
+    "demoUrl": "",
+    "image": "https://image.thum.io/get/width/1200/crop/720/https://ai-mazegenerator.com",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "AI",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "2fauth-worker",
+    "name": "2FAuth Worker",
+    "description": "支持 Cloudflare Workers 与 Docker 双模式部署的高安全 2FA/TOTP 管理系统。提供 PWA、离线验证码生成、Health Shield 和 WebDAV/S3/Telegram 多通道备份。",
+    "url": "https://github.com/nodeauth/2fauth-worker",
+    "demoUrl": "https://2fauth.pp.ua",
+    "image": "https://opengraph.githubassets.com/htools/nodeauth/2fauth-worker",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
+    "featured": false
+  },
+  {
+    "createdAt": "2026-07-02T00:00:00.000Z",
+    "updatedAt": "2026-07-02T00:00:00.000Z",
+    "id": "2fa",
+    "name": "2fa",
+    "description": "基于Cloudflare Workers的2FA生成网站。支持一键部署，基于hoajs实现。",
+    "url": "https://github.com/hoa-js/examples/blob/master/2fa/index.js",
+    "demoUrl": "https://2fa.hoa-js.com",
+    "image": "https://opengraph.githubassets.com/htools/hoa-js/examples",
+    "category": "Other Tools",
+    "tags": [
+      "Other Tools",
+      "Workers",
+      "Open Source"
+    ],
+    "githubLanguage": "",
+    "githubLicense": "",
     "featured": false
   }
 ]

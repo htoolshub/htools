@@ -43,12 +43,20 @@ export const zh: Messages = {
     title: "文章",
     description: "阅读教程、公告与资源整理，发现更多实用内容。"
   },
+  pagination: {
+    label: "分页",
+    previous: "上一页",
+    next: "下一页",
+    page: (page) => `第 ${page} 页`,
+    more: "更多页码"
+  },
   publicMeta: {
     aboutDescription: "了解本站的创建背景、收录方向和维护方式。",
     privacyDescription: "了解本站如何收集、使用和保护与访问及功能使用相关的信息。",
     termsDescription: "了解使用本站工具目录、文章内容和提交功能时适用的规则。"
   },
   actions: {
+    menu: (name) => `${name}操作菜单`,
     retry: "重试",
     submitTool: "提交工具",
     toggleTheme: "切换主题",
@@ -91,9 +99,6 @@ export const zh: Messages = {
       "请检查您的项目是否已正确绑定数据库。",
     title: "没有找到工具",
     description: "换个分类，或者试试更短的搜索词。"
-  },
-  footer: {
-    version: "HTools v1.0.15"
   },
   submit: {
     title: "提交工具",

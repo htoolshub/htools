@@ -3,8 +3,6 @@ import {
   AtSign,
   BadgeCheck,
   Boxes,
-  ChevronLeft,
-  ChevronRight,
   CircleAlert,
   Clock3,
   Coffee,
@@ -54,8 +52,7 @@ import { createPortal } from "react-dom";
 import {
   cleanArticleDisplayText,
   getArticleDisplayTitle,
-  getArticleText,
-  getCategoryIcon
+  getArticleText
 } from "./article-helpers";
 import {
   createToolPreviewSource,
@@ -86,6 +83,7 @@ import UtilityMenuControls, {
 import ArticleDetailContent, {
   ArticleDetailContentSkeleton
 } from "./components/ArticleDetailContent";
+import { CategoryRail, DirectoryPagination } from "./components/PublicDirectoryControls";
 import {
   DEFAULT_SITE_SETTINGS,
   createArticleStructuredData,
@@ -255,42 +253,6 @@ function useProxySettings() {
 }
 
 type PublicPage = "home" | "category" | "articles" | "submit" | "about";
-type PaginationItem = number | "ellipsis-left" | "ellipsis-right";
-
-function getPaginationItems(totalPages: number, currentPage: number): PaginationItem[] {
-  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, index) => index + 1);
-
-  const normalizedCurrent = Math.min(Math.max(currentPage, 1), totalPages);
-  const visiblePages = new Set<number>([
-    1,
-    totalPages,
-    normalizedCurrent - 1,
-    normalizedCurrent,
-    normalizedCurrent + 1
-  ]);
-
-  if (currentPage <= 4) {
-    [2, 3, 4, 5].forEach((page) => visiblePages.add(page));
-  } else if (currentPage >= totalPages - 3) {
-    [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1].forEach(
-      (page) => visiblePages.add(page)
-    );
-  }
-
-  const pages = Array.from(visiblePages)
-    .filter((page) => page >= 1 && page <= totalPages)
-    .sort((left, right) => left - right);
-
-  return pages.reduce<PaginationItem[]>((items, page, index) => {
-    const previousPage = pages[index - 1];
-    if (previousPage && page - previousPage === 2) items.push(previousPage + 1);
-    else if (previousPage && page - previousPage > 2) {
-      items.push(page < normalizedCurrent ? "ellipsis-left" : "ellipsis-right");
-    }
-    items.push(page);
-    return items;
-  }, []);
-}
 
 function resolveThemeMode(mode: ThemeMode) {
   if (mode !== "system") {
@@ -572,6 +534,7 @@ export function App() {
       })
       .catch((error) => {
         if (publicArticlesRequestIdRef.current !== requestId) return;
+        setArticles([]);
         setArticleLoadError(getLocalizedErrorMessage(error, t));
       })
       .finally(() => {
@@ -812,7 +775,9 @@ export function App() {
       scrollPageToTop();
     } catch (error) {
       if (publicToolsRequestIdRef.current === requestId) {
-        setToolLoadError(getLocalizedErrorMessage(error, t));
+        const message = getLocalizedErrorMessage(error, t);
+        setToolLoadError(message);
+        notify({ tone: "error", message });
       }
     } finally {
       window.clearTimeout(timeout);
@@ -858,7 +823,9 @@ export function App() {
       scrollPageToTop();
     } catch (error) {
       if (publicArticlesRequestIdRef.current === requestId) {
-        setArticleLoadError(getLocalizedErrorMessage(error, t));
+        const message = getLocalizedErrorMessage(error, t);
+        setArticleLoadError(message);
+        notify({ tone: "error", message });
       }
     } finally {
       window.clearTimeout(timeout);
@@ -1249,7 +1216,7 @@ function GlobalToasts({
   }
 
   return createPortal(
-    <div className="global-toast-region" role="status" aria-live="polite">
+    <div className="global-toast-region" id="global-operation-status" role="status" aria-live="polite" aria-atomic="true">
       {toasts.map((toast) => (
         <div className={`global-toast is-${toast.tone}`} key={toast.id}>
           {toast.message}
@@ -1501,7 +1468,6 @@ function CategoryPage({
   tools: Tool[];
 }) {
   const totalPages = totalToolCount === null ? null : Math.max(1, Math.ceil(totalToolCount / CATEGORY_PAGE_SIZE));
-  const paginationItems = totalPages === null ? [currentPage] : getPaginationItems(totalPages, currentPage);
   function handleCategorySelect(category: string) {
     setActiveCategory(category);
     scrollPageToTop();
@@ -1532,30 +1498,15 @@ function CategoryPage({
         </section>
 
         <section className="directory-layout category-directory" id="category">
-          <aside className="category-rail">
-            {isLoading ? (
-              <SkeletonVisibility visible={showSkeletons}>
-                <CategoryRailSkeleton items={12} />
-              </SkeletonVisibility>
-            ) : (
-              categories.map((category) => {
-                const Icon = getCategoryIcon(category);
-                return (
-                  <button
-                    className={`category-item ${
-                      category === activeCategory ? "is-active" : ""
-                    }`}
-                    key={category}
-                    type="button"
-                    onClick={() => handleCategorySelect(category)}
-                  >
-                    <Icon size={20} />
-                    <span>{getCategoryLabel(category, t)}</span>
-                  </button>
-                );
-              })
-            )}
-          </aside>
+          <CategoryRail
+            activeCategory={activeCategory}
+            categories={categories}
+            isLoading={isLoading}
+            onSelect={handleCategorySelect}
+            showSkeletons={showSkeletons}
+            skeletonItems={12}
+            t={t}
+          />
 
           <div
             aria-busy={isRefreshing}
@@ -1613,49 +1564,14 @@ function CategoryPage({
             </div>
 
             {currentPage > 1 || (tools.length > 0 && (hasMore || (totalPages ?? 1) > 1)) ? (
-              <nav className="category-pagination" aria-label="Pagination">
-                <button
-                  aria-label={locale === "zh" ? "上一页" : "Previous page"}
-                  className="pagination-arrow"
-                  disabled={currentPage <= 1 || isLoadingMore}
-                  type="button"
-                  onClick={() => onPageChange(currentPage - 1)}
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                {paginationItems.map((page) =>
-                  typeof page === "number" ? (
-                    <button
-                      aria-current={page === currentPage ? "page" : undefined}
-                      className={page === currentPage ? "is-active" : ""}
-                      disabled={isLoadingMore}
-                      key={page}
-                      type="button"
-                      onClick={() => onPageChange(page)}
-                    >
-                      {page}
-                    </button>
-                  ) : (
-                    <button
-                      className="pagination-ellipsis"
-                      disabled
-                      key={page}
-                      type="button"
-                    >
-                      ...
-                    </button>
-                  )
-                )}
-                <button
-                  aria-label={locale === "zh" ? "下一页" : "Next page"}
-                  className="pagination-arrow"
-                  disabled={!hasMore || isLoadingMore}
-                  type="button"
-                  onClick={() => onPageChange(currentPage + 1)}
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </nav>
+              <DirectoryPagination
+                currentPage={currentPage}
+                hasNextPage={hasMore}
+                isLoading={isLoadingMore}
+                onPageChange={onPageChange}
+                t={t}
+                totalPages={totalPages}
+              />
             ) : null}
           </div>
         </section>
@@ -1713,7 +1629,6 @@ function ArticlesPage({
 }) {
   const articleText = getArticleText(locale);
   const totalPages = Math.max(1, Math.ceil(totalArticleCount / 20));
-  const paginationItems = getPaginationItems(totalPages, currentPage);
 
   function handleCategorySelect(category: string) {
     setActiveCategory(category);
@@ -1742,30 +1657,15 @@ function ArticlesPage({
         </section>
 
         <section className="directory-layout category-directory article-directory">
-          <aside className="category-rail">
-            {isLoading ? (
-              <SkeletonVisibility visible={showSkeletons}>
-                <CategoryRailSkeleton items={6} />
-              </SkeletonVisibility>
-            ) : (
-              categories.map((category) => {
-                const Icon = getCategoryIcon(category);
-                return (
-                  <button
-                    className={`category-item ${
-                      category === activeCategory ? "is-active" : ""
-                    }`}
-                    key={category}
-                    type="button"
-                    onClick={() => handleCategorySelect(category)}
-                  >
-                    <Icon size={20} />
-                    <span>{getCategoryLabel(category, t)}</span>
-                  </button>
-                );
-              })
-            )}
-          </aside>
+          <CategoryRail
+            activeCategory={activeCategory}
+            categories={categories}
+            isLoading={isLoading}
+            onSelect={handleCategorySelect}
+            showSkeletons={showSkeletons}
+            skeletonItems={6}
+            t={t}
+          />
 
           <div
             aria-busy={isRefreshing}
@@ -1810,45 +1710,15 @@ function ArticlesPage({
                 </div>
               )}
             </section>
-            {articles.length > 0 && totalPages > 1 ? (
-              <nav className="category-pagination" aria-label="Pagination">
-                <button
-                  aria-label={locale === "zh" ? "上一页" : "Previous page"}
-                  className="pagination-arrow"
-                  disabled={currentPage <= 1 || isLoadingMore}
-                  type="button"
-                  onClick={() => onPageChange(currentPage - 1)}
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                {paginationItems.map((page) =>
-                  typeof page === "number" ? (
-                    <button
-                      aria-current={page === currentPage ? "page" : undefined}
-                      className={page === currentPage ? "is-active" : ""}
-                      disabled={isLoadingMore}
-                      key={page}
-                      type="button"
-                      onClick={() => onPageChange(page)}
-                    >
-                      {page}
-                    </button>
-                  ) : (
-                    <button className="pagination-ellipsis" disabled key={page} type="button">
-                      ...
-                    </button>
-                  )
-                )}
-                <button
-                  aria-label={locale === "zh" ? "下一页" : "Next page"}
-                  className="pagination-arrow"
-                  disabled={!hasMore || currentPage >= totalPages || isLoadingMore}
-                  type="button"
-                  onClick={() => onPageChange(currentPage + 1)}
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </nav>
+            {currentPage > 1 || (articles.length > 0 && totalPages > 1) ? (
+              <DirectoryPagination
+                currentPage={currentPage}
+                hasNextPage={hasMore && currentPage < totalPages}
+                isLoading={isLoadingMore}
+                onPageChange={onPageChange}
+                t={t}
+                totalPages={totalPages}
+              />
             ) : null}
           </div>
         </section>
@@ -3203,16 +3073,6 @@ function ToolCardSkeleton() {
         </div>
       </div>
     </SkeletonLayoutMask>
-  );
-}
-
-function CategoryRailSkeleton({ items }: { items: number }) {
-  return (
-    <div className="category-rail-skeleton" aria-hidden="true">
-      {Array.from({ length: items }).map((_, index) => (
-        <span className="skeleton-shimmer category-skeleton-item" key={index} />
-      ))}
-    </div>
   );
 }
 

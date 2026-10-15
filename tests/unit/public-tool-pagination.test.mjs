@@ -54,7 +54,7 @@ function createDatabase({ rows = [], counts = [] } = {}) {
         async first() {
           if (sql.includes("SELECT value FROM app_settings")) {
             return call.binds[0] === "database_schema_version"
-              ? { value: "17" }
+              ? { value: "18" }
               : { value: "cache-version" };
           }
           return null;

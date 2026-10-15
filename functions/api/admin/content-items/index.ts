@@ -55,12 +55,14 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       MAX_PAGE_LIMIT
     );
     const cursor = parseCursor(url.searchParams.get("cursor"), sort);
+    const includeCounts = url.searchParams.get("counts") !== "0";
     const terms = query ? createSearchTerms(query) : null;
     try {
       return json(
         await loadContentItemPage(db, {
           category,
           cursor,
+          includeCounts,
           limit,
           sourceId,
           sort,
@@ -74,6 +76,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
         await loadContentItemPage(db, {
           category,
           cursor,
+          includeCounts,
           limit,
           sourceId,
           sort,
@@ -97,6 +100,7 @@ async function loadContentItemPage(
   options: {
     category: string;
     cursor: ContentItemCursor | null;
+    includeCounts: boolean;
     limit: number;
     sourceId: string;
     sort: "latest" | "oldest";
@@ -104,7 +108,7 @@ async function loadContentItemPage(
     useFts: boolean;
   }
 ) {
-  const { category, cursor, limit, sort, sourceId, terms, useFts } = options;
+  const { category, cursor, includeCounts, limit, sort, sourceId, terms, useFts } = options;
   const sharedConditions: string[] = [];
   const sharedParams: string[] = [];
   const searchConditions: string[] = [];
@@ -194,22 +198,26 @@ async function loadContentItemPage(
     )
       .bind(...params, limit + 1)
       .all<ContentItemPageRow>(),
-    db.prepare(
-      `SELECT content_items.source_id,
-              COUNT(*) AS total,
-              ${filteredTotalExpression} AS filtered_total
-       FROM content_items
-       ${sourceCountJoin}
-       ${sourceCountWhereClause}
-       GROUP BY content_items.source_id`
-    )
-      .bind(...sourceCountParams)
-      .all<ContentSourceCountRow>(),
-    db.prepare(
-      `SELECT category, COUNT(*) AS total
-       FROM content_items
-       GROUP BY category`
-    ).all<ContentCategoryCountRow>()
+    includeCounts
+      ? db.prepare(
+          `SELECT content_items.source_id,
+                  COUNT(*) AS total,
+                  ${filteredTotalExpression} AS filtered_total
+           FROM content_items
+           ${sourceCountJoin}
+           ${sourceCountWhereClause}
+           GROUP BY content_items.source_id`
+        )
+          .bind(...sourceCountParams)
+          .all<ContentSourceCountRow>()
+      : Promise.resolve({ results: [] as ContentSourceCountRow[] }),
+    includeCounts
+      ? db.prepare(
+          `SELECT category, COUNT(*) AS total
+           FROM content_items
+           GROUP BY category`
+        ).all<ContentCategoryCountRow>()
+      : Promise.resolve({ results: [] as ContentCategoryCountRow[] })
   ]);
   const hasMore = result.results.length > limit;
   const items = result.results.slice(0, limit);
@@ -236,11 +244,13 @@ async function loadContentItemPage(
     limit,
     hasMore,
     nextCursor,
-    total,
-    sourceCounts,
-    categoryCounts: Object.fromEntries(
-      categoryCountRows.results.map((row) => [row.category, Number(row.total ?? 0)])
-    )
+    total: includeCounts ? total : null,
+    sourceCounts: includeCounts ? sourceCounts : null,
+    categoryCounts: includeCounts
+      ? Object.fromEntries(
+          categoryCountRows.results.map((row) => [row.category, Number(row.total ?? 0)])
+        )
+      : null
   };
 }
 

@@ -17,7 +17,7 @@ after(async () => {
 function createSettingsDatabase(initial = {}) {
   const rows = new Map(
     // 让 getDatabase 的版本检查直接通过,不去跑真实建表
-    Object.entries({ database_schema_version: "17", ...initial })
+    Object.entries({ database_schema_version: "18", ...initial })
   );
   const inserts = [];
   const db = {

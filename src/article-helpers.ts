@@ -56,6 +56,7 @@ export function getArticleText(locale: Locale) {
       adminDescription:
         "管理前台文章内容，可用于发布教程、公告、资源整理和更新记录。",
       addArticle: "添加文章",
+      addArticleDescription: "填写文章标题、摘要和正文，可直接发布或存为草稿。",
       editArticle: "编辑文章",
       editArticleDescription: "修改文章信息、发布状态和正文，保存后将更新本站文章。",
       deleteArticle: "删除文章",
@@ -122,6 +123,8 @@ export function getArticleText(locale: Locale) {
     adminDescription:
       "Manage frontend articles for tutorials, announcements, resource roundups, and update notes.",
     addArticle: "Add Article",
+    addArticleDescription:
+      "Enter the article title, summary, and content, then publish it or save it as a draft.",
     editArticle: "Edit Article",
     editArticleDescription:
       "Edit the article information, publish status, and content, then save the changes to the site.",

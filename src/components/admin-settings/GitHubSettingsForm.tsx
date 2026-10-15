@@ -13,12 +13,14 @@ export function GitHubSettingsForm({
   maintenanceText,
   onDirtyChange,
   onStatus,
+  reloadKey,
   token,
   t
 }: {
   maintenanceText: ReturnType<typeof getAdminMaintenanceText>;
   onDirtyChange: (dirty: boolean) => void;
   onStatus: (message: string) => void;
+  reloadKey: number;
   token: string;
   t: Messages;
 }) {
@@ -36,6 +38,7 @@ export function GitHubSettingsForm({
   const [settingsReloadKey, setSettingsReloadKey] = useState(0);
   const settingsLoadRequestRef = useRef(0);
   const settingsLoadAbortRef = useRef<AbortController | null>(null);
+  const appliedReloadKeyRef = useRef(reloadKey);
   const showSettingsSkeleton = useLoadingSkeleton(isLoadingSettings, 0);
   const isDirty = Boolean(settings) && (
     form.owner !== settings?.owner ||
@@ -80,7 +83,7 @@ export function GitHubSettingsForm({
         if (settingsLoadRequestRef.current !== requestId) return;
         setSettings(loaded);
 
-        if (!isDirtyRef.current) {
+        if (appliedReloadKeyRef.current !== reloadKey || !isDirtyRef.current) {
           setForm({
             enabled: loaded.enabled,
             owner: loaded.owner,
@@ -88,6 +91,7 @@ export function GitHubSettingsForm({
             labels: loaded.labels
           });
         }
+        appliedReloadKeyRef.current = reloadKey;
       } catch (error) {
         if (
           settingsLoadRequestRef.current === requestId &&
@@ -113,7 +117,7 @@ export function GitHubSettingsForm({
         settingsLoadRequestRef.current += 1;
       }
     };
-  }, [settingsReloadKey, t, token]);
+  }, [reloadKey, settingsReloadKey, t, token]);
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

@@ -30,10 +30,8 @@ const wranglerPath = resolve(projectRoot, "node_modules/wrangler/bin/wrangler.js
 const HOUR_MS = 60 * 60 * 1000;
 const MB = 1024 * 1024;
 const DEFAULT_ORIGIN = "http://127.0.0.1:8788";
-const DEFAULT_TMP_BUDGET_MB = 500;
 const STALE_RUNTIME_AGE_MS = 6 * HOUR_MS;
 const STALE_LEGACY_PROFILE_AGE_MS = 24 * HOUR_MS;
-const ARTIFACT_BUDGET_BYTES = 200 * MB;
 const KEEP_SUCCESSFUL_RUNS = 1;
 const KEEP_FAILED_RUNS = 2;
 
@@ -94,7 +92,6 @@ function printHelp() {
   --origin=http://...      默认 ${DEFAULT_ORIGIN}
   --routes=/,/admin/tools  只检查指定路径
   --no-screenshots         只生成 JSON 报告
-  --max-tmp-mb=500         tmp 总容量保护阈值
   --all                    clean 时同时删除历史截图与报告
   --help                   显示帮助
 
@@ -113,7 +110,6 @@ export function parseCliArgs(argv) {
     routes: null,
     screenshots: true,
     cleanAll: false,
-    maxTmpMb: DEFAULT_TMP_BUDGET_MB,
     help: false
   };
 
@@ -150,18 +146,11 @@ export function parseCliArgs(argv) {
         .filter(Boolean);
       continue;
     }
-    if (arg.startsWith("--max-tmp-mb=")) {
-      options.maxTmpMb = Number(arg.slice("--max-tmp-mb=".length));
-      continue;
-    }
     throw new Error(`不支持的参数：${arg}`);
   }
 
   if (!Object.hasOwn(ROUTE_SCOPES, options.scope)) {
     throw new Error(`不支持的回归范围：${options.scope}`);
-  }
-  if (!Number.isFinite(options.maxTmpMb) || options.maxTmpMb < 100) {
-    throw new Error("--max-tmp-mb 必须是不小于 100 的数字。");
   }
 
   let origin;
@@ -246,20 +235,6 @@ async function directorySize(path) {
     }
   }
   return total;
-}
-
-async function listDirectorySizes(path) {
-  const entries = await readdir(path, { withFileTypes: true }).catch(() => []);
-  const sizes = [];
-  for (const entry of entries) {
-    if (entry.isSymbolicLink()) continue;
-    const child = join(path, entry.name);
-    sizes.push({
-      name: entry.name,
-      bytes: entry.isDirectory() ? await directorySize(child) : (await stat(child)).size
-    });
-  }
-  return sizes.sort((left, right) => right.bytes - left.bytes);
 }
 
 async function isEdgeProfileDirectory(path) {
@@ -367,37 +342,9 @@ async function pruneArtifacts({ removeAll = false, currentRun = "" } = {}) {
   }
 
   const keptRuns = runs.filter((run) => keep.has(run.name));
-  let total = keptRuns.reduce((sum, run) => sum + run.bytes, 0);
-  for (const run of [...keptRuns].sort((left, right) => left.mtimeMs - right.mtimeMs)) {
-    if (total <= ARTIFACT_BUDGET_BYTES) break;
-    if (run.name === currentRun) continue;
-    await safeRemove(artifactRoot, run.path);
-    total -= run.bytes;
-    keep.delete(run.name);
-  }
-
-  if (total > ARTIFACT_BUDGET_BYTES) {
-    console.warn(
-      `[HTools] 当前回归产物为 ${(total / MB).toFixed(1)}MB，超过 200MB；本轮结果已保留，请检查截图数量。`
-    );
-  }
+  const total = keptRuns.reduce((sum, run) => sum + run.bytes, 0);
 
   return { kept: keep.size, bytes: total };
-}
-
-async function enforceTmpBudget(maxTmpMb) {
-  const bytes = await directorySize(projectTmpRoot);
-  const limit = maxTmpMb * MB;
-  if (bytes <= limit) return bytes;
-
-  const largest = (await listDirectorySizes(projectTmpRoot))
-    .slice(0, 8)
-    .map((entry) => `${entry.name} ${(entry.bytes / MB).toFixed(1)}MB`)
-    .join("、");
-  throw new Error(
-    `tmp 当前为 ${(bytes / MB).toFixed(1)}MB，超过 ${maxTmpMb}MB 保护阈值。` +
-      `请先检查未受脚本管理的文件：${largest}`
-  );
 }
 
 async function getAdminToken(origin, requiresAdmin) {
@@ -816,7 +763,7 @@ async function runRegression(options) {
   const staleRuntimeRemoved = await cleanupStaleRuntime();
   const legacyProfilesRemoved = await cleanupLegacyProfiles();
   await pruneArtifacts();
-  const tmpBytesBefore = await enforceTmpBudget(options.maxTmpMb);
+  const tmpBytesBefore = await directorySize(projectTmpRoot);
 
   const runId = createRunId();
   const runPath = join(runtimeRoot, runId);
@@ -994,7 +941,7 @@ async function runRegression(options) {
   };
   await writeFile(join(artifactsPath, "report.json"), `${JSON.stringify(report, null, 2)}\n`);
   await pruneArtifacts({ currentRun: runId });
-  const tmpBytesAfter = await enforceTmpBudget(options.maxTmpMb);
+  const tmpBytesAfter = await directorySize(projectTmpRoot);
 
   console.log(
     `[HTools] 回归${status === "passed" ? "通过" : "失败"}：` +
@@ -1078,6 +1025,8 @@ async function startIsolatedPagesDev(persistPath) {
     "AI=browser-regression-ai",
     "--binding",
     `TGTOKEN=${CRITICAL_FLOW_TOKEN}`,
+    "--binding",
+    "IMGBED_TOKEN=browser-regression-image-token",
     "--binding",
     "TGID=",
     "--binding",
@@ -1316,6 +1265,8 @@ async function installCriticalFlowHelpers(client) {
       return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
     };
     const text = (element) => (element?.textContent || "").replace(/\\s+/g, " ").trim();
+    const findToast = (...parts) => Array.from(document.querySelectorAll(".global-toast"))
+      .find((element) => visible(element) && parts.every((part) => text(element).includes(part)));
     const waitFor = async (read, label, timeout = 15000) => {
       const startedAt = Date.now();
       while (Date.now() - startedAt < timeout) {
@@ -1399,6 +1350,25 @@ async function installCriticalFlowHelpers(client) {
       label,
       20000
     );
+    const checkCategoryMenuSpacing = (popover) => {
+      const rows = [...popover.querySelectorAll(".admin-category-filter-option")];
+      for (let index = 0; index < rows.length; index += 1) {
+        const primary = rows[index].querySelector(".admin-category-select-option");
+        if (!primary) continue;
+        const rect = primary.getBoundingClientRect();
+        for (const action of rows[index].querySelectorAll(".admin-category-option-action")) {
+          const actionRect = action.getBoundingClientRect();
+          if (Math.abs(rect.height - actionRect.height) > 1 || Math.abs(rect.top - actionRect.top) > 1 ||
+              getComputedStyle(primary).borderRadius !== getComputedStyle(action).borderRadius) {
+            throw new Error("Category selection and action highlights are misaligned.");
+          }
+        }
+        const next = rows[index + 1]?.querySelector(".admin-category-select-option");
+        if (next && next.getBoundingClientRect().top - rect.bottom < 3) {
+          throw new Error("Adjacent category highlights have no visible gap.");
+        }
+      }
+    };
     const selectCategory = async (form, category) => {
       click(form.querySelector(".tool-form-category-filter .admin-category-filter-trigger"));
       const option = await waitFor(
@@ -1406,6 +1376,7 @@ async function installCriticalFlowHelpers(client) {
           .find((button) => text(button) === category),
         "category " + category
       );
+      checkCategoryMenuSpacing(option.closest(".admin-category-filter-popover"));
       click(option);
     };
     // 只要求"选中了某个分类"、不指定是哪个。用在新增工具上:内建分类的选项文字会走
@@ -1421,6 +1392,7 @@ async function installCriticalFlowHelpers(client) {
         },
         "any category option"
       );
+      checkCategoryMenuSpacing(option.closest(".admin-category-filter-popover"));
       click(option);
     };
 
@@ -1628,12 +1600,7 @@ async function installCriticalFlowHelpers(client) {
         try {
           click(aiButton);
           await waitFor(
-            () => {
-              const status = document.querySelector(".admin-status");
-              return text(status).includes("Workers AI") && text(status).includes("开启")
-                ? status
-                : null;
-            },
+            () => findToast("Workers AI", "开启"),
             "disabled AI assistant notice"
           );
           if (aiRequestCount !== 0) {
@@ -1846,6 +1813,7 @@ async function installCriticalFlowHelpers(client) {
           "filter category popover"
         );
         await sleep(220);
+        checkCategoryMenuSpacing(popover);
         const rect = popover.getBoundingClientRect();
         const probes = [
           [rect.left + rect.width / 2, rect.top + 6],
@@ -1931,10 +1899,7 @@ async function installCriticalFlowHelpers(client) {
             throw new Error("Quick timeout opened a dialog before the request completed.");
           }
           const status = await waitFor(
-            () => {
-              const element = document.querySelector(".admin-status");
-              return text(element).includes("请求超时") ? element : null;
-            },
+            () => findToast("请求超时"),
             "quick timeout status"
           );
           if (!visible(status)) throw new Error("Quick timeout status is not visible.");
@@ -1991,12 +1956,7 @@ async function installCriticalFlowHelpers(client) {
           );
           click(sendButton);
           const status = await waitFor(
-            () => {
-              const element = document.querySelector(".admin-status");
-              return text(element).includes("机器人没有向目标群组或频道发送消息的权限")
-                ? element
-                : null;
-            },
+            () => findToast("机器人没有向目标群组或频道发送消息的权限"),
             "quick permission status"
           );
           if (
@@ -2017,13 +1977,27 @@ async function installCriticalFlowHelpers(client) {
           window.fetch = originalFetch;
         }
       },
-      async inspectQuickUncertainRetry({ title }) {
+      async inspectQuickUncertainRetry({ title, resourceId }) {
         const item = await waitForCard(title);
-        const pushButton = await waitFor(
-          () => item.querySelector(".admin-telegram-button:not(:disabled)"),
-          "Telegram uncertain retry action " + title
-        );
-        click(pushButton);
+        let resultMessage = {};
+        if (resourceId) {
+          const menu = await openCardMenu(title);
+          click(menu.querySelector('button[role="menuitem"]:not(.danger)'));
+          const body = await waitFor(() => document.querySelector("#telegram-rich-markdown-body:not(:disabled)"), "Telegram update editor");
+          setValue(body, body.value + "\\n\\nUncertain update check");
+          click(body.closest(".dialog-panel").querySelectorAll(".admin-markdown-editor-mode button")[1]);
+          const response = await fetch("/api/admin/telegram-messages/tool/" + resourceId, {
+            headers: { Authorization: "Bearer " + localStorage.getItem("htools_token") }
+          });
+          if (!response.ok) throw new Error("Unable to read the isolated Telegram update fixture.");
+          resultMessage = (await response.json()).message;
+        } else {
+          const pushButton = await waitFor(
+            () => item.querySelector(".admin-telegram-button:not(:disabled)"),
+            "Telegram uncertain retry action " + title
+          );
+          click(pushButton);
+        }
         const dialog = await waitFor(
           () => document.querySelector(".dialog-panel .telegram-message-preview")?.closest(".dialog-panel"),
           "Telegram uncertain retry preview"
@@ -2039,7 +2013,7 @@ async function installCriticalFlowHelpers(client) {
           const init = args[1] || {};
           const url = typeof input === "string" ? input : input?.url || "";
           const method = String(init.method || input?.method || "GET").toUpperCase();
-          if (method === "POST" && url.includes("/api/admin/telegram-messages/")) {
+          if (method === (resourceId ? "PUT" : "POST") && url.includes("/api/admin/telegram-messages/")) {
             requestBodies.push(JSON.parse(String(init.body || "{}")));
             if (requestBodies.length === 1) {
               return new Response(
@@ -2053,7 +2027,7 @@ async function installCriticalFlowHelpers(client) {
                 }
               );
             }
-            return new Response(JSON.stringify({ message: {} }), {
+            return new Response(JSON.stringify({ message: resultMessage }), {
               status: 201,
               headers: { "Content-Type": "application/json" }
             });
@@ -2228,6 +2202,12 @@ async function installCriticalFlowHelpers(client) {
         const previewHeight = preview.getBoundingClientRect().height;
         if (Math.abs(editHeight - previewHeight) > 1) {
           throw new Error("Article edit/preview height mismatch: " + editHeight + "px / " + previewHeight + "px.");
+        }
+        const code = await waitFor(() => preview.querySelector("pre code"), "HTML code example");
+        if (!code.textContent.includes('<script src="https://example.com/example.js"></script>') ||
+            !code.textContent.includes("<style>.example { color: red; }</style>") ||
+            preview.querySelector("script, style") || window.__htoolsUnsafeMarkdown) {
+          throw new Error("Markdown code example was lost or unsafe HTML survived sanitization.");
         }
         await closeDialog();
         return { height: previewHeight };
@@ -2518,18 +2498,9 @@ async function installCriticalFlowHelpers(client) {
             "push permission editor send"
           );
           click(sendButton);
-          // v1.0.25 起权限错误不再渲染成弹窗内的 .telegram-message-action-error ——
-          // 那个内联错误块连同 telegram.ts 的 permissionDenied 文案键一起被删掉了。
-          // 现在走通用错误映射:catch 里 setStatus(getLocalizedErrorMessage(error, t)),
-          // 落在页面级的 .admin-status 上,文案取自 site-helpers.ts 的
-          // TELEGRAM_PERMISSION_DENIED。旧断言等的是一个已经不存在的元素,必然超时。
+          // 权限错误走公共通知队列，匹配整组通知，避免先前的成功提示遮住检查目标。
           const error = await waitFor(
-            () => {
-              const element = document.querySelector(".admin-status");
-              return text(element).includes("机器人没有向目标群组或频道发送消息的权限")
-                ? element
-                : null;
-            },
+            () => findToast("机器人没有向目标群组或频道发送消息的权限"),
             "push permission editor error"
           );
           if (
@@ -2682,10 +2653,7 @@ async function installCriticalFlowHelpers(client) {
             "recovery error clear " + scenario
           );
           const status = await waitFor(
-            () => {
-              const element = document.querySelector(".admin-status");
-              return text(element).includes("当前内容未推送到当前目标") ? element : null;
-            },
+            () => findToast("当前内容未推送到当前目标"),
             "recovery status " + scenario
           );
           if (!visible(status)) throw new Error("Recovery status is not visible.");
@@ -2830,7 +2798,7 @@ async function installCriticalFlowHelpers(client) {
         }
         click(syncButton);
         await waitFor(
-          () => text(document.querySelector(".admin-status")).includes("来源已删除"),
+          () => findToast("来源已删除"),
           "deleted source sync status " + title
         );
         await closeDialog();
@@ -2882,7 +2850,7 @@ async function installCriticalFlowHelpers(client) {
         }
         click(syncButton);
         await waitFor(
-          () => text(document.querySelector(".admin-status")).includes("来源已删除"),
+          () => findToast("来源已删除"),
           "deleted source sync status " + title
         );
         setValue(titleInput, nextTitle);
@@ -2919,6 +2887,98 @@ async function installCriticalFlowHelpers(client) {
         await waitFor(() => !toggle.disabled, "ready Telegram service toggle", 20000);
         click(toggle);
         await waitFor(() => toggle.dataset.state === "enabled", "re-enabled Telegram service", 20000);
+        return true;
+      },
+      async exerciseRestoredServiceSettings() {
+        const headers = {
+          Authorization: "Bearer " + localStorage.getItem("htools_token"),
+          "Content-Type": "application/json"
+        };
+        const request = async (path, init = {}) => {
+          const response = await fetch(path, { ...init, headers });
+          if (!response.ok) throw new Error("Service regression request failed: " + path);
+          return response.json();
+        };
+        const imageCard = await waitFor(
+          () => document.querySelector(".image-bed-settings-card form")?.closest("article"),
+          "image settings form"
+        );
+        const imageInputs = imageCard.querySelectorAll("form input");
+        const imageSave = imageCard.querySelector('button[type="submit"]');
+        setValue(imageInputs[0], "https://saved.example/");
+        setValue(imageInputs[2], "saved");
+        await waitFor(() => !imageSave.disabled, "initial image settings edits");
+        click(imageSave);
+        await waitFor(() => imageSave.disabled && !imageInputs[0].disabled, "initial image settings saved");
+        setValue(imageInputs[0], "https://draft.example/");
+        setValue(imageInputs[2], "draft");
+        await waitFor(() => !imageSave.disabled, "image settings draft");
+        const imageToggle = imageCard.querySelector('[role="switch"]');
+        click(imageToggle);
+        await waitFor(() => imageToggle.dataset.state === "enabled" && !imageToggle.disabled, "image service enabled");
+        if (imageInputs[0].value !== "https://draft.example/" || imageInputs[2].value !== "draft") {
+          throw new Error("Image service toggle discarded unsaved form edits.");
+        }
+        const storedImage = (await request("/api/admin/image-bed-settings")).settings;
+        if (storedImage.baseUrl !== "https://saved.example/" || storedImage.uploadFolder !== "saved") {
+          throw new Error("Image service toggle persisted unsaved form edits.");
+        }
+        click(imageSave);
+        await waitFor(() => imageSave.disabled && !imageInputs[0].disabled, "image draft saved");
+
+        const backup = await request("/api/admin/backup");
+        const replacements = {
+          github_settings: { enabled: true, owner: "restored-owner", repo: "restored-repo", labels: ["restored"] },
+          image_bed_settings: { ...storedImage, enabled: true, baseUrl: "https://restored.example/", uploadFolder: "restored" },
+          rsshub_settings: { enabled: true, baseUrl: "https://restored-rss.example/" }
+        };
+        for (const [key, value] of Object.entries(replacements)) {
+          const entry = backup.data.settings.find((setting) => setting.key === key);
+          if (entry) entry.value = JSON.stringify(value);
+          else backup.data.settings.push({ key, value: JSON.stringify(value), updated_at: new Date().toISOString() });
+        }
+        backup.counts.settings = backup.data.settings.length;
+        click(document.querySelector("#system-settings-tab-management"));
+        const fileInput = await waitFor(
+          () => document.querySelector('.backup-restore-card input[type="file"]'),
+          "backup file input"
+        );
+        const files = new DataTransfer();
+        files.items.add(new File([JSON.stringify(backup)], "service-regression.json", { type: "application/json" }));
+        fileInput.files = files.files;
+        fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+        const restoreButton = await waitFor(
+          () => document.querySelector('.backup-restore-card button.ghost-button:not(:disabled)'),
+          "backup restore ready"
+        );
+        click(restoreButton);
+        const confirmation = await waitFor(
+          () => document.querySelector("#backup-restore-dialog-description")?.closest(".dialog-panel"),
+          "backup restore confirmation"
+        );
+        click(confirmation.querySelector(".dialog-footer .primary-button"));
+        await waitFor(() => !document.querySelector("#backup-restore-dialog-description"), "backup restored", 20000);
+        click(document.querySelector("#system-settings-tab-services"));
+        const expected = [
+          [".github-submission-card", "/api/admin/github-settings", "restored-owner", "owner"],
+          [".image-bed-settings-card", "/api/admin/image-bed-settings", "https://restored.example/", "baseUrl"],
+          [".rsshub-settings-card", "/api/admin/rsshub-settings", "https://restored-rss.example/", "baseUrl"]
+        ];
+        for (const [selector, path, value, field] of expected) {
+          const restoredCard = await waitFor(() => {
+            const element = document.querySelector(selector);
+            return element?.querySelector("form input")?.value === value ? element : null;
+          }, "restored service form " + selector);
+          if (!restoredCard.querySelector('button[type="submit"]').disabled) {
+            throw new Error("Restored settings are incorrectly marked as unsaved: " + selector);
+          }
+          const toggle = restoredCard.querySelector('[role="switch"]');
+          click(toggle);
+          await waitFor(() => toggle.dataset.state === "disabled" && !toggle.disabled, "restored service toggle " + selector);
+          if ((await request(path)).settings[field] !== value) {
+            throw new Error("Service toggle overwrote the restored configuration: " + selector);
+          }
+        }
         return true;
       },
       async mobileToolDialog() {
@@ -3039,7 +3099,6 @@ async function runCriticalFlows(options) {
   await mkdir(artifactRoot, { recursive: true });
   await cleanupStaleRuntime();
   await pruneArtifacts();
-  await enforceTmpBudget(options.maxTmpMb);
 
   const runId = `flows-${createRunId()}`;
   const runPath = join(runtimeRoot, runId);
@@ -3131,6 +3190,12 @@ async function runCriticalFlows(options) {
       })
     );
     await openCriticalFlowRoute(client, server.origin, "/admin/push");
+    await runStep("更新推送结果不确定时确认重试", () =>
+      runCriticalBrowserAction(client, "inspectQuickUncertainRetry", {
+        title: "Recovery Tool",
+        resourceId: "critical-recovery-tool"
+      })
+    );
     await runStep("原消息删除后重新建立推送", () =>
       runCriticalBrowserAction(client, "inspectRecovery", {
         mediaUrl: "https://example.com/recovery-preview.png",
@@ -3207,11 +3272,11 @@ async function runCriticalFlows(options) {
       title: "Regression Article",
       summary: "Regression article summary",
       slug: "regression-article",
-      content: "# Regression Article\n\nBrowser regression article body.",
+      content: '# Regression Article\n\nBrowser regression article body.\n\n```html\n<script src="https://example.com/example.js"></script>\n<style>.example { color: red; }</style>\n```\n\n<script>window.__htoolsUnsafeMarkdown = true</script>',
       category: "Regression"
     }));
     let articleEditorPreviewHeight = 0;
-    await runStep("文章编辑与浏览保持同高", async () => {
+    await runStep("文章编辑与浏览同高，HTML 代码保留且危险标签被清除", async () => {
       const result = await runCriticalBrowserAction(client, "inspectArticleEditorPreviewHeight", {
         title: "Regression Article"
       });
@@ -3362,6 +3427,9 @@ async function runCriticalFlows(options) {
         footer: "[Regression](https://example.com)"
       })
     );
+    await runStep("图床开关保留草稿，备份恢复刷新服务设置", () =>
+      runCriticalBrowserAction(client, "exerciseRestoredServiceSettings")
+    );
 
     await setViewport(client, REGRESSION_VIEWPORTS[3]);
     await openCriticalFlowRoute(client, server.origin, "/");
@@ -3431,7 +3499,7 @@ async function runCriticalFlows(options) {
   };
   await writeFile(join(artifactsPath, "report.json"), `${JSON.stringify(report, null, 2)}\n`);
   await pruneArtifacts({ currentRun: runId });
-  const tmpBytesAfter = await enforceTmpBudget(options.maxTmpMb);
+  const tmpBytesAfter = await directorySize(projectTmpRoot);
   console.log(
     `[HTools] 关键操作回归${report.status === "passed" ? "通过" : "失败"}：` +
       `${report.summary.passed}/${report.summary.checks}，` +
@@ -3447,7 +3515,7 @@ async function runCleanup(options) {
   const staleRuntimeRemoved = await cleanupStaleRuntime();
   const legacyProfilesRemoved = await cleanupLegacyProfiles();
   const artifacts = await pruneArtifacts({ removeAll: options.cleanAll });
-  const tmpBytes = await enforceTmpBudget(options.maxTmpMb);
+  const tmpBytes = await directorySize(projectTmpRoot);
   console.log(
     `[HTools] 清理完成：运行目录 ${staleRuntimeRemoved} 个，旧 Edge 配置 ${legacyProfilesRemoved} 个，` +
       `保留回归产物 ${artifacts.kept} 轮，tmp ${(tmpBytes / MB).toFixed(1)}MB。`

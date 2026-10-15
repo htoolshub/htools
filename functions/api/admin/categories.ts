@@ -11,6 +11,7 @@ import {
   type AdminCategoryScope,
   type Env
 } from "../../_shared";
+import { deleteTelegramPushCategory } from "../../_telegram";
 
 const ADMIN_CATEGORY_SCOPES = ["tools", "articles", "push", "content"] as const;
 const ADMIN_ALL_CATEGORY = "All";
@@ -239,16 +240,12 @@ async function migrateCategoryContent(
   }
 
   const now = new Date().toISOString();
-  const sourceResult = await db.prepare(
-    "UPDATE content_sources SET category = ?, updated_at = ? WHERE category = ?"
-  )
-    .bind(targetCategory, now, category)
-    .run();
-  const itemResult = await db.prepare(
-    "UPDATE content_items SET category = ?, updated_at = ? WHERE category = ?"
-  )
-    .bind(targetCategory, now, category)
-    .run();
+  const [sourceResult, itemResult] = await db.batch([
+    db.prepare("UPDATE content_sources SET category = ?, updated_at = ? WHERE category = ?")
+      .bind(targetCategory, now, category),
+    db.prepare("UPDATE content_items SET category = ?, updated_at = ? WHERE category = ?")
+      .bind(targetCategory, now, category)
+  ]);
 
   return getChanges(sourceResult) + getChanges(itemResult);
 }
@@ -299,44 +296,34 @@ async function deleteCategoryContent(
 
   if (scope === "push") {
     if (isAllCategory(category)) {
-      return getChanges(
-        await db.prepare("DELETE FROM telegram_messages").run()
-      );
+      return deleteTelegramPushCategory(db);
     }
 
     const resourceType = getTelegramPushResourceType(category);
     if (resourceType) {
-      return getChanges(
-        await db.prepare("DELETE FROM telegram_messages WHERE resource_type = ?")
-          .bind(resourceType)
-          .run()
-      );
+      return deleteTelegramPushCategory(db, { resourceType });
     }
 
-    return getChanges(
-      await db.prepare("DELETE FROM telegram_messages WHERE category = ?")
-        .bind(category)
-        .run()
-    );
+    return deleteTelegramPushCategory(db, { category });
   }
 
   if (isAllCategory(category)) {
-    const itemResult = await db.prepare("DELETE FROM content_items").run();
-    const sourceResult = await db.prepare("DELETE FROM content_sources").run();
+    const [itemResult, sourceResult] = await db.batch([
+      db.prepare("DELETE FROM content_items"),
+      db.prepare("DELETE FROM content_sources")
+    ]);
 
     return getChanges(itemResult) + getChanges(sourceResult);
   }
 
-  const itemResult = await db.prepare(
-    `DELETE FROM content_items
-     WHERE category = ?
-        OR source_id IN (SELECT id FROM content_sources WHERE category = ?)`
-  )
-    .bind(category, category)
-    .run();
-  const sourceResult = await db.prepare("DELETE FROM content_sources WHERE category = ?")
-    .bind(category)
-    .run();
+  const [itemResult, sourceResult] = await db.batch([
+    db.prepare(
+      `DELETE FROM content_items
+       WHERE category = ?
+          OR source_id IN (SELECT id FROM content_sources WHERE category = ?)`
+    ).bind(category, category),
+    db.prepare("DELETE FROM content_sources WHERE category = ?").bind(category)
+  ]);
 
   return getChanges(itemResult) + getChanges(sourceResult);
 }

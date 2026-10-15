@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { loadRssHubSettings, saveRssHubSettings } from "../../admin-api";
 import { getLocalizedErrorMessage } from "../../site-helpers";
 import { SkeletonVisibility } from "../../shared-ui";
@@ -15,11 +15,13 @@ import type { RssHubSettings } from "../../types";
 
 export function RssHubSettingsCard({
   maintenanceText,
+  reloadKey,
   setStatus,
   t,
   token
 }: {
   maintenanceText: ReturnType<typeof getAdminMaintenanceText>;
+  reloadKey: number;
   setStatus: (status: string) => void;
   t: Messages;
   token: string;
@@ -29,27 +31,34 @@ export function RssHubSettingsCard({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const loadRequestRef = useRef(0);
 
   async function loadSettings(signal?: AbortSignal) {
+    const requestId = ++loadRequestRef.current;
     setLoading(true);
     setLoadError("");
     try {
       const loaded = await loadRssHubSettings(token, { signal });
-      if (signal?.aborted) return;
+      if (signal?.aborted || loadRequestRef.current !== requestId) return;
       setSettings(loaded);
       setBaseUrl(loaded.baseUrl);
     } catch (error) {
-      if (!signal?.aborted) setLoadError(getLocalizedErrorMessage(error, t));
+      if (!signal?.aborted && loadRequestRef.current === requestId) {
+        setLoadError(getLocalizedErrorMessage(error, t));
+      }
     } finally {
-      if (!signal?.aborted) setLoading(false);
+      if (!signal?.aborted && loadRequestRef.current === requestId) setLoading(false);
     }
   }
 
   useEffect(() => {
     const controller = new AbortController();
     void loadSettings(controller.signal);
-    return () => controller.abort();
-  }, [token]);
+    return () => {
+      controller.abort();
+      loadRequestRef.current += 1;
+    };
+  }, [reloadKey, token]);
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

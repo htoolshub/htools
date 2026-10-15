@@ -6,6 +6,10 @@ const adminSource = await readFile(
   new URL("../../src/AdminApp.tsx", import.meta.url),
   "utf8"
 );
+const appSource = await readFile(
+  new URL("../../src/App.tsx", import.meta.url),
+  "utf8"
+);
 const textSource = await readFile(
   new URL("../../src/admin-text.ts", import.meta.url),
   "utf8"
@@ -605,7 +609,7 @@ test("site and management settings associate controls with their help text", () 
 
   assert.match(
     settingsSource,
-    /aria-describedby="site-icon-help site-icon-upload-status admin-operation-status"\s+aria-label=\{maintenanceText\.siteIconUpload\}/
+    /aria-describedby="site-icon-help site-icon-upload-status global-operation-status"\s+aria-label=\{maintenanceText\.siteIconUpload\}/
   );
   assert.match(settingsSource, /formId="about-settings"/);
   assert.match(legalCardSource, /const descriptionId = `\$\{formId\}-description`/);
@@ -613,12 +617,14 @@ test("site and management settings associate controls with their help text", () 
   assert.match(legalCardSource, /aria-describedby=\{descriptionId\}/);
 });
 
-test("admin operation results use the existing visible status as a live region", () => {
+test("admin operation results use the shared global notification live region", () => {
   assert.match(
-    adminSource,
-    /aria-atomic="true"\s+aria-live="polite"\s+className="admin-status"[\s\S]{0,100}role="status"/
+    appSource,
+    /className="global-toast-region" id="global-operation-status" role="status" aria-live="polite" aria-atomic="true"/
   );
+  assert.match(adminSource, /if \(message\) onNotify\(\{ message, tone: "info" \}\)/);
   assert.doesNotMatch(adminSource, /className="(?:settings|security|backup)-[^" ]*status-live"/);
+  assert.doesNotMatch(adminSource, /className="admin-status"/);
 });
 
 test("confirmation dialogs associate their shared title and visible description", () => {
@@ -660,7 +666,7 @@ test("confirmation dialogs associate their shared title and visible description"
 });
 
 test("settings validation marks and focuses the first invalid field", () => {
-  assert.match(adminSource, /id="admin-operation-status"/);
+  assert.match(appSource, /id="global-operation-status"/);
   assert.match(settingsSource, /setFooterInvalidField\(field\)/);
   assert.match(settingsSource, /data-footer-json="social"/);
   assert.match(settingsSource, /data-footer-json="groups"/);
@@ -684,8 +690,9 @@ test("settings file pickers expose success and invalid states without changing t
   assert.match(settingsSource, /aria-invalid=\{backupFileInvalid\}/);
   assert.match(settingsSource, /setSiteIconFileInvalid\(true\)/);
   assert.match(settingsSource, /setBackupFileInvalid\(true\)/);
-  assert.match(settingsSource, /site-icon-help site-icon-upload-status admin-operation-status/);
-  assert.match(settingsSource, /backup-settings-description backup-settings-help backup-file-status admin-operation-status/);
+  assert.match(settingsSource, /site-icon-help site-icon-upload-status global-operation-status/);
+  assert.match(settingsSource, /backup-settings-description backup-settings-help backup-file-status global-operation-status/);
+  assert.match(securityCardSource, /security-settings-description global-operation-status/);
 });
 
 test("backup restore preflight requires the current format and reports actual data counts", () => {

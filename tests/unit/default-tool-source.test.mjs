@@ -16,7 +16,7 @@ test("the bundled default tool source is unique and fully importable", async () 
   );
 
   assert.ok(Array.isArray(source));
-  assert.equal(source.length, 157);
+  assert.equal(source.length, 160);
 
   const ids = new Set();
   const urls = new Set();

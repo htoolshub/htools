@@ -227,7 +227,7 @@ function createCacheVersionEnv(initialVersion, options = {}) {
         },
         async first() {
           if (sql.includes("SELECT value FROM app_settings")) {
-            if (values[0] === "database_schema_version") return { value: "17" };
+            if (values[0] === "database_schema_version") return { value: "18" };
             if (values[0] === "public_api_cache_version") {
               return state.version ? { value: state.version } : null;
             }

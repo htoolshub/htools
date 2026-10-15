@@ -1,4 +1,5 @@
 import { ArrowUpRight, Check, ChevronDown, ChevronUp, Copy } from "lucide-react";
+import type { Nodes } from "mdast";
 import { useEffect, useMemo, useState } from "react";
 import type { HTMLAttributes, ImgHTMLAttributes } from "react";
 import ReactMarkdown from "react-markdown";
@@ -6,12 +7,15 @@ import rehypeRaw from "rehype-raw";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
+import remarkParse from "remark-parse";
+import { unified } from "unified";
 import { DEFAULT_PROXY_MODE, DEFAULT_PROXY_SCOPE, proxifyUrl } from "../proxy";
 import type { ProxySettings } from "../types";
 import type { Locale } from "../i18n";
 
 const markdownSanitizeSchema = {
   ...defaultSchema,
+  strip: [...(defaultSchema.strip ?? []), "style"],
   attributes: {
     ...defaultSchema.attributes,
     a: [
@@ -28,6 +32,7 @@ const markdownSanitizeSchema = {
 
 const originalLinkHeadingPattern = "(?:原文链接|Original Link|鍘熸枃閾炬帴)";
 const collapsibleCodeLineThreshold = 6;
+const markdownParser = unified().use(remarkParse).use(remarkGfm);
 
 const defaultProxySettings: ProxySettings = {
   enabled: false,
@@ -47,15 +52,29 @@ export default function MarkdownContent({
 }) {
   const { body, linkSections, originalLink } = useMemo(
     () => {
-      const extractedOriginalLink = extractOriginalMarkdownLink(content);
+      const protectedCode = protectMarkdownCode(content.replace(/\r\n?/g, "\n"));
+      const extractedOriginalLink = extractOriginalMarkdownLink(protectedCode.body, protectedCode.marker);
       const extractedLinkSections = extractMarkdownLinkSections(
-        extractedOriginalLink.body
+        extractedOriginalLink.body,
+        protectedCode.marker
       );
 
       return {
-        body: extractedLinkSections.body,
-        linkSections: extractedLinkSections.linkSections,
+        body: protectedCode.restore(extractedLinkSections.body),
+        linkSections: extractedLinkSections.linkSections.map((section) => ({
+          ...section,
+          title: protectedCode.restore(section.title),
+          links: section.links.map((link) => ({
+            ...link,
+            label: protectedCode.restore(link.label)
+          }))
+        })),
         originalLink: extractedOriginalLink.originalLink
+          ? {
+              ...extractedOriginalLink.originalLink,
+              label: protectedCode.restore(extractedOriginalLink.originalLink.label)
+            }
+          : null
       };
     },
     [content]
@@ -386,14 +405,49 @@ function MarkdownImage({
   );
 }
 
-function normalizeMarkdownContent(content: string) {
+function protectMarkdownCode(content: string) {
+  // 使用与渲染相同的解析器定位代码，兼容引用、列表、表格和未闭合围栏。
+  let marker: string;
+  do {
+    marker = `\uE000${crypto.getRandomValues(new Uint32Array(4)).join("-")}\uE001`;
+  } while (content.includes(marker));
+
+  const code: string[] = [];
+  const parts: string[] = [];
+  let cursor = 0;
+
+  function visit(node: Nodes) {
+    const start = node.position?.start.offset;
+    const end = node.position?.end.offset;
+    if ((node.type === "code" || node.type === "inlineCode") && start !== undefined && end !== undefined) {
+      const source = content.slice(start, end);
+      parts.push(content.slice(cursor, start), `${marker}${code.length}${"\n".repeat(source.split("\n").length - 1)}${marker}`);
+      code.push(source);
+      cursor = end;
+    } else if ("children" in node) {
+      node.children.forEach(visit);
+    }
+  }
+
+  visit(markdownParser.parse(content));
+  parts.push(content.slice(cursor));
+
+  return {
+    body: parts.join(""),
+    marker,
+    restore: (value: string) => value.replace(
+      new RegExp(`${marker}(\\d+)[ \\t\\n]*${marker}`, "g"),
+      (_, index: string) => code[Number(index)]
+    )
+  };
+}
+
+function normalizeMarkdownContent(content: string, codeMarker: string) {
+  const removeOutsideCode = (match: string) => match.includes(codeMarker) ? match : "";
   const cleaned = content
-    .replace(/\r\n?/g, "\n")
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?<\/style>/gi, "")
-    .replace(/<a\b[^>]*(?:class=["'][^"']*\bheaderlink\b[^"']*["']|href=["']#[^"']*["'])[^>]*>\s*<\/a>/gi, "")
-    .replace(/<a\b[^>\n]*(?:class=["'][^"'\n]*\bheaderlink\b[^"'\n]*["']?|href=["']#[^"'\n]*["']?)[^>\n]*$/gi, "")
-    .replace(/\[\]\(#[^)]+\)/g, "")
+    .replace(/<a\b[^>]*(?:class=["'][^"']*\bheaderlink\b[^"']*["']|href=["']#[^"']*["'])[^>]*>\s*<\/a>/gi, removeOutsideCode)
+    .replace(/<a\b[^>\n]*(?:class=["'][^"'\n]*\bheaderlink\b[^"'\n]*["']?|href=["']#[^"'\n]*["']?)[^>\n]*$/gi, removeOutsideCode)
+    .replace(/\[\]\(#[^)]+\)/g, removeOutsideCode)
     .replace(
       /\[\s*\n+\s*(!\[[^\]]*\]\([^)]+\))\s*\n+\s*\]\(([^)\s]+)\)/g,
       "[$1]($2)"
@@ -401,7 +455,7 @@ function normalizeMarkdownContent(content: string) {
     .replace(/(?:^|\n)[ \t]*(?:×|✕|✖)[ \t]*(?=\n|$)/gu, "\n")
     .replace(/(?:^|\n)[ \t]*(?:#[\p{L}\p{N}_-]+[ \t]*){1,24}(?=\n|$)/gu, "\n")
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, label, href) =>
-      isSearchTagHref(String(href)) ? String(label).trim() : match
+      !String(href).includes(codeMarker) && isSearchTagHref(String(href)) ? String(label).trim() : match
     )
     .trim();
 
@@ -505,15 +559,15 @@ function guessCodeLanguage(code: string) {
   return "";
 }
 
-function extractOriginalMarkdownLink(content: string) {
-  const normalizedContent = normalizeMarkdownContent(content);
+function extractOriginalMarkdownLink(content: string, codeMarker: string) {
+  const normalizedContent = normalizeMarkdownContent(content, codeMarker);
   const originalLinkPattern = new RegExp(
     `(?:^|\\n)#{1,6}\\s*(${originalLinkHeadingPattern})\\s*\\n+\\[([^\\]]+)\\]\\(([^\\s)]+)\\)\\s*$`,
     "i"
   );
   const match = normalizedContent.match(originalLinkPattern);
 
-  if (!match || match.index === undefined) {
+  if (!match || match.index === undefined || match[3].includes(codeMarker)) {
     return {
       body: normalizedContent,
       originalLink: null as null | { title: string; label: string; href: string }
@@ -542,7 +596,7 @@ type MarkdownLinkSection = {
   }>;
 };
 
-function extractMarkdownLinkSections(content: string) {
+function extractMarkdownLinkSections(content: string, codeMarker: string) {
   const lines = content.split("\n");
   const bodyLines: string[] = [];
   const linkSections: MarkdownLinkSection[] = [];
@@ -584,7 +638,7 @@ function extractMarkdownLinkSections(content: string) {
 
       const link = line.match(/^\s*[-*+]\s+\[([^\]]+)\]\(([^)\s]+)\)\s*$/);
 
-      if (!link) {
+      if (!link || link[2].includes(codeMarker)) {
         break;
       }
 

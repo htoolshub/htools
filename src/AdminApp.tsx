@@ -70,6 +70,7 @@ import {
 import { AdminEmptyState, AdminInitialLoadError } from "./components/AdminPanelStates";
 import { AdminArticleCard, AdminToolCard } from "./components/admin-cards";
 import { AdminTelegramPushButton } from "./components/AdminTelegramPushButton";
+import { AdminCardActionMenu } from "./components/AdminCardActionMenu";
 import {
   AdminTelegramPushPanel,
   TelegramMessagePreview
@@ -311,6 +312,15 @@ function uniqueAdminCategories(categories: string[]) {
     ).values()
   );
 }
+
+type AdminRefreshResult = "success" | "failed" | "superseded";
+type AdminRefreshOptions = { reportError?: boolean };
+
+function combineAdminRefreshResults(results: AdminRefreshResult[]): AdminRefreshResult {
+  if (results.includes("failed")) return "failed";
+  return results.includes("superseded") ? "superseded" : "success";
+}
+
 type TelegramUncertainRetryContext = "record" | "quick" | "editor";
 
 function isTelegramPushUncertainError(error: unknown) {
@@ -804,7 +814,7 @@ export default function AdminApp({
   const contentPreviewRequestRef = useRef(0);
   const contentPreviewAppliedTitleRef = useRef("");
   const adminContentScrollRef = useRef<HTMLDivElement>(null);
-  const [status, setStatusEvent] = useState<{ id: number; message: string } | null>(null);
+  const [authStatus, setAuthStatus] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isArticleSaving, setIsArticleSaving] = useState(false);
   const [isContentSourceSaving, setIsContentSourceSaving] = useState(false);
@@ -843,6 +853,7 @@ export default function AdminApp({
   const [toolsLoadError, setToolsLoadError] = useState<string | null>(null);
   const [articlesLoadError, setArticlesLoadError] = useState<string | null>(null);
   const [contentLoadError, setContentLoadError] = useState<string | null>(null);
+  const [contentSourcesLoadError, setContentSourcesLoadError] = useState<string | null>(null);
   const [writeLockedEntityKeys, setWriteLockedEntityKeys] = useState<Set<string>>(
     () => new Set()
   );
@@ -885,9 +896,6 @@ export default function AdminApp({
   const telegramPushNextCursorRef = useRef<string | null>(null);
   const telegramPushLoadingCursorRef = useRef<string | null>(null);
   const sidebarAnimationTimer = useRef<number | null>(null);
-  const adminStatusTimer = useRef<number | null>(null);
-  const adminStatusSequence = useRef(0);
-  const adminStatusCurrentRef = useRef("");
   const mobileSidebarFocus = useOverlayFocusManagement({
     active: mobileSidebarOpen,
     containerRef: mobileSidebarRef,
@@ -1235,23 +1243,13 @@ export default function AdminApp({
   }, [browsingArticle, t, token]);
 
   const setStatus = useCallback((message: string) => {
-    if (!message) {
-      adminStatusCurrentRef.current = "";
-      setStatusEvent(null);
+    if (!token) {
+      setAuthStatus(message);
       return;
     }
-
-    if (adminStatusCurrentRef.current === message) {
-      return;
-    }
-
-    adminStatusCurrentRef.current = message;
-    adminStatusSequence.current += 1;
-    setStatusEvent({
-      id: adminStatusSequence.current,
-      message
-    });
-  }, []);
+    setAuthStatus("");
+    if (message) onNotify({ message, tone: "info" });
+  }, [onNotify, token]);
 
   const handleTurnstileError = useCallback(() => {
     setTurnstileToken("");
@@ -1293,12 +1291,7 @@ export default function AdminApp({
   useEffect(() => {
     function handleUnauthorized() {
       localStorage.removeItem("htools_token");
-      adminStatusSequence.current += 1;
-      setStatusEvent({
-        id: adminStatusSequence.current,
-        message: t.status.sessionExpired
-      });
-      adminStatusCurrentRef.current = t.status.sessionExpired;
+      setAuthStatus(t.status.sessionExpired);
       setPassword("");
       setIsLoggingIn(false);
       setMobileSidebarOpen(false);
@@ -1364,7 +1357,7 @@ export default function AdminApp({
     return true;
   }
 
-  async function refreshAdminCategories() {
+  async function refreshAdminCategories(options: AdminRefreshOptions = {}): Promise<AdminRefreshResult> {
     const requestId = adminCategoryLoadRequestRef.current + 1;
     adminCategoryLoadRequestRef.current = requestId;
     const generations = { ...adminCategorySaveGenerationRef.current };
@@ -1377,9 +1370,10 @@ export default function AdminApp({
             adminCategorySaveGenerationRef.current[scope] !== generations[scope]
         )
       ) {
-        return;
+        return "superseded";
       }
       commitAdminCategorySettings(settings);
+      return "success";
     } catch (error) {
       if (
         adminCategoryLoadRequestRef.current === requestId &&
@@ -1388,8 +1382,10 @@ export default function AdminApp({
             adminCategorySaveGenerationRef.current[scope] === generations[scope]
         )
       ) {
-        setStatus(categoryText.loadFailed);
+        if (options.reportError !== false) setStatus(categoryText.loadFailed);
+        return "failed";
       }
+      return "superseded";
     }
   }
 
@@ -1483,11 +1479,11 @@ export default function AdminApp({
     const sourceCount = getAdminCategorySourceCount(scope, normalized);
     // 订阅内容删分类会连该分类下的订阅源一起删,所以"要不要弹确认"必须把订阅源算上:
     // 一个"有订阅、还没同步出内容"的分类内容数是 0,只看内容就会静默删掉它的订阅源。
-    // 其他三个栏目没有订阅源这层,直接沿用内容条数。
+    // 推送只加载当前页，不能用这一页的零条记录断言分类为空。
     const hasDeletablePayload =
-      scope === "content"
+      scope === "push" || (scope === "content"
         ? hasDeletableContentCategoryPayload(contentCount, sourceCount)
-        : contentCount > 0;
+        : contentCount > 0);
 
     if (hasDeletablePayload) {
       setPendingCategoryAction({
@@ -1721,27 +1717,6 @@ export default function AdminApp({
       setPendingCategoryAction(null);
       setCategoryActionTarget("");
 
-      // 只有订阅内容的刷新分成"读订阅源 + 读内容"两个请求,所以只有它可能只更新一半。
-      // 工具库、文章和消息推送刷新失败会写进各自面板的错误区、用户看得见,不需要这层兜底。
-      let contentRefreshOk = true;
-
-      if (scope === "tools") {
-        await refreshAfterMutation(refresh);
-      } else if (scope === "articles") {
-        await refreshAfterMutation(async () => {
-          await refreshArticles();
-          const contentResult = await refreshContent();
-          contentRefreshOk = contentResult.sourcesOk && contentResult.itemsOk;
-        });
-      } else if (scope === "push") {
-        await refreshAfterMutation(refreshTelegramPushRecords);
-      } else {
-        await refreshAfterMutation(async () => {
-          const contentResult = await refreshContent();
-          contentRefreshOk = contentResult.sourcesOk && contentResult.itemsOk;
-        });
-      }
-
       const resultMessage =
         action === "migrate"
           ? getAdminCategoryMigratedText(categoryText, t, normalized, target, result.affected)
@@ -1753,11 +1728,17 @@ export default function AdminApp({
               )
           : getAdminCategoryDeletedText(categoryText, t, normalized, scope);
 
-      setStatus(
-        contentRefreshOk
-          ? resultMessage
-          : `${resultMessage}${categoryText.refreshFailedHint}`
-      );
+      await refreshAfterMutation(async (options) => {
+        if (scope === "tools") return refresh(options);
+        if (scope === "push") return refreshTelegramPushRecords(options);
+        if (scope === "articles") {
+          return combineAdminRefreshResults(await Promise.all([
+            refreshArticles(options),
+            refreshContent(options)
+          ]));
+        }
+        return refreshContent(options);
+      }, resultMessage);
     } catch (error) {
       setStatus(categoryText.updateFailed);
     } finally {
@@ -2040,23 +2021,25 @@ export default function AdminApp({
     [adminCategorySettings.tools, adminFilterCategories, form.category, t]
   );
 
-  async function refresh() {
+  async function refresh(options: AdminRefreshOptions = {}): Promise<AdminRefreshResult> {
     const generation = adminToolsRequestGenerationRef.current + 1;
     adminToolsRequestGenerationRef.current = generation;
     setIsLoadingTools(true);
-    setToolsLoadError(null);
 
     try {
       const nextTools = await loadAdminTools(token);
-      if (adminToolsRequestGenerationRef.current !== generation) return;
+      if (adminToolsRequestGenerationRef.current !== generation) return "superseded";
       setTools(nextTools);
       setToolsLoadError(null);
+      return "success";
     } catch (error) {
       if (adminToolsRequestGenerationRef.current === generation) {
         const message = getLocalizedErrorMessage(error, t);
         setToolsLoadError(message);
-        setStatus(message);
+        if (options.reportError !== false) setStatus(message);
+        return "failed";
       }
+      return "superseded";
     } finally {
       if (adminToolsRequestGenerationRef.current === generation) {
         setHasLoadedTools(true);
@@ -2077,7 +2060,7 @@ export default function AdminApp({
     };
   }
 
-  async function refreshArticles() {
+  async function refreshArticles(options: AdminRefreshOptions = {}): Promise<AdminRefreshResult> {
     const generation = adminArticlesRequestGenerationRef.current + 1;
     adminArticlesRequestGenerationRef.current = generation;
     adminArticlesNextCursorRef.current = null;
@@ -2085,26 +2068,28 @@ export default function AdminApp({
     setIsLoadingArticles(true);
     setIsLoadingMoreArticles(false);
     setAdminArticlesHasMore(false);
-    setArticlesLoadError(null);
 
     try {
       const nextPage = await loadAdminArticles(
         token,
         getAdminArticleRequestParams()
       );
-      if (adminArticlesRequestGenerationRef.current !== generation) return;
+      if (adminArticlesRequestGenerationRef.current !== generation) return "superseded";
       setAdminArticles(nextPage.articles);
       setAdminArticlesHasMore(nextPage.hasMore);
       setAdminArticlesTotal(nextPage.total);
       setAdminArticleCategoryCounts(nextPage.categoryCounts);
       adminArticlesNextCursorRef.current = nextPage.nextCursor;
       setArticlesLoadError(null);
+      return "success";
     } catch (error) {
       if (adminArticlesRequestGenerationRef.current === generation) {
         const message = getLocalizedErrorMessage(error, t);
         setArticlesLoadError(message);
-        setStatus(message);
+        if (options.reportError !== false) setStatus(message);
+        return "failed";
       }
+      return "superseded";
     } finally {
       if (adminArticlesRequestGenerationRef.current === generation) {
         setHasLoadedArticles(true);
@@ -2174,7 +2159,9 @@ export default function AdminApp({
     };
   }
 
-  async function refreshContent(options: { reloadSources?: boolean } = {}) {
+  async function refreshContent(
+    options: AdminRefreshOptions & { reloadSources?: boolean } = {}
+  ): Promise<AdminRefreshResult> {
     const generation = contentItemsRequestGenerationRef.current + 1;
     contentItemsRequestGenerationRef.current = generation;
     contentItemsNextCursorRef.current = null;
@@ -2182,7 +2169,6 @@ export default function AdminApp({
     setIsLoadingContent(true);
     setIsLoadingMoreContent(false);
     setContentItemsHasMore(false);
-    setContentLoadError(null);
 
     const shouldReloadSources =
       options.reloadSources !== false || !contentSourcesLoadedRef.current;
@@ -2196,11 +2182,8 @@ export default function AdminApp({
       ? loadContentSources(token)
       : Promise.resolve(null);
     const itemsRequest = loadContentItems(token, getContentItemRequestParams());
-    // 两个请求各自成功与否要往上报:订阅源那一半失败时,左栏会原样留着已经不存在的订阅,
-    // 而调用方(清空 / 删分类)紧接着还会发一条成功提示,把这里的错误提示盖掉 ——
-    // 结果就是"提示说已清空、左栏却还在,而且一个错都不报"(2026-08-15 实测复现)。
-    let sourcesOk = true;
-    let itemsOk = true;
+    // 两部分独立判断轮次，任何当前请求失败都要向操作反馈报告。
+    let sourcesStatus: AdminRefreshResult = "success";
 
     try {
       const [sourcesResult, itemsResult] = await Promise.allSettled([
@@ -2208,25 +2191,26 @@ export default function AdminApp({
         itemsRequest
       ]);
 
-      // 订阅源结果**不按内容列表的轮次丢弃**,只看它自己那条轮次。
-      // 2026-08-16 实测复现过:先选中一个订阅源、再清空全部内容,清空后筛选被切回"全部",
-      // 这个状态变化会触发第二次刷新(reloadSources: false,不会重新读订阅源),
-      // 于是第一次读回来的订阅源列表被内容那边的轮次作废 —— 左栏就永久留着已经删掉的订阅源,
-      // 而调用方还以为两半都成功(旧代码在这里 return 的是两个 true),连提示都不给。
-      if (sourcesResult.status === "fulfilled" && sourcesResult.value) {
-        if (contentSourcesRequestGenerationRef.current === sourcesGeneration) {
+      // 切筛选触发的内容刷新不能丢掉仍有效的订阅源结果。
+      if (contentSourcesRequestGenerationRef.current !== sourcesGeneration) {
+        sourcesStatus = "superseded";
+      } else if (sourcesResult.status === "fulfilled") {
+        if (sourcesResult.value) {
           setContentSources(sourcesResult.value);
           contentSourcesLoadedRef.current = true;
+          setContentSourcesLoadError(null);
         }
-      } else if (sourcesResult.status === "rejected") {
-        sourcesOk = false;
-        setStatus(getLocalizedErrorMessage(sourcesResult.reason, t));
+      } else {
+        sourcesStatus = "failed";
+        const message = getLocalizedErrorMessage(sourcesResult.reason, t);
+        setContentSourcesLoadError(message);
+        if (options.reportError !== false) setStatus(message);
       }
 
       // 内容列表这一半仍然按轮次丢弃:它的结果和当时的筛选、搜索、游标绑在一起,
       // 被更新的一轮取代之后就是过期数据。
       if (contentItemsRequestGenerationRef.current !== generation) {
-        return { sourcesOk, itemsOk };
+        return combineAdminRefreshResults([sourcesStatus, "superseded"]);
       }
 
       if (itemsResult.status === "fulfilled") {
@@ -2234,15 +2218,16 @@ export default function AdminApp({
         setContentItems(nextPage.items);
         setContentItemsHasMore(nextPage.hasMore);
         contentItemsNextCursorRef.current = nextPage.nextCursor;
-        setContentItemsTotal(nextPage.total);
-        setContentSourceCounts(nextPage.sourceCounts);
-        setContentCategoryCounts(nextPage.categoryCounts);
+        if (nextPage.total !== null) setContentItemsTotal(nextPage.total);
+        if (nextPage.sourceCounts !== null) setContentSourceCounts(nextPage.sourceCounts);
+        if (nextPage.categoryCounts !== null) setContentCategoryCounts(nextPage.categoryCounts);
         setContentLoadError(null);
+        return sourcesStatus;
       } else {
-        itemsOk = false;
         const message = getLocalizedErrorMessage(itemsResult.reason, t);
         setContentLoadError(message);
-        setStatus(message);
+        if (options.reportError !== false) setStatus(message);
+        return "failed";
       }
     } finally {
       if (contentItemsRequestGenerationRef.current === generation) {
@@ -2251,7 +2236,6 @@ export default function AdminApp({
       }
     }
 
-    return { sourcesOk, itemsOk };
   }
 
   async function loadMoreContentItems() {
@@ -2271,7 +2255,7 @@ export default function AdminApp({
     try {
       const nextPage = await loadContentItems(
         token,
-        getContentItemRequestParams(cursor)
+        { ...getContentItemRequestParams(cursor), includeCounts: false }
       );
 
       if (
@@ -2288,9 +2272,9 @@ export default function AdminApp({
       });
       setContentItemsHasMore(nextPage.hasMore);
       contentItemsNextCursorRef.current = nextPage.nextCursor;
-      setContentItemsTotal(nextPage.total);
-      setContentSourceCounts(nextPage.sourceCounts);
-      setContentCategoryCounts(nextPage.categoryCounts);
+      if (nextPage.total !== null) setContentItemsTotal(nextPage.total);
+      if (nextPage.sourceCounts !== null) setContentSourceCounts(nextPage.sourceCounts);
+      if (nextPage.categoryCounts !== null) setContentCategoryCounts(nextPage.categoryCounts);
     } catch (error) {
       if (
         contentItemsRequestGenerationRef.current === generation &&
@@ -2323,7 +2307,7 @@ export default function AdminApp({
     };
   }
 
-  async function refreshTelegramPushRecords() {
+  async function refreshTelegramPushRecords(options: AdminRefreshOptions = {}): Promise<AdminRefreshResult> {
     const generation = telegramPushRequestGenerationRef.current + 1;
     telegramPushRequestGenerationRef.current = generation;
     telegramPushNextCursorRef.current = null;
@@ -2331,24 +2315,27 @@ export default function AdminApp({
     setIsLoadingTelegramPushes(true);
     setIsLoadingMoreTelegramPushes(false);
     setTelegramPushHasMore(false);
-    setTelegramPushLoadError(null);
 
     try {
       const page = await loadTelegramPushRecords(
         token,
         getTelegramPushRequestParams()
       );
-      if (telegramPushRequestGenerationRef.current !== generation) return;
+      if (telegramPushRequestGenerationRef.current !== generation) return "superseded";
       setTelegramPushRecords(page.records);
       setTelegramPushCategoryOptions(page.categoryOptions);
       setTelegramPushHasMore(page.hasMore);
       telegramPushNextCursorRef.current = page.nextCursor;
+      setTelegramPushLoadError(null);
+      return "success";
     } catch (error) {
       if (telegramPushRequestGenerationRef.current === generation) {
         const message = getLocalizedErrorMessage(error, t);
         setTelegramPushLoadError(message);
-        setStatus(message);
+        if (options.reportError !== false) setStatus(message);
+        return "failed";
       }
+      return "superseded";
     } finally {
       if (telegramPushRequestGenerationRef.current === generation) {
         setHasLoadedTelegramPushes(true);
@@ -2407,30 +2394,34 @@ export default function AdminApp({
     }
   }
 
-  // 参数放宽成 Promise<unknown>:refreshContent 现在会回报两半请求的成败,
-  // 而这里只关心"刷新跑完了",返回值由调用方自己看。
-  async function refreshAfterMutation(refreshAction: () => Promise<unknown>) {
+  async function refreshAfterMutation(
+    refreshAction: (options: AdminRefreshOptions) => Promise<AdminRefreshResult>,
+    resultMessage: string
+  ): Promise<AdminRefreshResult> {
     const generation = mutationRefreshGenerationRef.current + 1;
     mutationRefreshGenerationRef.current = generation;
     const scrollContainer = adminContentScrollRef.current;
     const scrollTop = scrollContainer?.scrollTop ?? 0;
+    setStatus(resultMessage);
 
+    let result: AdminRefreshResult;
     try {
-      await refreshAction();
-    } catch (error) {
-      if (mutationRefreshGenerationRef.current === generation) {
-        setStatus(getLocalizedErrorMessage(error, t, t.errors.requestFailed));
-      }
-      return;
+      result = await refreshAction({ reportError: false });
+    } catch {
+      result = "failed";
     }
 
-    if (mutationRefreshGenerationRef.current !== generation) return;
+    if (mutationRefreshGenerationRef.current !== generation) return "superseded";
+
+    if (result === "failed") setStatus(`${resultMessage} ${categoryText.refreshFailedHint}`);
+    if (result !== "success") return result;
 
     window.requestAnimationFrame(() => {
       if (mutationRefreshGenerationRef.current === generation) {
         scrollContainer?.scrollTo({ top: scrollTop, behavior: "auto" });
       }
     });
+    return result;
   }
 
   async function refreshTelegramSettings() {
@@ -2547,12 +2538,14 @@ export default function AdminApp({
       setContentSources([]);
       setContentItems([]);
       setContentLoadError(null);
+      setContentSourcesLoadError(null);
       setContentItemsHasMore(false);
       setContentItemsTotal(0);
       setContentSourceCounts({});
       setContentCategoryCounts({});
       setIsLoadingMoreContent(false);
       contentItemsRequestGenerationRef.current += 1;
+      contentSourcesRequestGenerationRef.current += 1;
       contentItemsNextCursorRef.current = null;
       contentItemsLoadingCursorRef.current = null;
       contentSourcesLoadedRef.current = false;
@@ -2764,29 +2757,6 @@ export default function AdminApp({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [mobileSidebarOpen, openAdminMenu]);
-
-  useEffect(() => {
-    if (!token || !status) {
-      return;
-    }
-
-    if (adminStatusTimer.current) {
-      window.clearTimeout(adminStatusTimer.current);
-    }
-
-    adminStatusTimer.current = window.setTimeout(() => {
-      adminStatusCurrentRef.current = "";
-      setStatusEvent(null);
-      adminStatusTimer.current = null;
-    }, 3200);
-
-    return () => {
-      if (adminStatusTimer.current) {
-        window.clearTimeout(adminStatusTimer.current);
-        adminStatusTimer.current = null;
-      }
-    };
-  }, [status?.id, token]);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -3332,7 +3302,8 @@ export default function AdminApp({
             {
               category: getTelegramStoredCategory(telegramCategory),
               title: telegramCustomTitle,
-              resource: telegramEditedResource ?? undefined
+              resource: telegramEditedResource ?? undefined,
+              confirmUncertainRetry
             }
           )
         : await sendTelegramMessage(
@@ -3382,11 +3353,11 @@ export default function AdminApp({
       setTelegramMediaUrl("");
       setPendingTelegramUncertainRetry(null);
     } catch (error) {
-      if (!telegramMessage.exists && isTelegramPushUncertainError(error)) {
-            setPendingTelegramUncertainRetry("editor");
+      if (isTelegramPushUncertainError(error)) {
+        setPendingTelegramUncertainRetry("editor");
         setStatus("");
       } else {
-          setStatus(getLocalizedErrorMessage(error, t));
+        setStatus(getLocalizedErrorMessage(error, t));
       }
     } finally {
       releaseWriteAction(actionKey);
@@ -3535,14 +3506,12 @@ export default function AdminApp({
 
       if (editingTool) {
         await updateTool(editingTool.id, payload, token);
-        setStatus(t.status.toolUpdated);
       } else {
         await createTool(payload, token);
-        setStatus(t.status.toolCreated);
       }
 
       requestToolEditorClose();
-      await refreshAfterMutation(refresh);
+      await refreshAfterMutation(refresh, editingTool ? t.status.toolUpdated : t.status.toolCreated);
     } catch (error) {
       setStatus(getLocalizedErrorMessage(error, t, t.status.saveFailed));
     } finally {
@@ -3581,14 +3550,12 @@ export default function AdminApp({
 
       if (editingArticle) {
         await updateArticle(editingArticle.id, payload, token);
-        setStatus(articleText.updated);
       } else {
         await createArticle(payload, token);
-        setStatus(articleText.created);
       }
 
       requestArticleEditorClose();
-      await refreshAfterMutation(refreshArticles);
+      await refreshAfterMutation(refreshArticles, editingArticle ? articleText.updated : articleText.created);
     } catch (error) {
       setStatus(getLocalizedErrorMessage(error, t, t.status.saveFailed));
     } finally {
@@ -3706,23 +3673,22 @@ export default function AdminApp({
       }
       requestContentSourceEditorClose();
 
+      let resultMessage = contentText.saved;
       if (!editingContentSource) {
         try {
           const result = await syncContentSource(savedSource.id, token);
-          setStatus(contentText.synced(result.imported, result.updated));
+          resultMessage = contentText.synced(result.imported, result.updated);
         } catch (error) {
           const syncError = getContentFeedErrorMessage(
             error,
             contentText,
             t.errors.requestFailed
           );
-          setStatus(contentText.savedSyncFailed(syncError));
+          resultMessage = contentText.savedSyncFailed(syncError);
         }
-      } else {
-        setStatus(contentText.saved);
       }
 
-      await refreshAfterMutation(() => refreshContent());
+      await refreshAfterMutation(refreshContent, resultMessage);
     } catch (error) {
       setStatus(getContentFeedErrorMessage(error, contentText, t.status.saveFailed));
     } finally {
@@ -3775,14 +3741,13 @@ export default function AdminApp({
         return;
       }
 
-      setStatus(
+      await refreshAfterMutation(refreshContent,
         results.length === 1
           ? contentText.synced(imported, updated)
           : `${contentText.syncedCategory(succeeded.length, imported, updated)}${
               failed ? ` ${contentText.syncedCategoryPartial(failed)}` : ""
             }`
       );
-      await refreshAfterMutation(() => refreshContent());
     } finally {
       for (const key of actionKeys) releaseWriteAction(key);
     }
@@ -3797,9 +3762,8 @@ export default function AdminApp({
     setIsDeletingTool(true);
     try {
       await deleteTool(tool.id, token);
-      setStatus(t.status.toolDeleted);
       setPendingDeleteTool(null);
-      await refreshAfterMutation(refresh);
+      await refreshAfterMutation(refresh, t.status.toolDeleted);
       return true;
     } catch (error) {
       setStatus(getLocalizedErrorMessage(error, t, t.status.deleteFailed));
@@ -3820,12 +3784,10 @@ export default function AdminApp({
 
     try {
       await deleteArticle(article.id, token);
-      setStatus(articleText.deleted);
       setPendingDeleteArticle(null);
-      await refreshAfterMutation(async () => {
-        await refreshArticles();
-        await refreshContent();
-      });
+      await refreshAfterMutation(async (options) => combineAdminRefreshResults(
+        await Promise.all([refreshArticles(options), refreshContent(options)])
+      ), articleText.deleted);
       return true;
     } catch (error) {
       setStatus(getLocalizedErrorMessage(error, t, t.status.deleteFailed));
@@ -3846,13 +3808,12 @@ export default function AdminApp({
 
     try {
       await deleteContentSource(source.id, token);
-      setStatus(contentText.deleted);
       setPendingDeleteContentSource(null);
       setContentSources((current) =>
         current.filter((item) => item.id !== source.id)
       );
       setContentSourceFilter((current) => (current === source.id ? "all" : current));
-      await refreshAfterMutation(() => refreshContent());
+      await refreshAfterMutation(refreshContent, contentText.deleted);
       return true;
     } catch (error) {
       setStatus(getLocalizedErrorMessage(error, t, t.status.deleteFailed));
@@ -3872,8 +3833,7 @@ export default function AdminApp({
       await deleteTelegramPush(record.resourceType, record.resourceId, record.id, token);
       setPendingDeleteTelegramPush(null);
       setViewingTelegramPush((current) => current?.id === record.id ? null : current);
-      setStatus(telegramText.management.deleted);
-      await refreshAfterMutation(refreshTelegramPushRecords);
+      await refreshAfterMutation(refreshTelegramPushRecords, telegramText.management.deleted);
       return true;
     } catch (error) {
       setStatus(getLocalizedErrorMessage(error, t, t.status.deleteFailed));
@@ -3967,7 +3927,7 @@ export default function AdminApp({
         )
       );
       requestContentConvertClose();
-      setStatus(
+      await refreshAfterMutation(refreshArticles,
         item.articleId
           ? shouldPublish
             ? contentText.updatedPublishedDone
@@ -3976,7 +3936,6 @@ export default function AdminApp({
             ? contentText.convertedPublishedDone
             : contentText.convertedDraftDone
       );
-      await refreshAfterMutation(refreshArticles);
     } catch (error) {
       setStatus(getLocalizedErrorMessage(error, t, t.status.saveFailed));
     } finally {
@@ -4025,8 +3984,7 @@ export default function AdminApp({
 
     try {
       await updateArticlePublished(article.id, nextPublished, token);
-      await refreshAfterMutation(refreshArticles);
-      setStatus(
+      await refreshAfterMutation(refreshArticles,
         nextPublished ? articleText.publishedDone : articleText.draftedDone
       );
     } catch (error) {
@@ -4073,7 +4031,7 @@ export default function AdminApp({
             <label>
               <span className="auth-password-label">
                 <span>{t.admin.password}</span>
-                {status ? <span className="auth-inline-status" role="alert">{status.message}</span> : null}
+                {authStatus ? <span className="auth-inline-status" role="alert">{authStatus}</span> : null}
               </span>
               <input
                 ref={passwordInputRef}
@@ -4606,26 +4564,14 @@ export default function AdminApp({
           }`}
           ref={adminContentScrollRef}
         >
-          {status ? (
-            <div
-              aria-atomic="true"
-              aria-live="polite"
-              className="admin-status"
-              id="admin-operation-status"
-              key={status.id}
-              role="status"
-            >
-              {status.message}
-            </div>
-          ) : null}
-
           {adminView === "tools" && (
             isLoadingTools && !hasLoadedTools ? (
               <SkeletonVisibility visible={showAdminToolSkeletons}>
                 <AdminResourceCardSkeletonGrid ariaLabel={t.admin.manageTools} />
               </SkeletonVisibility>
-            ) : toolsLoadError && tools.length === 0 ? (
+            ) : toolsLoadError ? (
               <AdminInitialLoadError
+                isRetrying={isLoadingTools}
                 message={toolsLoadError}
                 onRetry={() => void refresh()}
                 t={t}
@@ -4688,8 +4634,9 @@ export default function AdminApp({
               <SkeletonVisibility visible={showAdminArticleSkeletons}>
                 <AdminResourceCardSkeletonGrid ariaLabel={articleText.adminTitle} />
               </SkeletonVisibility>
-            ) : articlesLoadError && adminArticles.length === 0 ? (
+            ) : articlesLoadError ? (
               <AdminInitialLoadError
+                isRetrying={isLoadingArticles}
                 message={articlesLoadError}
                 onRetry={() => void refreshArticles()}
                 t={t}
@@ -4718,6 +4665,7 @@ export default function AdminApp({
                         )
                       }
                       onTogglePublished={() => requestToggleArticlePublished(article)}
+                      t={t}
                       telegramEnabled={telegramSettings.enabled}
                       telegramText={telegramText}
                     />
@@ -4779,9 +4727,8 @@ export default function AdminApp({
                 Boolean(contentSearch.trim())
               }
               hasAnyContentSources={contentSources.length > 0}
-              hasExistingContentItems={contentItems.length > 0}
               hasLoadedContent={hasLoadedContent}
-              loadError={contentLoadError}
+              loadError={contentLoadError ?? contentSourcesLoadError}
               isLoadingContent={isLoadingContent}
               isLoadingMoreContent={isLoadingMoreContent}
               locale={locale}
@@ -4875,7 +4822,9 @@ export default function AdminApp({
             <AdminLinkCheckPanel
               isLoadingTools={isLoadingTools && !hasLoadedTools}
               maintenanceText={maintenanceText}
-              onReloadTools={refresh}
+              onReloadTools={(resultMessage) => resultMessage
+                ? refreshAfterMutation(refresh, resultMessage)
+                : refresh()}
               proxySettings={proxySettings}
               setStatus={setStatus}
               t={t}
@@ -4894,14 +4843,14 @@ export default function AdminApp({
                 setToken(nextToken);
               }}
               onProxySettingsChange={onProxySettingsChange}
-              onDataRestored={async () => {
-                await Promise.all([
-                  refreshAdminCategories(),
-                  refresh(),
-                  refreshArticles(),
-                  refreshContent()
-                ]);
-              }}
+              onDataRestored={(resultMessage, settingsResult) => refreshAfterMutation(async (options) =>
+                combineAdminRefreshResults(await Promise.all([
+                  settingsResult,
+                  refreshAdminCategories(options),
+                  refresh(options),
+                  refreshArticles(options),
+                  refreshContent(options)
+                ])), resultMessage)}
               onSiteSettingsChange={onSiteSettingsChange}
               adminAiSettings={adminAiSettings}
               adminAiSettingsLoadError={adminAiSettingsLoadError}
@@ -5721,7 +5670,7 @@ export default function AdminApp({
           closeRequestRef={articleEditorCloseRequestRef}
           closeDisabled={isArticleSaving}
           description={
-            editingArticle ? articleText.editArticleDescription : undefined
+            editingArticle ? articleText.editArticleDescription : articleText.addArticleDescription
           }
           descriptionId="article-editor-dialog-description"
           title={editingArticle ? articleText.editArticle : articleText.addArticle}
@@ -6641,7 +6590,6 @@ function AdminContentFlowPanel({
   contentCategoryItemCount,
   hasActiveFilter,
   hasAnyContentSources,
-  hasExistingContentItems,
   hasLoadedContent,
   hasMoreContent,
   isLoadingContent,
@@ -6678,7 +6626,6 @@ function AdminContentFlowPanel({
   contentCategoryItemCount: number;
   hasActiveFilter: boolean;
   hasAnyContentSources: boolean;
-  hasExistingContentItems: boolean;
   hasLoadedContent: boolean;
   hasMoreContent: boolean;
   isLoadingContent: boolean;
@@ -6866,8 +6813,8 @@ function AdminContentFlowPanel({
     );
   }
 
-  if (loadError && !hasExistingContentItems) {
-    return <AdminInitialLoadError message={loadError} onRetry={onRetry} t={t} />;
+  if (loadError) {
+    return <AdminInitialLoadError isRetrying={isLoadingContent} message={loadError} onRetry={onRetry} t={t} />;
   }
 
   const readerBody = readerLoading ? (
@@ -6975,21 +6922,27 @@ function AdminContentFlowPanel({
           {selectedSource ? (
             <div className="content-source-toolbar-actions" ref={sourceActions.rootRef}>
               <button className="icon-button" disabled={writeLockedEntityKeys.has(getAdminWriteEntityKey("content-source", selectedSource.id))} type="button" title={contentText.syncSource} onClick={() => onSyncSources([selectedSource])}><RefreshCw size={15} /></button>
-              <button aria-expanded={sourceActions.open} aria-haspopup="menu" aria-label={`${selectedSource.title} actions`} className={`icon-button admin-tool-menu-trigger ${sourceActions.open ? "is-active" : ""}`} ref={sourceActions.triggerRef} type="button" onClick={() => sourceActions.setOpen((current) => !current)} onKeyDown={sourceActions.handleTriggerKeyDown}><ChevronDown size={17} /></button>
-              {sourceActions.open ? (
-                <div className="admin-tool-action-menu" role="menu" onKeyDown={sourceActions.handleMenuKeyDown}>
-                  <button role="menuitem" type="button" onClick={() => { sourceActions.close(); onEditSource(selectedSource); }}>
-                    <SquarePen size={18} />
-                    <span className="admin-action-label-full">{contentText.editSource}</span>
-                    <span className="admin-action-label-short">{t.admin.editAction}</span>
-                  </button>
-                  <button className="danger" role="menuitem" type="button" onClick={() => { sourceActions.close(); onDeleteSource(selectedSource); }}>
-                    <Trash2 size={16} />
-                    <span className="admin-action-label-full">{contentText.deleteSource}</span>
-                    <span className="admin-action-label-short">{t.admin.deleteAction}</span>
-                  </button>
-                </div>
-              ) : null}
+              <AdminCardActionMenu
+                actions={sourceActions}
+                label={t.actions.menu(selectedSource.title)}
+                items={[
+                  {
+                    key: "edit",
+                    label: contentText.editSource,
+                    shortLabel: t.admin.editAction,
+                    icon: <SquarePen size={18} />,
+                    onSelect: () => onEditSource(selectedSource)
+                  },
+                  {
+                    key: "delete",
+                    label: contentText.deleteSource,
+                    shortLabel: t.admin.deleteAction,
+                    icon: <Trash2 size={16} />,
+                    danger: true,
+                    onSelect: () => onDeleteSource(selectedSource)
+                  }
+                ]}
+              />
             </div>
           ) : scopeSources.length ? (
             <div className="content-source-toolbar-actions">
@@ -7065,6 +7018,7 @@ function AdminContentFlowPanel({
                           onConvert={() => onConvertItem(item)}
                           onTelegram={() => onTelegram(item)}
                           proxySettings={proxySettings}
+                          t={t}
                           telegramEnabled={telegramEnabled}
                           telegramText={telegramText}
                         />
@@ -7133,6 +7087,7 @@ function AdminContentFlowPanel({
               onConvert={() => onConvertItem(selectedContentItem)}
               onTelegram={() => onTelegram(selectedContentItem)}
               proxySettings={proxySettings}
+              t={t}
               telegramEnabled={telegramEnabled}
               telegramText={telegramText}
             />
@@ -7263,6 +7218,7 @@ function ContentItemActions({
   onConvert,
   onTelegram,
   proxySettings,
+  t,
   telegramEnabled,
   telegramText
 }: {
@@ -7274,6 +7230,7 @@ function ContentItemActions({
   onConvert: () => void;
   onTelegram: () => void;
   proxySettings: ProxySettings;
+  t: Messages;
   telegramEnabled: boolean;
   telegramText: ReturnType<typeof getTelegramText>;
 }) {
@@ -7307,31 +7264,20 @@ function ContentItemActions({
       >
         {item.articleId ? <CheckCircle2 size={16} /> : <Circle size={16} />}
       </button>
-      <button
-        aria-expanded={actions.open}
-        aria-haspopup="menu"
-        aria-label={`${displayTitle} actions`}
-        className={`icon-button admin-tool-menu-trigger ${actions.open ? "is-active" : ""}`}
-        disabled={isBusy}
-        ref={actions.triggerRef}
-        type="button"
-        onClick={() => actions.setOpen((current) => !current)}
-        onKeyDown={actions.handleTriggerKeyDown}
-      >
-        <ChevronDown size={17} />
-      </button>
-      {actions.open ? (
-        <div className="admin-tool-action-menu" role="menu" onKeyDown={actions.handleMenuKeyDown}>
-          <button role="menuitem" type="button" onClick={() => {
-            actions.close();
-            window.open(originalHref, "_blank", "noopener,noreferrer");
-          }}>
-            <ArrowUpRight size={16} />
-            <span className="admin-action-label-full">{contentText.openOriginal}</span>
-            <span className="admin-action-label-short">{contentText.openOriginalShort}</span>
-          </button>
-        </div>
-      ) : null}
+      <AdminCardActionMenu
+        actions={actions}
+        label={t.actions.menu(displayTitle)}
+        triggerDisabled={isBusy}
+        items={[
+          {
+            key: "original",
+            label: contentText.openOriginal,
+            shortLabel: contentText.openOriginalShort,
+            icon: <ArrowUpRight size={16} />,
+            onSelect: () => window.open(originalHref, "_blank", "noopener,noreferrer")
+          }
+        ]}
+      />
     </div>
   );
 }
@@ -7953,7 +7899,7 @@ function AdminSystemSettingsPanel({
   maintenanceText: ReturnType<typeof getAdminMaintenanceText>;
   onTokenChange: (token: string) => void;
   onProxySettingsChange: (settings: ProxySettings) => void;
-  onDataRestored: () => Promise<void>;
+  onDataRestored: (resultMessage: string, settingsResult: AdminRefreshResult) => Promise<AdminRefreshResult>;
   onAdminAiSettingsChange: (settings: AdminAiSettings) => void;
   onReloadAdminAiSettings: () => Promise<void>;
   onSiteSettingsChange: (settings: SiteSettings) => void;
@@ -9036,12 +8982,14 @@ function AdminSystemSettingsPanel({
 
     try {
       const result = await resetFactorySettings(token);
-      await refreshSettingsAfterMaintenance();
+      setPendingFactoryReset(false);
       setBackupFileName("");
       setBackupPayload(null);
-      await onDataRestored();
-      setStatus(maintenanceText.resetDone(result));
-      setPendingFactoryReset(false);
+      const settingsResult = await refreshSettingsAfterMaintenance().then(
+        () => "success" as const,
+        () => "failed" as const
+      );
+      await onDataRestored(maintenanceText.resetDone(result), settingsResult);
     } catch (error) {
       setStatus(getLocalizedErrorMessage(error, t));
     } finally {
@@ -9173,13 +9121,14 @@ function AdminSystemSettingsPanel({
 
     try {
       const result = await restoreBackupData(backupPayload, token);
-      await refreshSettingsAfterMaintenance();
-      await onDataRestored();
-      const summary = maintenanceText.backupRestoreSummary(result);
-      setStatus(summary);
+      setPendingBackupRestore(false);
       setBackupFileName("");
       setBackupPayload(null);
-      setPendingBackupRestore(false);
+      const settingsResult = await refreshSettingsAfterMaintenance().then(
+        () => "success" as const,
+        () => "failed" as const
+      );
+      await onDataRestored(maintenanceText.backupRestoreSummary(result), settingsResult);
     } catch (error) {
       setStatus(getLocalizedErrorMessage(error, t));
     } finally {
@@ -9447,7 +9396,7 @@ function AdminSystemSettingsPanel({
                   </span>
                 </div>
                 <label
-                  aria-describedby="site-icon-help site-icon-upload-status admin-operation-status"
+                  aria-describedby="site-icon-help site-icon-upload-status global-operation-status"
                   aria-label={maintenanceText.siteIconUpload}
                   className="icon-button backup-file-picker site-icon-upload-trigger"
                   title={
@@ -9459,7 +9408,7 @@ function AdminSystemSettingsPanel({
                   <Upload size={17} />
                   <input
                     accept={SITE_ICON_UPLOAD_ACCEPT}
-                    aria-describedby="site-icon-help site-icon-upload-status admin-operation-status"
+                    aria-describedby="site-icon-help site-icon-upload-status global-operation-status"
                     aria-invalid={siteIconFileInvalid}
                     disabled={siteIdentityBusy}
                     type="file"
@@ -9634,7 +9583,7 @@ function AdminSystemSettingsPanel({
             <label className="source-url-field footer-social-links-field">
               {maintenanceText.footerSocialLinks}
               <textarea
-                aria-describedby={footerInvalidField === "social" ? "footer-json-help admin-operation-status" : "footer-json-help"}
+                aria-describedby={footerInvalidField === "social" ? "footer-json-help global-operation-status" : "footer-json-help"}
                 aria-invalid={footerInvalidField === "social"}
                 data-footer-json="social"
                 disabled={footerSettingsBusy}
@@ -9649,7 +9598,7 @@ function AdminSystemSettingsPanel({
             <label className="source-url-field">
               {maintenanceText.footerGroups}
               <textarea
-                aria-describedby={footerInvalidField === "groups" ? "footer-json-help admin-operation-status" : "footer-json-help"}
+                aria-describedby={footerInvalidField === "groups" ? "footer-json-help global-operation-status" : "footer-json-help"}
                 aria-invalid={footerInvalidField === "groups"}
                 data-footer-json="groups"
                 disabled={footerSettingsBusy}
@@ -9816,6 +9765,7 @@ function AdminSystemSettingsPanel({
               maintenanceText={maintenanceText}
               onDirtyChange={setGitHubSettingsDirty}
               onStatus={setStatus}
+              reloadKey={settingsReloadKey}
               token={token}
               t={t}
             />
@@ -9833,6 +9783,7 @@ function AdminSystemSettingsPanel({
 
           <ImageBedSettingsCard
             maintenanceText={maintenanceText}
+            reloadKey={settingsReloadKey}
             setStatus={setStatus}
             t={t}
             token={token}
@@ -9850,6 +9801,7 @@ function AdminSystemSettingsPanel({
           />
           <RssHubSettingsCard
             maintenanceText={maintenanceText}
+            reloadKey={settingsReloadKey}
             setStatus={setStatus}
             t={t}
             token={token}
@@ -10129,11 +10081,11 @@ function AdminSystemSettingsPanel({
             >
               {maintenanceText.backupExport}
             </button>
-            <label aria-describedby="backup-settings-description backup-settings-help backup-file-status admin-operation-status" className="ghost-button backup-file-picker">
+            <label aria-describedby="backup-settings-description backup-settings-help backup-file-status global-operation-status" className="ghost-button backup-file-picker">
               {maintenanceText.backupChoose}
               <input
                 accept="application/json,.json"
-                aria-describedby="backup-settings-description backup-settings-help backup-file-status admin-operation-status"
+                aria-describedby="backup-settings-description backup-settings-help backup-file-status global-operation-status"
                 aria-invalid={backupFileInvalid}
                 type="file"
                 onChange={handleBackupFile}
@@ -10236,7 +10188,7 @@ function AdminLinkCheckPanel({
 }: {
   isLoadingTools: boolean;
   maintenanceText: ReturnType<typeof getAdminMaintenanceText>;
-  onReloadTools: () => Promise<void>;
+  onReloadTools: (resultMessage?: string) => Promise<AdminRefreshResult>;
   proxySettings: ProxySettings;
   section: AdminMaintenanceSection;
   setStatus: (status: string) => void;
@@ -10403,8 +10355,7 @@ function AdminLinkCheckPanel({
       if (selected.url) setSourceUrl(selected.url);
       setSourceItems(items);
       setCheckedSourceKey(selected.key);
-      setStatus(maintenanceText.sourceImportSummary(getSourceOriginLabel(), result));
-      await onReloadTools();
+      await onReloadTools(maintenanceText.sourceImportSummary(getSourceOriginLabel(), result));
     } catch (error) {
       setStatus(getSourceErrorMessage(error, maintenanceText, t));
     } finally {
@@ -10468,7 +10419,7 @@ function AdminLinkCheckPanel({
     setStatus("");
 
     try {
-      await onReloadTools();
+      if (await onReloadTools() !== "success") return;
       setResults([]);
       setWasStopped(false);
       setActiveFilter("abnormal");
@@ -10652,20 +10603,12 @@ function AdminLinkCheckPanel({
 
           <div className="source-mode-row" aria-label={maintenanceText.sourceMode}>
             <span>{maintenanceText.sourceMode}</span>
-            <div className="admin-segmented-toggle">
-              <button className={sourceMode === "skip" ? "is-active" : ""}
-                type="button"
-                onClick={() => setSourceMode("skip")}
-              >
-                {maintenanceText.sourceModeSkip}
-              </button>
-              <button className={sourceMode === "upsert" ? "is-active" : ""}
-                type="button"
-                onClick={() => setSourceMode("upsert")}
-              >
-                {maintenanceText.sourceModeUpsert}
-              </button>
-            </div>
+            <BooleanSegmentedToggle
+              enabledLabel={maintenanceText.sourceModeSkip}
+              disabledLabel={maintenanceText.sourceModeUpsert}
+              value={sourceMode === "skip"}
+              onChange={(skip) => setSourceMode(skip ? "skip" : "upsert")}
+            />
             <small>{maintenanceText.sourceModeHelp}</small>
           </div>
 

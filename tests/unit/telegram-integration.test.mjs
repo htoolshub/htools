@@ -353,6 +353,7 @@ function createRecoveredTelegramDatabase(resourceExists = true) {
     media_enabled: 1,
     media_url: "https://example.com/recovered-before.png",
     last_pushed_hash: "",
+    last_pushed_media_enabled: null,
     sent_at: "",
     updated_at: "2026-08-07T00:00:00.000Z"
   };
@@ -392,8 +393,10 @@ function createRecoveredTelegramDatabase(resourceExists = true) {
           },
           async run() {
             if (/INSERT INTO telegram_push_locks/.test(sql)) {
-              const takesOverUncertain = params[7] === 1 && lock?.state === "uncertain";
-              if (lock && lock.expires_at > params[6] && !takesOverUncertain) {
+              const expired = lock && lock.expires_at <= params[6];
+              const takesOverUncertain = ((params[7] === 1 || params[2] === "delete") && (lock?.state === "uncertain" || expired)) ||
+                (params[2] === "update" && lock?.operation === "update" && lock.state === "uncertain");
+              if (lock && !(expired && lock.operation !== "send") && !takesOverUncertain) {
                 return { success: true, meta: { changes: 0 } };
               }
               lock = {
@@ -421,6 +424,12 @@ function createRecoveredTelegramDatabase(resourceExists = true) {
               }
               return { success: true, meta: { changes: 0 } };
             }
+            if (/UPDATE telegram_push_locks SET operation = 'send'/.test(sql)) {
+              if (lock?.lock_token !== params[3]) return { meta: { changes: 0 } };
+              lock.operation = "send";
+              lock.expires_at = params[0];
+              return { meta: { changes: 1 } };
+            }
             if (/SET custom_title = \?, resource_data = \?, category = \?, chat_id = \?/.test(sql)) {
               Object.assign(record, {
                 custom_title: params[0],
@@ -433,9 +442,10 @@ function createRecoveredTelegramDatabase(resourceExists = true) {
                 media_enabled: params[7],
                 media_url: params[8],
                 last_pushed_hash: params[9],
+                last_pushed_media_enabled: params[12],
                 ...(sql.includes("sent_at = ?")
                   ? { sent_at: params[10], updated_at: params[11] }
-                  : { updated_at: params[10] })
+                  : { updated_at: params[11] })
               });
             } else if (/SET custom_title = \?, resource_data = \?, category = \?, target_ref = \?/.test(sql)) {
               Object.assign(record, {

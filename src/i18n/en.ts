@@ -46,6 +46,13 @@ export const en: Messages = {
     title: "Articles",
     description: "Read tutorials, announcements, and resource roundups for practical ideas."
   },
+  pagination: {
+    label: "Pagination",
+    previous: "Previous page",
+    next: "Next page",
+    page: (page) => `Page ${page}`,
+    more: "More pages"
+  },
   publicMeta: {
     aboutDescription:
       "Learn about this site's background, directory focus, and maintenance approach.",
@@ -55,6 +62,7 @@ export const en: Messages = {
       "Review the rules that apply when using this site's directory, articles, and submission features."
   },
   actions: {
+    menu: (name) => `${name} actions`,
     retry: "Retry",
     submitTool: "Submit Tool",
     toggleTheme: "Toggle theme",
@@ -97,9 +105,6 @@ export const en: Messages = {
       "Check that your project is correctly bound to a database.",
     title: "No tools found",
     description: "Try another category or a shorter search term."
-  },
-  footer: {
-    version: "HTools v1.0.15"
   },
   submit: {
     title: "Submit Tool",

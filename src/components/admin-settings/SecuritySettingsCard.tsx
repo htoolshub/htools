@@ -66,7 +66,7 @@ export function SecuritySettingsCard({
 
   function describedBy(field: SecurityField) {
     return invalidField === field
-      ? "security-settings-description admin-operation-status"
+      ? "security-settings-description global-operation-status"
       : "security-settings-description";
   }
 

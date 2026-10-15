@@ -14,14 +14,30 @@ const compiledContentItems = await compileTypescriptModule(
   new URL("../../functions/api/admin/content-items/index.ts", import.meta.url),
   { importReplacements: { "../../../_shared": compiledShared.url.href } }
 );
+const compiledApiClient = await compileTypescriptModule(
+  new URL("../../src/api-client.ts", import.meta.url)
+);
+const compiledAdminContentApi = await compileTypescriptModule(
+  new URL("../../src/admin-api.ts", import.meta.url),
+  {
+    importReplacements: { "./api-client": compiledApiClient.url.href },
+    transformSource: (source) => `import { readJson } from "./api-client";\n${source.slice(
+      source.indexOf("export async function loadContentItems("),
+      source.indexOf("export async function convertContentItemToArticle(")
+    )}`
+  }
+);
 const articleApi = await import(`${compiledArticles.url.href}?lists=articles`);
 const contentApi = await import(`${compiledContentItems.url.href}?lists=content`);
+const adminContentApi = await import(compiledAdminContentApi.url.href);
 
 after(async () => {
   await Promise.all([
     compiledShared.cleanup(),
     compiledArticles.cleanup(),
-    compiledContentItems.cleanup()
+    compiledContentItems.cleanup(),
+    compiledApiClient.cleanup(),
+    compiledAdminContentApi.cleanup()
   ]);
 });
 
@@ -29,6 +45,7 @@ function createMockDatabase({
   articleRows = [],
   contentRows = [],
   sourceCountRows = [{ source_id: "source-1", total: 3, filtered_total: 3 }],
+  ftsUnavailable = false,
   // 会话签名密钥现在存在 D1 里(app_settings.session_secret),签发和校验令牌都要读它。
   // 给一枚固定值当桩;传 null 就模拟"另一个还没生成密钥的库",此时令牌必须验不过。
   sessionSecret = "mock-session-secret"
@@ -51,7 +68,7 @@ function createMockDatabase({
             if (call.binds[0] === "session_secret") {
               return sessionSecret ? { value: sessionSecret } : null;
             }
-            return { value: "17" };
+            return { value: "18" };
           }
           if (sql.includes("COUNT(*) AS total FROM articles")) return { total: 3 };
           if (sql.includes("COUNT(*) AS total") && sql.includes("content_items")) {
@@ -60,6 +77,9 @@ function createMockDatabase({
           return null;
         },
         async all() {
+          if (ftsUnavailable && sql.includes("content_items_search MATCH ?")) {
+            throw new Error("no such table: content_items_search");
+          }
           if (sql.includes("FROM app_settings") && sql.includes("key IN")) {
             return {
               results: sessionSecret
@@ -245,6 +265,7 @@ test("content item list returns summaries and a stable keyset cursor", async () 
   assert.equal(body.total, 3);
   assert.deepEqual(body.sourceCounts, { "source-1": 3 });
   assert.deepEqual(body.categoryCounts, { news: 3 });
+  assert.equal(mock.calls.filter((call) => call.sql.includes("GROUP BY")).length, 2);
   assert.equal("content" in body.items[0], false);
   assert.equal("linked_article_content" in body.items[0], false);
   assert.equal(
@@ -277,6 +298,120 @@ test("content item list returns summaries and a stable keyset cursor", async () 
     "2026-01-02T00:00:00.000Z",
     "item-2"
   ]);
+});
+
+test("内容追加页关闭统计后保留游标、筛选和排序，且不执行分组查询", async () => {
+  const sortKey = "2026-01-01T00:00:00.000Z";
+  const cursor = Buffer.from(JSON.stringify({ sort: "oldest", sortKey, id: "item-1" }))
+    .toString("base64url");
+  const contentRows = [
+    { ...contentBase, id: "item-2", sort_key: "2026-01-02T00:00:00.000Z" },
+    { ...contentBase, id: "item-3", sort_key: "2026-01-03T00:00:00.000Z" },
+    { ...contentBase, id: "item-4", sort_key: "2026-01-04T00:00:00.000Z" }
+  ];
+  const mock = createMockDatabase({ contentRows });
+  const query = new URLSearchParams({
+    counts: "0", sourceId: "source-1", category: "news", sort: "oldest", limit: "2", cursor
+  });
+  const response = await contentApi.onRequestGet(await authenticatedRequest(
+    `https://example.com/api/admin/content-items?${query}`, mock.db
+  ));
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(body.items.map((item) => item.id), ["item-2", "item-3"]);
+  assert.equal(body.hasMore, true);
+  assert.equal(body.limit, 2);
+  assert.equal(mock.calls.filter((call) => call.sql.includes("GROUP BY")).length, 0);
+  assert.equal(body.total, null);
+  assert.equal(body.sourceCounts, null);
+  assert.equal(body.categoryCounts, null);
+  assert.deepEqual(JSON.parse(Buffer.from(body.nextCursor, "base64url").toString()), {
+    sort: "oldest", sortKey: "2026-01-03T00:00:00.000Z", id: "item-3"
+  });
+  const pageCall = mock.calls.find((call) => call.sql.includes("AS sort_key"));
+  assert.match(pageCall.sql, /ORDER BY sort_key ASC, content_items\.id ASC/);
+  assert.match(pageCall.sql, /content_items\.category = \?/);
+  assert.match(pageCall.sql, /content_items\.source_id = \?/);
+  assert.match(pageCall.sql, /content_items\.id > \?/);
+  assert.deepEqual(pageCall.binds, ["news", "source-1", sortKey, sortKey, "item-1", 3]);
+});
+
+test("内容搜索关闭统计时，FTS 正常和降级路径均不执行分组查询", async () => {
+  const query = "前端观察";
+  const terms = shared.createSearchTerms(query);
+  for (const ftsUnavailable of [false, true]) {
+    const mock = createMockDatabase({
+      ftsUnavailable,
+      contentRows: [{ ...contentBase, id: "item-1", sort_key: contentBase.published_at }]
+    });
+    const response = await contentApi.onRequestGet(await authenticatedRequest(
+      `https://example.com/api/admin/content-items?counts=0&category=news&sourceId=source-1&q=${encodeURIComponent(query)}`,
+      mock.db
+    ));
+    const body = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.equal(body.items.length, 1);
+    assert.equal(mock.calls.filter((call) => call.sql.includes("GROUP BY")).length, 0);
+    assert.equal(body.total, null);
+    assert.equal(body.sourceCounts, null);
+    assert.equal(body.categoryCounts, null);
+    const pageCalls = mock.calls.filter((call) => call.sql.includes("AS sort_key"));
+    assert.equal(pageCalls.length, ftsUnavailable ? 2 : 1);
+    assert.match(pageCalls[0].sql, /content_items_search MATCH \?/);
+    assert.deepEqual(pageCalls[0].binds, ["news", terms.ftsPhrase, "source-1", 51]);
+    if (ftsUnavailable) {
+      assert.match(pageCalls[1].sql, /content_sources\.title LIKE/);
+      assert.deepEqual(pageCalls[1].binds, ["news", ...Array(6).fill(terms.likePattern), "source-1", 51]);
+    }
+  }
+});
+
+test("内容列表只有显式 counts=0 才跳过统计，FTS 降级仍保留默认统计", async () => {
+  for (const counts of [null, "1", "false"]) {
+    const mock = createMockDatabase({ ftsUnavailable: true });
+    const query = new URLSearchParams({ q: "前端观察" });
+    if (counts !== null) query.set("counts", counts);
+    const response = await contentApi.onRequestGet(await authenticatedRequest(
+      `https://example.com/api/admin/content-items?${query}`, mock.db
+    ));
+    const body = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.equal(body.total, 3);
+    assert.deepEqual(body.sourceCounts, { "source-1": 3 });
+    assert.deepEqual(body.categoryCounts, { news: 3 });
+    assert.equal(mock.calls.filter((call) => call.sql.includes("GROUP BY")).length, 4);
+  }
+});
+
+test("内容列表客户端仅在显式关闭统计时发送 counts=0，并保留空统计响应", async (t) => {
+  const requests = [];
+  const body = {
+    items: [], limit: 2, hasMore: false, nextCursor: null,
+    total: null, sourceCounts: null, categoryCounts: null
+  };
+  t.mock.method(globalThis, "fetch", async (url, options) => {
+    requests.push({ url: new URL(url, "https://example.com"), options });
+    return Response.json(body);
+  });
+  for (const includeCounts of [undefined, true, false]) {
+    assert.deepEqual(await adminContentApi.loadContentItems("test-token", {
+      sourceId: "source-1", category: "news", query: "前端观察", sort: "oldest",
+      limit: 2, cursor: "cursor-value", includeCounts
+    }), body);
+  }
+
+  assert.deepEqual(requests.map(({ url }) => url.searchParams.get("counts")), [null, null, "0"]);
+  for (const { url, options } of requests) {
+    assert.equal(url.pathname, "/api/admin/content-items");
+    assert.deepEqual(Object.fromEntries([...url.searchParams].filter(([key]) => key !== "counts")), {
+      sourceId: "source-1", category: "news", q: "前端观察", sort: "oldest",
+      limit: "2", cursor: "cursor-value"
+    });
+    assert.equal(options.headers.Authorization, "Bearer test-token");
+  }
 });
 
 test("content item oldest sorting uses a sort-bound keyset cursor", async () => {

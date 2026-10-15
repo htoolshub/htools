@@ -35,10 +35,12 @@ export function AdminEmptyState({
 }
 
 export function AdminInitialLoadError({
+  isRetrying = false,
   message,
   onRetry,
   t
 }: {
+  isRetrying?: boolean;
   message: string;
   onRetry: () => void;
   t?: Messages;
@@ -46,13 +48,14 @@ export function AdminInitialLoadError({
   const isChinese = t ? isChineseLocaleText(t) : /[㐀-鿿]/u.test(message);
 
   return (
-    <section className="admin-empty-state" role="alert">
+    <section aria-busy={isRetrying} className="admin-empty-state" role="alert">
       <div className="empty-state-title">
         <RefreshCw size={28} />
         <h2>{isChinese ? "加载失败" : "Unable to load"}</h2>
       </div>
       <p>{message}</p>
       <button className="ghost-button empty-state-action"
+        disabled={isRetrying}
         type="button"
         onClick={onRetry}
       >

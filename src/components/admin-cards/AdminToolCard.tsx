@@ -1,4 +1,4 @@
-import { ChevronDown, Github, SquarePen, Star, Trash2 } from "lucide-react";
+import { Github, SquarePen, Star, Trash2 } from "lucide-react";
 import { formatAdminDate } from "../../admin-helpers";
 import type { Messages } from "../../i18n";
 import { proxifyUrl } from "../../proxy";
@@ -9,6 +9,7 @@ import type { ProxySettings, Tool } from "../../types";
 import { useAdminCardActionMenu } from "../../useAdminCardActionMenu";
 import AdminSiteIcon from "../AdminSiteIcon";
 import { AdminTelegramPushButton } from "../AdminTelegramPushButton";
+import { AdminCardActionMenu } from "../AdminCardActionMenu";
 
 export function AdminToolCard({
   isBusy,
@@ -90,53 +91,30 @@ export function AdminToolCard({
           >
             <Star size={16} fill={tool.featured ? "currentColor" : "none"} />
           </button>
-          <button className={`icon-button admin-tool-menu-trigger ${
-              actions.open ? "is-active" : ""
-            }`}
-            type="button"
-            aria-expanded={actions.open}
-            aria-haspopup="menu"
-            aria-label={`${tool.name} actions`}
-            disabled={isBusy}
-            ref={actions.triggerRef}
-            onKeyDown={actions.handleTriggerKeyDown}
-            onClick={() => actions.setOpen((current) => !current)}
-          >
-            <ChevronDown size={17} />
-          </button>
-          {actions.open ? (
-            <div className="admin-tool-action-menu" role="menu" onKeyDown={actions.handleMenuKeyDown}>
-              <button disabled={isBusy}
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  actions.close();
-                  onEdit();
-                }}
-              >
-                <SquarePen size={18} />
-                <span className="admin-action-label-full">{t.admin.editTool}</span>
-                <span className="admin-action-label-short">
-                  {t.admin.editAction}
-                </span>
-              </button>
-              <button className="danger"
-                disabled={isBusy}
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  actions.close();
-                  onDelete();
-                }}
-              >
-                <Trash2 size={16} />
-                <span className="admin-action-label-full">{t.admin.deleteTool}</span>
-                <span className="admin-action-label-short">
-                  {t.admin.deleteAction}
-                </span>
-              </button>
-            </div>
-          ) : null}
+          <AdminCardActionMenu
+            actions={actions}
+            label={t.actions.menu(tool.name)}
+            triggerDisabled={isBusy}
+            items={[
+              {
+                key: "edit",
+                label: t.admin.editTool,
+                shortLabel: t.admin.editAction,
+                icon: <SquarePen size={18} />,
+                disabled: isBusy,
+                onSelect: onEdit
+              },
+              {
+                key: "delete",
+                label: t.admin.deleteTool,
+                shortLabel: t.admin.deleteAction,
+                icon: <Trash2 size={16} />,
+                disabled: isBusy,
+                danger: true,
+                onSelect: onDelete
+              }
+            ]}
+          />
         </div>
       </div>
 

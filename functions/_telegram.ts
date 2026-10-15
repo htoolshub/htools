@@ -34,6 +34,7 @@ const TELEGRAM_SAFE_RETRY_METHODS = new Set([
   "deleteMessage"
 ]);
 const TELEGRAM_PUSH_LOCK_TTL_MS = 30_000;
+const TELEGRAM_REPLACEMENT_LOCK_TTL_MS = 60_000;
 const TELEGRAM_PUSH_UNCERTAIN_TTL_MS = 60_000;
 const TELEGRAM_PUSH_IN_PROGRESS_ERROR = "Telegram message operation is already in progress.";
 const TELEGRAM_PUSH_UNCERTAIN_ERROR = "Telegram push result is uncertain.";
@@ -72,7 +73,7 @@ type TelegramPushLockRow = {
 
 type TelegramPushLockContext = {
   markExternalRequestCompleted: () => void;
-  markExternalRequestStarted: () => void;
+  markExternalRequestStarted: (replacement?: boolean) => Promise<void>;
 };
 
 export type TelegramMessageRow = {
@@ -89,6 +90,7 @@ export type TelegramMessageRow = {
   media_enabled: number;
   media_url: string;
   last_pushed_hash: string;
+  last_pushed_media_enabled: number | null;
   sent_at: string;
   updated_at: string;
 };
@@ -444,8 +446,11 @@ async function acquireTelegramPushLock(
        state = 'active',
        expires_at = excluded.expires_at,
        updated_at = excluded.updated_at
-      WHERE telegram_push_locks.expires_at <= ?
-         OR (? = 1 AND telegram_push_locks.state = 'uncertain')`
+      WHERE (telegram_push_locks.expires_at <= ? AND telegram_push_locks.operation <> 'send')
+          OR ((? = 1 OR excluded.operation = 'delete')
+              AND (telegram_push_locks.state = 'uncertain' OR telegram_push_locks.expires_at <= ?))
+          OR (excluded.operation = 'update' AND telegram_push_locks.operation = 'update'
+              AND telegram_push_locks.state = 'uncertain')`
   )
     .bind(
       resourceType,
@@ -455,7 +460,8 @@ async function acquireTelegramPushLock(
       expiresAt,
       nowIso,
       nowIso,
-      takeOverUncertain ? 1 : 0
+      takeOverUncertain ? 1 : 0,
+      nowIso
     )
     .run();
 
@@ -469,7 +475,7 @@ async function acquireTelegramPushLock(
     .bind(resourceType, resourceId)
     .first<TelegramPushLockRow>();
   throw new InvalidRequestError(
-    existing?.state === "uncertain"
+    existing?.state === "uncertain" || (existing?.operation === "send" && existing.expires_at <= nowIso)
       ? TELEGRAM_PUSH_UNCERTAIN_ERROR
       : TELEGRAM_PUSH_IN_PROGRESS_ERROR
   );
@@ -535,7 +541,18 @@ async function withTelegramPushLock<T>(
       markExternalRequestCompleted: () => {
         externalRequestCompleted = true;
       },
-      markExternalRequestStarted: () => {
+      markExternalRequestStarted: async (replacement = false) => {
+        if (replacement) {
+          // 替换包含发送、删除及失败补偿；先持久化发送标记，超时后不能当作原地编辑重试。
+          const expiresAt = new Date(Date.now() + TELEGRAM_REPLACEMENT_LOCK_TTL_MS).toISOString();
+          const result = await db.prepare(
+            `UPDATE telegram_push_locks SET operation = 'send', expires_at = ?
+             WHERE resource_type = ? AND resource_id = ? AND lock_token = ?`
+          ).bind(expiresAt, resourceType, resourceId, token).run();
+          if (Number(result.meta?.changes ?? 0) === 0) {
+            throw new InvalidRequestError(TELEGRAM_PUSH_IN_PROGRESS_ERROR);
+          }
+        }
         externalRequestStarted = true;
       }
     });
@@ -548,7 +565,7 @@ async function withTelegramPushLock<T>(
       try {
         await markTelegramPushLockUncertain(db, resourceType, resourceId, token);
       } catch {
-        // ponytail: if extending the lock fails, the active lock still protects until its shorter TTL.
+        // 发送标记即使续期失败也要求过期后确认；原地编辑按原有租约安全重试。
       }
       throw new InvalidRequestError(TELEGRAM_PUSH_UNCERTAIN_ERROR);
     }
@@ -558,7 +575,7 @@ async function withTelegramPushLock<T>(
       try {
         await releaseTelegramPushLock(db, resourceType, resourceId, token);
       } catch {
-        // ponytail: cleanup is best-effort because a stale active lock expires automatically.
+        // 清理失败时，过期的发送锁仍需确认；其余操作在租约过期后可重试。
       }
     }
   }
@@ -909,7 +926,7 @@ async function sendTelegramMessageUnlocked(
     media.url
   );
   const targetRef = settings.target;
-  lock.markExternalRequestStarted();
+  await lock.markExternalRequestStarted();
   const message = await sendTelegramRemoteMessage(
     env,
     targetRef,
@@ -925,7 +942,7 @@ async function sendTelegramMessageUnlocked(
       `UPDATE telegram_messages
        SET custom_title = ?, resource_data = ?, category = ?, chat_id = ?, target_ref = ?, message_id = ?,
            message_markdown = ?, media_enabled = ?, media_url = ?,
-           last_pushed_hash = ?, sent_at = ?, updated_at = ?
+           last_pushed_hash = ?, sent_at = ?, updated_at = ?, last_pushed_media_enabled = ?
        WHERE id = ?`
     )
       .bind(
@@ -941,6 +958,7 @@ async function sendTelegramMessageUnlocked(
         pushedHash,
         now,
         now,
+        media.enabled ? 1 : 0,
         existing.id
       )
       .run();
@@ -949,8 +967,8 @@ async function sendTelegramMessageUnlocked(
       `INSERT INTO telegram_messages
         (id, resource_type, resource_id, custom_title, resource_data, category, chat_id, target_ref,
          message_id, message_markdown, media_enabled,
-         media_url, last_pushed_hash, sent_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+         media_url, last_pushed_hash, sent_at, updated_at, last_pushed_media_enabled)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
       .bind(
         crypto.randomUUID(),
@@ -967,7 +985,8 @@ async function sendTelegramMessageUnlocked(
         media.url,
         pushedHash,
         now,
-        now
+        now,
+        media.enabled ? 1 : 0
       )
       .run();
   }
@@ -1006,7 +1025,7 @@ export async function updateTelegramMessage(
     (lock) => updateTelegramMessageUnlocked(
       env, db, settings, resourceType, resourceId, origin, payload, lock
     ),
-    true
+    payload.confirmUncertainRetry === true
   );
 }
 
@@ -1047,12 +1066,12 @@ async function updateTelegramMessageUnlocked(
     payload.locale === "en" ? "en" : "zh"
   );
   const defaultMediaUrl = createDefaultTelegramMediaUrl(resource);
-  const currentMediaEnabled = existing.media_enabled === 1;
+  const currentMediaEnabled = (existing.last_pushed_media_enabled ?? existing.media_enabled) === 1;
   const currentMediaUrl = getTelegramMediaUrl(existing.media_url) || defaultMediaUrl;
   const media = normalizeTelegramMedia(
     payload,
     currentMediaUrl,
-    currentMediaEnabled
+    existing.media_enabled === 1
   );
   const category = typeof payload.category === "string"
     ? payload.category.trim().slice(0, 48)
@@ -1071,7 +1090,11 @@ async function updateTelegramMessageUnlocked(
     // UI ask whether a fresh message should go out to the new target.
     remoteMessageMissing = "target-changed";
   } else {
-    lock.markExternalRequestStarted();
+    await lock.markExternalRequestStarted();
+    const replaceMessage = async () => {
+      await lock.markExternalRequestStarted(true);
+      return replaceTelegramRemoteMessage(env, existing, messageMarkdown, media);
+    };
     try {
       remoteMessage = currentMediaEnabled === media.enabled
         ? await editTelegramRemoteMessage(
@@ -1080,15 +1103,16 @@ async function updateTelegramMessageUnlocked(
           messageMarkdown,
           media
         )
-        : await replaceTelegramRemoteMessage(
-          env,
-          existing,
-          messageMarkdown,
-          media
-        );
+        : await replaceMessage();
     } catch (error) {
       const message = error instanceof Error ? error.message.toLowerCase() : "";
-      if (isTelegramMessageMissingError(message)) {
+      if (
+        existing.last_pushed_media_enabled == null && !media.enabled &&
+        message.includes("there is no text in the message to edit")
+      ) {
+        // 旧版保存草稿可能已覆盖远端类型，只在 Telegram 明确拒绝文字编辑后修复。
+        remoteMessage = await replaceMessage();
+      } else if (isTelegramMessageMissingError(message)) {
         // ponytail: the admin deleted the message inside Telegram. Deleting can be
         // deliberate, so never re-send automatically — reset the record to "not pushed"
         // and let the admin confirm.
@@ -1120,7 +1144,8 @@ async function updateTelegramMessageUnlocked(
     `UPDATE telegram_messages
      SET custom_title = ?, resource_data = ?, category = ?, chat_id = ?, target_ref = ?, message_id = ?, message_markdown = ?,
          media_enabled = ?, media_url = ?,
-         last_pushed_hash = ?, sent_at = CASE WHEN ? = 1 THEN '' ELSE sent_at END, updated_at = ?
+         last_pushed_hash = ?, sent_at = CASE WHEN ? = 1 THEN '' ELSE sent_at END, updated_at = ?,
+         last_pushed_media_enabled = ?
      WHERE id = ?`
   )
     .bind(
@@ -1136,6 +1161,7 @@ async function updateTelegramMessageUnlocked(
       remoteMessageMissing ? "" : pushedHash,
       remoteMessageMissing ? 1 : 0,
       now,
+      remoteMessageMissing ? null : media.enabled ? 1 : 0,
       existing.id
     )
     .run();
@@ -1168,6 +1194,32 @@ export async function deleteTelegramPush(
   return withTelegramPushLock(db, resourceType, resourceId, "delete", () =>
     deleteTelegramPushUnlocked(db, resourceType, resourceId, normalizedRecordId)
   );
+}
+
+export async function deleteTelegramPushCategory(
+  db: D1Database,
+  filter: { category?: string; resourceType?: TelegramResourceType } = {}
+) {
+  const condition = filter.resourceType ? "resource_type = ?" : filter.category ? "category = ?" : "1 = 1";
+  const params = filter.resourceType ? [filter.resourceType] : filter.category ? [filter.category] : [];
+  const selectedResources = `SELECT resource_type, resource_id FROM telegram_messages WHERE ${condition}`;
+  const activeLocks = `SELECT 1 FROM telegram_push_locks
+    WHERE state = 'active' AND expires_at > ?
+      AND (resource_type, resource_id) IN (${selectedResources})`;
+  const now = new Date().toISOString();
+  // 检查与删除在同一事务内执行；任一匹配消息仍在推送时，整批保留。
+  const [blocked, , deleted] = await db.batch<{ total: number }>([
+    db.prepare(`SELECT COUNT(*) AS total FROM (${activeLocks})`).bind(now, ...params),
+    db.prepare(`DELETE FROM telegram_push_locks
+      WHERE (resource_type, resource_id) IN (${selectedResources})
+        AND NOT EXISTS (${activeLocks})`).bind(...params, now, ...params),
+    db.prepare(`DELETE FROM telegram_messages
+      WHERE ${condition} AND NOT EXISTS (${activeLocks})`).bind(...params, now, ...params)
+  ]);
+  if (Number(blocked.results[0]?.total ?? 0) > 0) {
+    throw new InvalidRequestError(TELEGRAM_PUSH_IN_PROGRESS_ERROR);
+  }
+  return Number(deleted.meta?.changes ?? 0);
 }
 
 async function deleteTelegramPushUnlocked(

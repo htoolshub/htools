@@ -64,7 +64,7 @@ function createDatabase(initialVersion, missingSettings = false, legacySourceCol
         async run() {
           if (sql.includes("INSERT INTO app_settings")) {
             metrics.versionWrites += 1;
-            state.version = 17;
+            state.version = 18;
             state.missingSettings = false;
           }
           return { meta: { changes: 1 } };
@@ -90,7 +90,7 @@ function createDatabase(initialVersion, missingSettings = false, legacySourceCol
 }
 
 test("current schema version is read once for concurrent and repeated calls", async () => {
-  const current = createDatabase(17);
+  const current = createDatabase(18);
   await Promise.all([
     shared.ensureDatabaseSchema(current.db),
     shared.ensureDatabaseSchema(current.db)
@@ -114,17 +114,17 @@ test("legacy schema is upgraded and persists its version once", async () => {
   assert.equal(legacy.metrics.versionReads, 1);
   assert.equal(legacy.metrics.pragmaReads, 4);
   assert.equal(legacy.metrics.versionWrites, 1);
-  assert.equal(legacy.state.version, 17);
+  assert.equal(legacy.state.version, 18);
 });
 
-test("version 9 removes legacy source-update columns before persisting version 17", async () => {
+test("version 9 removes legacy source-update columns before persisting version 18", async () => {
   const legacy = createDatabase(9, false, true);
   await shared.ensureDatabaseSchema(legacy.db);
 
   assert.equal(legacy.metrics.batch, 3);
   assert.equal(legacy.metrics.pragmaReads, 4);
   assert.equal(legacy.state.legacySourceColumns, false);
-  assert.equal(legacy.state.version, 17);
+  assert.equal(legacy.state.version, 18);
 });
 
 test("an empty database initializes once and a new isolate reuses the stored version", async () => {
@@ -144,18 +144,18 @@ test("an empty database initializes once and a new isolate reuses the stored ver
   assert.equal(empty.metrics.batch, 2);
   assert.equal(empty.metrics.versionReads, 2);
   assert.equal(empty.metrics.versionWrites, 1);
-  assert.equal(empty.state.version, 17);
+  assert.equal(empty.state.version, 18);
 });
 
 test("a database newer than the application is rejected", async () => {
-  const newer = createDatabase(18);
+  const newer = createDatabase(19);
   await assert.rejects(
     shared.ensureDatabaseSchema(newer.db),
-    /newer than supported version 17/
+    /newer than supported version 18/
   );
 });
 
-test("fresh deployment schema matches runtime schema version 17", () => {
+test("fresh deployment schema matches runtime schema version 18", () => {
   assert.match(
     schemaSql,
     /resource_type TEXT NOT NULL CHECK \(resource_type IN \('tool', 'article', 'content', 'custom'\)\)/
@@ -164,6 +164,6 @@ test("fresh deployment schema matches runtime schema version 17", () => {
   assert.match(schemaSql, /CREATE TABLE IF NOT EXISTS telegram_push_locks/);
   assert.match(
     schemaSql,
-    /VALUES \('database_schema_version', '17', CURRENT_TIMESTAMP\)/
+    /VALUES \('database_schema_version', '18', CURRENT_TIMESTAMP\)/
   );
 });

@@ -32,9 +32,39 @@ const compiledService = await compileTypescriptModule(
 );
 const validation = await import(`${compiledValidation.url.href}?image-validation=1`);
 const service = await import(`${compiledService.url.href}?image-bed=1`);
+const compiledApiClient = await compileTypescriptModule(
+  new URL("../../src/api-client.ts", import.meta.url)
+);
+const compiledProxy = await compileTypescriptModule(
+  new URL("../../src/proxy.ts", import.meta.url)
+);
+const compiledAdminApi = await compileTypescriptModule(
+  new URL("../../src/admin-api.ts", import.meta.url),
+  {
+    importReplacements: {
+      "./api-client": compiledApiClient.url.href,
+      "./proxy": compiledProxy.url.href
+    },
+    transformSource(source) {
+      const start = source.indexOf("export async function loadImageBedSettings(");
+      const end = source.indexOf("export async function uploadAdminImage(", start);
+      assert.ok(start >= 0 && end > start);
+      return `
+        import { requestJsonWithTimeout, confirmTimedOutWrite, TIMED_OUT_WRITE_CONFIRM_TIMEOUT_MS } from "./api-client";
+        import { normalizeProxyBaseUrl } from "./proxy";
+        ${source.slice(start, end)}
+      `;
+    }
+  }
+);
+const apiClient = await import(compiledApiClient.url.href);
+const adminApi = await import(compiledAdminApi.url.href);
 
 test.after(async () => {
-  await Promise.all([compiledValidation.cleanup(), compiledService.cleanup()]);
+  await Promise.all([
+    compiledValidation.cleanup(), compiledService.cleanup(),
+    compiledApiClient.cleanup(), compiledProxy.cleanup(), compiledAdminApi.cleanup()
+  ]);
 });
 
 function createSettingsDatabase(initialValue = null) {
@@ -65,6 +95,187 @@ function createSettingsDatabase(initialValue = null) {
 function createFile(size, type = "image/png") {
   return new File([new Uint8Array(size)], "test.png", { type });
 }
+
+const settingsInput = {
+  enabled: true,
+  baseUrl: "https://image.example/root/",
+  uploadChannel: "cfr2",
+  channelName: "main",
+  uploadNameType: "short",
+  uploadFolder: "htools/images"
+};
+
+function stallUntilAbort(signal) {
+  return new Promise((_resolve, reject) => {
+    const abort = () => reject(new DOMException("Aborted", "AbortError"));
+    if (signal.aborted) abort();
+    else signal.addEventListener("abort", abort, { once: true });
+  });
+}
+
+function mockSettingsRequests(t, fetchImpl) {
+  const calls = [];
+  const timers = [];
+  const originalSetTimeout = globalThis.setTimeout;
+  t.mock.method(globalThis, "setTimeout", (callback, delay, ...args) => {
+    timers.push(delay);
+    return originalSetTimeout(callback, 0, ...args);
+  });
+  t.mock.method(globalThis, "fetch", async (url, init) => {
+    assert.equal(url, "/api/admin/image-bed-settings");
+    assert.equal(new Headers(init.headers).get("Authorization"), "Bearer local-test-token");
+    calls.push({ method: init.method ?? "GET", body: init.body });
+    return fetchImpl(init);
+  });
+  return { calls, timers };
+}
+
+function assertOriginalWriteTimeout(error) {
+  assert.ok(error instanceof apiClient.ApiRequestTimeoutError);
+  assert.equal(error.timeoutMs, apiClient.DEFAULT_API_REQUEST_TIMEOUT_MS);
+  return true;
+}
+
+test("image bed normal saves return the server result without a confirmation read", async (t) => {
+  const env = { DB: createSettingsDatabase(), IMGBED_TOKEN: "local-test-token" };
+  const { calls, timers } = mockSettingsRequests(t, async (init) =>
+    Response.json({ settings: await service.saveImageBedSettings(env, JSON.parse(init.body)) })
+  );
+
+  assert.deepEqual(await adminApi.saveImageBedSettings(settingsInput, "local-test-token"), {
+    available: true, ...settingsInput
+  });
+  assert.deepEqual(calls, [{ method: "PUT", body: JSON.stringify(settingsInput) }]);
+  assert.deepEqual(timers, [12_000]);
+});
+
+test("image bed lost save responses confirm once using the server's normalized fields", async (t) => {
+  const cases = [
+    settingsInput,
+    {
+      ...settingsInput,
+      baseUrl: " image.example:443/root?ignored=true#fragment ",
+      channelName: ` ${"名称".repeat(50)} `,
+      uploadFolder: " \\photos\\2026\\ "
+    },
+    {
+      ...settingsInput,
+      baseUrl: "HTTPS://fake-user:fake-password@IMAGE.EXAMPLE:443/root?query=yes#fragment",
+      uploadChannel: "unknown-channel",
+      uploadNameType: "unknown-type",
+      uploadFolder: "a".repeat(210)
+    },
+    { ...settingsInput, enabled: false, baseUrl: " ", uploadFolder: "///" }
+  ];
+
+  for (const [index, input] of cases.entries()) {
+    await t.test(`normalization ${index + 1}`, async (t) => {
+      const env = { DB: createSettingsDatabase(), IMGBED_TOKEN: input.enabled ? "local-test-token" : "" };
+      let saved;
+      const { calls, timers } = mockSettingsRequests(t, async (init) => {
+        if (init.method === "PUT") {
+          saved = await service.saveImageBedSettings(env, JSON.parse(init.body));
+          return stallUntilAbort(init.signal);
+        }
+        return Response.json({ settings: await service.getImageBedSettings(env) });
+      });
+
+      const recovered = await adminApi.saveImageBedSettings(input, "local-test-token");
+      assert.deepEqual(recovered, saved);
+      assert.equal(recovered.available, input.enabled);
+      assert.deepEqual(calls, [
+        { method: "PUT", body: JSON.stringify(input) },
+        { method: "GET", body: undefined }
+      ]);
+      assert.deepEqual(timers, [12_000, 400, 3_000]);
+    });
+  }
+});
+
+test("image bed confirmation checks every field written by the save", async (t) => {
+  const mismatches = {
+    enabled: false,
+    baseUrl: "https://old-image.example/",
+    uploadChannel: "s3",
+    channelName: "other-channel",
+    uploadNameType: "origin",
+    uploadFolder: "other-folder"
+  };
+  for (const [field, value] of Object.entries(mismatches)) {
+    await t.test(field, async (t) => {
+      const { calls } = mockSettingsRequests(t, (init) => init.method === "PUT"
+        ? stallUntilAbort(init.signal)
+        : Response.json({ settings: { available: true, ...settingsInput, [field]: value } })
+      );
+      await assert.rejects(
+        adminApi.saveImageBedSettings(settingsInput, "local-test-token"),
+        assertOriginalWriteTimeout
+      );
+      assert.deepEqual(calls.map(({ method }) => method), ["PUT", "GET"]);
+    });
+  }
+});
+
+test("image bed failed confirmation reads preserve the write timeout without retrying", async (t) => {
+  const failures = {
+    "HTTP 500": () => Response.json({ error: "read failed" }, { status: 500 }),
+    "network failure": () => { throw new TypeError("Failed to fetch"); },
+    "invalid JSON": () => new Response("not json"),
+    "read timeout": (init) => stallUntilAbort(init.signal)
+  };
+  for (const [name, failRead] of Object.entries(failures)) {
+    await t.test(name, async (t) => {
+      const { calls, timers } = mockSettingsRequests(t, (init) => init.method === "PUT"
+        ? stallUntilAbort(init.signal)
+        : failRead(init)
+      );
+      await assert.rejects(
+        adminApi.saveImageBedSettings(settingsInput, "local-test-token"),
+        assertOriginalWriteTimeout
+      );
+      assert.deepEqual(calls.map(({ method }) => method), ["PUT", "GET"]);
+      assert.deepEqual(timers, [12_000, 400, 3_000]);
+    });
+  }
+});
+
+test("image bed invalid targets cannot be confirmed as a successful default configuration", async (t) => {
+  const env = { DB: createSettingsDatabase(), IMGBED_TOKEN: "local-test-token" };
+  const defaults = await service.getImageBedSettings(env);
+  const { available: _available, ...emptyInput } = defaults;
+  for (const input of [
+    { ...emptyInput, baseUrl: "javascript:alert(1)" },
+    { ...emptyInput, baseUrl: `https://image.example/${"a".repeat(2050)}` },
+    { ...emptyInput, enabled: true },
+    { ...emptyInput, uploadFolder: "a/../b" },
+    { ...emptyInput, uploadFolder: "a//b" }
+  ]) {
+    await t.test(JSON.stringify(input).slice(0, 100), async (t) => {
+      await assert.rejects(service.saveImageBedSettings(env, input));
+      const { calls } = mockSettingsRequests(t, (init) => init.method === "PUT"
+        ? stallUntilAbort(init.signal)
+        : Response.json({ settings: defaults })
+      );
+      await assert.rejects(
+        adminApi.saveImageBedSettings(input, "local-test-token"),
+        assertOriginalWriteTimeout
+      );
+      assert.deepEqual(calls.map(({ method }) => method), ["PUT", "GET"]);
+    });
+  }
+});
+
+test("image bed rejected saves keep the server error without a confirmation read", async (t) => {
+  const { calls, timers } = mockSettingsRequests(t, () => Response.json(
+    { error: "invalid settings", code: "IMAGE_BED_URL_INVALID" }, { status: 400 }
+  ));
+  await assert.rejects(
+    adminApi.saveImageBedSettings(settingsInput, "local-test-token"),
+    (error) => error.code === "IMAGE_BED_URL_INVALID" && error.status === 400
+  );
+  assert.deepEqual(calls.map(({ method }) => method), ["PUT"]);
+  assert.deepEqual(timers, [12_000]);
+});
 
 test("shared image validation accepts supported files up to 10 MB", () => {
   assert.equal(validation.ADMIN_IMAGE_UPLOAD_MAX_BYTES, 10 * 1024 * 1024);

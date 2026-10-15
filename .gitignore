@@ -19,6 +19,7 @@ tmp/
 # Local private docs
 CHANGELOG.md
 AGENTS.md
+TODO.md
 CLAUDE.md
 DESIGN.md
 

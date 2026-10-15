@@ -91,7 +91,7 @@ test("push fixed filters reuse category batch deletion without removing the filt
   assert.match(categoryRouteSource, /__telegram_content__: "content"/);
   assert.match(
     categoryRouteSource,
-    /DELETE FROM telegram_messages WHERE resource_type = \?/
+    /deleteTelegramPushCategory\(db, \{ resourceType \}\)/
   );
 });
 
@@ -173,7 +173,7 @@ test("management reuses the existing editor and public card interaction", () => 
   assert.match(adminSource, /openTelegramMessageDialog\(record\.resource\)/);
   assert.match(adminSource, /<TelegramMessagePreview/);
   assert.match(telegramPushSource, /useAdminCardActionMenu\(`telegram-push:/);
-  assert.match(telegramPushSource, /disabled=\{!serviceEnabled\}/);
+  assert.match(telegramPushSource, /disabled: !serviceEnabled/);
   for (const source of [adminSource, telegramPushSource]) {
     assert.doesNotMatch(source, /function TelegramPushEditor/);
   }
@@ -292,18 +292,19 @@ test("source deletion retains independent push records and reports unavailable s
   assert.doesNotMatch(deleteCategorySource.slice(toolsStart, articlesStart), /telegram_messages/);
   assert.doesNotMatch(deleteCategorySource.slice(articlesStart, pushStart), /telegram_messages/);
   assert.doesNotMatch(deleteCategorySource.slice(contentStart), /telegram_messages/);
-  assert.match(categoryRouteSource, /DELETE FROM telegram_messages/);
-  assert.match(categoryRouteSource, /DELETE FROM telegram_messages WHERE category = \?/);
+  assert.match(categoryRouteSource, /deleteTelegramPushCategory\(db\)/);
+  assert.match(telegramSource, /DELETE FROM telegram_messages/);
+  assert.match(categoryRouteSource, /deleteTelegramPushCategory\(db, \{ category \}\)/);
   assert.doesNotMatch(categoryRouteSource, /UPDATE telegram_messages SET category = ''/);
   assert.doesNotMatch(categoryRouteSource, /ensureTelegramMessageSchema/);
   assert.doesNotMatch(backupSource, /references a missing resource/);
   const cardSource = telegramPushSource.slice(
     telegramPushSource.indexOf("function TelegramPushRecordCard"),
-    telegramPushSource.indexOf("export function AdminTelegramPushButton")
+    telegramPushSource.indexOf("export function TelegramMessagePreview")
   );
   assert.doesNotMatch(cardSource, /text\.resourceDeleted/);
-  assert.match(cardSource, /\{record\.resource \? \([\s\S]*?text\.editAction/);
-  assert.doesNotMatch(cardSource, /\{record\.resourceExists \? \([\s\S]*?text\.editAction/);
+  assert.match(cardSource, /record\.resource \? \[\{[\s\S]*?text\.editAction/);
+  assert.doesNotMatch(cardSource, /record\.resourceExists \?/);
   assert.doesNotMatch(
     adminSource,
     /disabled=\{[\s\S]{0,180}telegramMessage\?\.resourceExists === false/

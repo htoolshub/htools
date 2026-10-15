@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS telegram_messages (
   media_enabled INTEGER NOT NULL DEFAULT 0,
   media_url TEXT NOT NULL DEFAULT '',
   last_pushed_hash TEXT NOT NULL DEFAULT '',
+  last_pushed_media_enabled INTEGER,
   sent_at TEXT NOT NULL DEFAULT '',
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(resource_type, resource_id, chat_id)
@@ -320,7 +321,7 @@ WHERE content_item_id IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM content_items WHERE id = articles.content_item_id);
 
 INSERT INTO app_settings (key, value, updated_at)
-VALUES ('database_schema_version', '17', CURRENT_TIMESTAMP)
+VALUES ('database_schema_version', '18', CURRENT_TIMESTAMP)
 ON CONFLICT(key) DO UPDATE SET
   value = excluded.value,
   updated_at = CURRENT_TIMESTAMP;

@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import ts from "typescript";
 
 const adminSource = await readFile(
   new URL("../../src/AdminApp.tsx", import.meta.url),
@@ -68,8 +71,8 @@ test("category refreshes ignore stale responses and errors", () => {
 test("only the latest mutation refresh may restore the scroll position", () => {
   const source = getFunctionSource("refreshAfterMutation", "refresh");
   assert.match(source, /mutationRefreshGenerationRef\.current \+ 1/);
-  assert.match(source, /try \{[\s\S]*await refreshAction\(\)[\s\S]*catch \(error\)/);
-  assert.match(source, /t\.errors\.requestFailed/);
+  assert.match(source, /try \{[\s\S]*await refreshAction\(\{ reportError: false \}\)[\s\S]*catch \{/);
+  assert.match(source, /categoryText\.refreshFailedHint/);
   assert.match(source, /mutationRefreshGenerationRef\.current !== generation/);
   assert.match(
     source,
@@ -313,4 +316,300 @@ test("article editor accepts only the latest detail request", () => {
   assert.match(source, /articleEditorLoadRequestRef\.current === requestId/);
   assert.doesNotMatch(source, /if \(loadingArticleEditorRef\.current\) return/);
   assert.match(adminSource, /function openCreateArticle\(\) \{[\s\S]*?articleEditorLoadRequestRef\.current \+= 1/);
+});
+
+function extractFunctions(source, names, fileName = "AdminApp.tsx") {
+  const found = new Map();
+  const tree = ts.createSourceFile(fileName, source, ts.ScriptTarget.ES2022, true, ts.ScriptKind.TSX);
+  const visit = (node) => {
+    if (ts.isFunctionDeclaration(node) && names.includes(node.name?.text)) {
+      found.set(node.name.text, node.getText(tree).replace(/^export\s+/, ""));
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(tree);
+  return names.map((name) => {
+    assert.ok(found.has(name), `缺少真实函数 ${name}`);
+    return found.get(name);
+  }).join("\n");
+}
+
+const listFunctionNames = [
+  "refresh", "refreshArticles", "refreshContent", "refreshTelegramPushRecords",
+  "loadMoreContentItems", "refreshAfterMutation", "combineAdminRefreshResults",
+  "handleDelete", "handleDeleteArticle", "handleDeleteContentSource", "handleDeleteTelegramPush"
+];
+const listFunctions = extractFunctions(adminSource, listFunctionNames);
+const listProgram = ts.transpileModule(listFunctions, {
+  compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext }
+}).outputText;
+
+function pendingResult() {
+  let resolve;
+  let reject;
+  const promise = new Promise((accept, fail) => { resolve = accept; reject = fail; });
+  return { promise, resolve, reject };
+}
+
+const contentPage = (total = 7, items = [{ id: "current-item" }]) => ({
+  items, hasMore: true, nextCursor: `cursor-${total}`, total,
+  sourceCounts: { source: total }, categoryCounts: { news: total }
+});
+
+// 只替换请求、React 状态容器和浏览器宿主；执行上面从产品源码提取的真实函数。
+function createListRuntime() {
+  const scope = {
+    token: "test-token", tools: [{ id: "deleted" }], adminArticles: [{ id: "deleted" }],
+    contentItems: [{ id: "deleted" }], contentSources: [{ id: "deleted" }],
+    contentLoadError: null, contentSourcesLoadError: null,
+    contentSourceFilter: "all", contentItemsHasMore: false, isDeletingTelegramPush: false,
+    telegramPushRecords: [{ id: "deleted" }], viewingTelegramPush: null,
+    t: { status: { toolDeleted: "已删除", deleteFailed: "删除失败" } },
+    articleText: { deleted: "已删除" }, contentText: { deleted: "已删除" },
+    telegramText: { management: { deleted: "已删除" } },
+    categoryText: { refreshFailedHint: "读取失败，请重新加载" },
+    getLocalizedErrorMessage: (error) => error.message,
+    getAdminWriteEntityKey: (kind, id) => `${kind}:${id}`,
+    acquireWriteAction: () => true, releaseWriteAction: () => {},
+    getAdminArticleRequestParams: () => ({}), getTelegramPushRequestParams: () => ({}),
+    getContentItemRequestParams: (cursor) => ({ cursor }),
+    window: { requestAnimationFrame: (callback) => callback() }
+  };
+  for (const [, name] of listFunctions.matchAll(/\b(set[A-Z]\w*)\(/g)) {
+    const key = name[3].toLowerCase() + name.slice(4);
+    scope[name] = (value) => { scope[key] = typeof value === "function" ? value(scope[key]) : value; };
+  }
+  for (const [name] of listFunctions.matchAll(/\b\w+Ref\b/g)) scope[name] ??= { current: 0 };
+  scope.adminContentScrollRef.current = null;
+  scope.contentSourcesLoadedRef.current = true;
+  const responses = {
+    loadAdminTools: [],
+    loadAdminArticles: { articles: [], hasMore: false, nextCursor: null, total: 0, categoryCounts: {} },
+    loadContentSources: [], loadContentItems: contentPage(),
+    loadTelegramPushRecords: { records: [], categoryOptions: [], hasMore: false, nextCursor: null }
+  };
+  const queues = new Map();
+  const reads = [];
+  const writes = [];
+  for (const name of Object.keys(responses)) {
+    scope[name] = async (...args) => {
+      reads.push({ name, args });
+      const next = queues.get(name)?.shift();
+      if (next instanceof Error) throw next;
+      return next ?? responses[name];
+    };
+  }
+  for (const name of ["deleteTool", "deleteArticle", "deleteContentSource", "deleteTelegramPush"]) {
+    scope[name] = async (...args) => { writes.push({ name, args }); };
+  }
+  const actions = new Function("scope", `with (scope) { ${listProgram}; return { ${listFunctionNames.join(",")} }; }`)(scope);
+  return {
+    scope, actions, reads, writes, responses,
+    enqueue(name, result) {
+      if (!queues.has(name)) queues.set(name, []);
+      queues.get(name).push(result);
+    }
+  };
+}
+
+function readListError(scope, key) {
+  return key === "contentLoadError"
+    ? scope.contentLoadError ?? scope.contentSourcesLoadError
+    : scope[key];
+}
+
+const listCases = [
+  ["工具", "handleDelete", "refresh", "loadAdminTools", "toolsLoadError", "isLoadingTools"],
+  ["文章", "handleDeleteArticle", "refreshArticles", "loadAdminArticles", "articlesLoadError", "isLoadingArticles"],
+  ["推送", "handleDeleteTelegramPush", "refreshTelegramPushRecords", "loadTelegramPushRecords", "telegramPushLoadError", "isLoadingTelegramPushes"],
+  ["订阅内容", "handleDeleteContentSource", "refreshContent", "loadContentItems", "contentLoadError", "isLoadingContent"],
+  ["订阅源", "handleDeleteContentSource", "refreshContent", "loadContentSources", "contentLoadError", "isLoadingContent"]
+];
+
+for (const [label, remove, refresh, request, errorKey, loadingKey] of listCases) {
+  test(`${label}删除成功后只读重试保留错误，成功或再次失败均不重复删除`, async () => {
+    const runtime = createListRuntime();
+    runtime.enqueue(request, new Error("第一次读取失败"));
+    assert.equal(await runtime.actions[remove]({ id: "deleted", resourceType: "custom", resourceId: "source" }), true);
+    assert.equal(runtime.writes.length, 1);
+    assert.equal(readListError(runtime.scope, errorKey), "第一次读取失败");
+
+    const retry = pendingResult();
+    runtime.enqueue(request, retry.promise);
+    const pending = runtime.actions[refresh]();
+    assert.equal(runtime.scope[loadingKey], true);
+    assert.equal(readListError(runtime.scope, errorKey), "第一次读取失败");
+    assert.equal(runtime.writes.length, 1);
+    retry.reject(new Error("再次读取失败"));
+    assert.equal(await pending, "failed");
+    assert.equal(readListError(runtime.scope, errorKey), "再次读取失败");
+    assert.equal(runtime.scope[loadingKey], false);
+
+    const success = pendingResult();
+    runtime.enqueue(request, success.promise);
+    const pendingSuccess = runtime.actions[refresh]();
+    assert.equal(readListError(runtime.scope, errorKey), "再次读取失败");
+    success.resolve(runtime.responses[request]);
+    assert.equal(await pendingSuccess, "success");
+    assert.equal(readListError(runtime.scope, errorKey), null);
+    assert.equal(runtime.scope[loadingKey], false);
+    assert.equal(runtime.writes.length, 1);
+  });
+
+  test(`${label}过期成功和失败都不能覆盖新一轮结果`, async () => {
+    for (const oldSucceeds of [true, false]) {
+      const runtime = createListRuntime();
+      const old = pendingResult();
+      const current = pendingResult();
+      runtime.enqueue(request, old.promise);
+      runtime.enqueue(request, current.promise);
+      const oldRequest = runtime.actions[refresh]();
+      const currentRequest = runtime.actions[refresh]();
+      if (oldSucceeds) current.reject(new Error("当前读取失败"));
+      else current.resolve(runtime.responses[request]);
+      assert.equal(await currentRequest, oldSucceeds ? "failed" : "success");
+      const currentError = readListError(runtime.scope, errorKey);
+      if (oldSucceeds) old.resolve(runtime.responses[request]);
+      else old.reject(new Error("过期读取失败"));
+      assert.equal(await oldRequest, "superseded");
+      assert.equal(readListError(runtime.scope, errorKey), currentError);
+      if (request === "loadContentSources") {
+        assert.equal(runtime.scope.contentSourcesLoadError, currentError);
+      }
+      assert.equal(runtime.scope[loadingKey], false);
+    }
+  });
+}
+
+for (const currentItemsFirst of [true, false]) {
+  test(`分类操作后仅刷新内容时保留仍有效的订阅源错误：${currentItemsFirst ? "内容先完成" : "订阅源先完成"}`, async () => {
+    const runtime = createListRuntime();
+    const source = pendingResult();
+    const oldItems = pendingResult();
+    const currentItems = pendingResult();
+    runtime.enqueue("loadContentSources", source.promise);
+    runtime.enqueue("loadContentItems", oldItems.promise);
+    runtime.enqueue("loadContentItems", currentItems.promise);
+
+    const mutationRefresh = runtime.actions.refreshAfterMutation(runtime.actions.refreshContent, "分类已删除");
+    const filterRefresh = runtime.actions.refreshContent({ reloadSources: false });
+    assert.equal(runtime.reads.filter(({ name }) => name === "loadContentSources").length, 1);
+
+    if (currentItemsFirst) {
+      currentItems.resolve(contentPage(0, []));
+      await filterRefresh;
+    }
+    source.reject(new Error("订阅源读取失败"));
+    oldItems.resolve(contentPage(0, []));
+    assert.equal(await mutationRefresh, "failed");
+    if (!currentItemsFirst) {
+      currentItems.resolve(contentPage(0, []));
+      await filterRefresh;
+    }
+
+    assert.equal(readListError(runtime.scope, "contentLoadError"), "订阅源读取失败");
+    assert.equal(runtime.scope.contentSourcesLoadError, "订阅源读取失败");
+    assert.equal(runtime.scope.isLoadingContent, false);
+    assert.equal(runtime.writes.length, 0);
+  });
+}
+
+test("订阅源和内容分别重试时只清除各自已恢复的错误", async () => {
+  const runtime = createListRuntime();
+  runtime.scope.contentLoadError = "内容旧错误";
+  runtime.scope.contentSourcesLoadError = "订阅源旧错误";
+  runtime.enqueue("loadContentItems", new Error("内容仍失败"));
+  assert.equal(await runtime.actions.refreshContent(), "failed");
+  assert.equal(runtime.scope.contentSourcesLoadError, null);
+  assert.equal(readListError(runtime.scope, "contentLoadError"), "内容仍失败");
+
+  runtime.enqueue("loadContentSources", new Error("订阅源仍失败"));
+  assert.equal(await runtime.actions.refreshContent(), "failed");
+  assert.equal(runtime.scope.contentLoadError, null);
+  assert.equal(readListError(runtime.scope, "contentLoadError"), "订阅源仍失败");
+
+  assert.equal(await runtime.actions.refreshContent(), "success");
+  assert.equal(readListError(runtime.scope, "contentLoadError"), null);
+  assert.equal(runtime.writes.length, 0);
+});
+
+test("订阅追加的空统计保留首屏值，刷新替换统计且过期追加不污染新结果", async () => {
+  const runtime = createListRuntime();
+  await runtime.actions.refreshContent();
+  const initialCounts = [runtime.scope.contentItemsTotal, runtime.scope.contentSourceCounts, runtime.scope.contentCategoryCounts];
+  runtime.enqueue("loadContentItems", { ...contentPage(), items: [{ id: "appended" }], total: null, sourceCounts: null, categoryCounts: null });
+  await runtime.actions.loadMoreContentItems();
+  assert.deepEqual([runtime.scope.contentItemsTotal, runtime.scope.contentSourceCounts, runtime.scope.contentCategoryCounts], initialCounts);
+  assert.deepEqual(runtime.scope.contentItems.map(({ id }) => id), ["current-item", "appended"]);
+  assert.equal(runtime.reads.filter(({ name }) => name === "loadContentItems").at(-1).args[1].includeCounts, false);
+
+  const stale = pendingResult();
+  runtime.enqueue("loadContentItems", stale.promise);
+  const oldAppend = runtime.actions.loadMoreContentItems();
+  runtime.enqueue("loadContentItems", contentPage(9, [{ id: "fresh" }]));
+  await runtime.actions.refreshContent();
+  stale.resolve(contentPage(99, [{ id: "stale" }]));
+  await oldAppend;
+  assert.equal(runtime.scope.contentItemsTotal, 9);
+  assert.deepEqual(runtime.scope.contentSourceCounts, { source: 9 });
+  assert.deepEqual(runtime.scope.contentCategoryCounts, { news: 9 });
+  assert.deepEqual(runtime.scope.contentItems, [{ id: "fresh" }]);
+  assert.notEqual(runtime.reads.filter(({ name }) => name === "loadContentItems").at(-1).args[1].includeCounts, false);
+});
+
+test("公共错误组件重试期间保留错误文本并禁用重试按钮", async () => {
+  const panelSource = await readFile(new URL("../../src/components/AdminPanelStates.tsx", import.meta.url), "utf8");
+  const program = ts.transpileModule(extractFunctions(panelSource, ["AdminInitialLoadError"], "AdminPanelStates.tsx"), {
+    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext, jsx: ts.JsxEmit.React }
+  }).outputText;
+  const Component = new Function("React", "RefreshCw", `${program}; return AdminInitialLoadError;`)(React, () => null);
+  for (const isRetrying of [undefined, false, true]) {
+    const tree = Component({ message: "读取失败", onRetry: () => {}, isRetrying });
+    const button = React.Children.toArray(tree.props.children).find((child) => child.type === "button");
+    assert.equal(button.props.disabled, isRetrying === true);
+    assert.equal(tree.props["aria-busy"], isRetrying === true);
+    const html = renderToStaticMarkup(tree);
+    assert.match(html, /读取失败/);
+    assert.equal(/<button[^>]*disabled/.test(html), isRetrying === true);
+  }
+});
+
+test("四类列表面板将各自读取状态传入公共错误组件", async () => {
+  assert.match(adminSource, /loadError=\{contentLoadError\s*\?\?\s*contentSourcesLoadError\}/);
+  const pushSource = await readFile(new URL("../../src/components/AdminTelegramPush.tsx", import.meta.url), "utf8");
+  const calls = [...`${adminSource}\n${pushSource}`.matchAll(/<AdminInitialLoadError\b[\s\S]*?\/>/g)]
+    .map(([call]) => call);
+  assert.equal(calls.length, 4);
+  for (const loading of ["isLoadingTools", "isLoadingArticles", "isLoadingContent", "isLoading"]) {
+    assert.equal(calls.filter((call) => call.includes(`isRetrying={${loading}}`)).length, 1);
+  }
+});
+
+test("推送面板在空列表重试时仍显示公共错误态，首次无错误加载才显示骨架", async () => {
+  const source = await readFile(new URL("../../src/components/AdminTelegramPush.tsx", import.meta.url), "utf8");
+  const program = ts.transpileModule(extractFunctions(source, ["AdminTelegramPushPanel"], "AdminTelegramPush.tsx"), {
+    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext, jsx: ts.JsxEmit.React }
+  }).outputText;
+  const ErrorView = ({ message }) => React.createElement("section", { role: "alert" }, message);
+  const Skeleton = ({ children }) => React.createElement("section", { "data-skeleton": true }, children);
+  const Panel = new Function("React", "AdminInitialLoadError", "SkeletonVisibility", "AdminResourceCardSkeletonGrid",
+    `${program}; return AdminTelegramPushPanel;`)(React, ErrorView, Skeleton, () => null);
+  const props = {
+    records: [], isLoading: true, loadError: "读取失败", showSkeletons: true,
+    serviceEnabled: true, settingsLoading: false, text: { title: "消息推送" }, onRetry: () => {}
+  };
+  for (const records of [[], [{ id: "existing" }]]) {
+    for (const isLoading of [false, true]) {
+      const tree = Panel({ ...props, records, isLoading });
+      const content = React.Children.toArray(tree.props.children)[0];
+      assert.equal(content.type, ErrorView, `记录数 ${records.length}、读取中 ${isLoading} 时应保留错误态`);
+      assert.equal(content.props.isRetrying, isLoading);
+      const html = renderToStaticMarkup(tree);
+      assert.match(html, /role="alert"/);
+      assert.doesNotMatch(html, /data-skeleton/);
+    }
+  }
+  const initial = Panel({ ...props, loadError: null });
+  assert.equal(React.Children.toArray(initial.props.children)[0].type, Skeleton);
+  assert.match(renderToStaticMarkup(initial), /data-skeleton/);
 });

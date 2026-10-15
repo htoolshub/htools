@@ -43,7 +43,7 @@ export const onRequestPut: PagesFunction<Env> = async ({
       : null;
     const now = new Date().toISOString();
 
-    await db.prepare(
+    const statements = [db.prepare(
       `UPDATE content_sources
        SET title = ?, url = ?, site_url = ?, description = ?,
            category = ?, tags = ?, enabled = ?, updated_at = ?
@@ -59,22 +59,20 @@ export const onRequestPut: PagesFunction<Env> = async ({
         payload.enabled ? 1 : 0,
         now,
         id
-      )
-      .run();
+      )];
 
     if (urlChanged) {
-      await db.prepare("DELETE FROM content_items WHERE source_id = ?")
-        .bind(id)
-        .run();
+      statements.push(db.prepare("DELETE FROM content_items WHERE source_id = ?")
+        .bind(id));
     } else {
-      await db.prepare(
+      statements.push(db.prepare(
         `UPDATE content_items
          SET category = ?, updated_at = ?
          WHERE source_id = ?`
       )
-        .bind(payload.category, now, id)
-        .run();
+        .bind(payload.category, now, id));
     }
+    await db.batch(statements);
 
     const row = await db.prepare("SELECT * FROM content_sources WHERE id = ?")
       .bind(id)
@@ -107,7 +105,9 @@ export const onRequestDelete: PagesFunction<Env> = async ({
   if (!existing) {
     return jsonError("Content source not found.", "NOT_FOUND", { status: 404 });
   }
-  await db.prepare("DELETE FROM content_items WHERE source_id = ?").bind(id).run();
-  await db.prepare("DELETE FROM content_sources WHERE id = ?").bind(id).run();
+  await db.batch([
+    db.prepare("DELETE FROM content_items WHERE source_id = ?").bind(id),
+    db.prepare("DELETE FROM content_sources WHERE id = ?").bind(id)
+  ]);
   return jsonDeleted("contentSource", id);
 };

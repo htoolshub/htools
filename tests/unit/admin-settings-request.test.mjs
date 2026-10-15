@@ -280,6 +280,7 @@ test("external service setting writes release their UI through the shared timeou
     "saveSourceSettings",
     "saveProxySettings",
     "saveRssHubSettings",
+    "saveImageBedSettings",
     "saveTurnstileSettings",
     "saveUmamiSettings",
     "saveTelegramSettings",
@@ -374,7 +375,6 @@ test("settings cards abort stale loads and accept only the latest response", () 
   }
 
   assert.match(sources, /!controller\.signal\.aborted/);
-  assert.match(settingsCardsSource, /if \(!isDirtyRef\.current\) \{\s*setForm/);
 });
 
 test("system settings reuse the outer site, proxy and Telegram requests", () => {
@@ -423,12 +423,13 @@ test("every readable settings area exposes the same card retry pattern", () => {
   );
 });
 
-test("timeout errors are localized and starting a request clears stale status", () => {
+test("timeout errors are localized and empty request status preserves the shared notification queue", () => {
   assert.match(siteHelpersSource, /errorCode === "REQUEST_TIMEOUT"/);
   assert.match(siteHelpersSource, /请求超时，请稍后重试。/);
   assert.match(siteHelpersSource, /Request timed out\. Try again shortly\./);
   assert.match(
     adminSource,
-    /if \(!message\) \{\s*adminStatusCurrentRef\.current = "";\s*setStatusEvent\(null\);/
+    /setAuthStatus\(""\);\s*if \(message\) onNotify\(\{ message, tone: "info" \}\);/
   );
+  assert.doesNotMatch(adminSource, /adminStatusCurrentRef|setStatusEvent|adminStatusTimer/);
 });

@@ -31,30 +31,43 @@ async function readLoginBlock(env: Env, clientKey: string) {
   return blockedUntil > Date.now() ? Math.ceil((blockedUntil - Date.now()) / 1000) : 0;
 }
 
-async function recordLoginFailure(env: Env, clientKey: string) {
+async function reserveLoginAttempt(env: Env, clientKey: string) {
   const db = await getDatabase(env);
   const now = new Date();
   const windowStart = new Date(now.getTime() - FAILURE_WINDOW_MS).toISOString();
   const blockUntil = new Date(now.getTime() + BLOCK_DURATION_MS).toISOString();
-  await db.prepare(
+  const row = await db.prepare(
     `INSERT INTO admin_login_attempts
        (client_key, failed_count, window_started_at, blocked_until, updated_at)
      VALUES (?, 1, ?, NULL, CURRENT_TIMESTAMP)
      ON CONFLICT(client_key) DO UPDATE SET
        failed_count = CASE
-         WHEN window_started_at < ? THEN 1
+         WHEN window_started_at <= ? THEN 1
          ELSE failed_count + 1
        END,
        window_started_at = CASE
-         WHEN window_started_at < ? THEN excluded.window_started_at
+         WHEN window_started_at <= ? THEN excluded.window_started_at
          ELSE window_started_at
        END,
        blocked_until = CASE
-         WHEN (CASE WHEN window_started_at < ? THEN 1 ELSE failed_count + 1 END) >= ?
+         WHEN (CASE WHEN window_started_at <= ? THEN 1 ELSE failed_count + 1 END) >= ?
          THEN ? ELSE NULL
        END,
-       updated_at = CURRENT_TIMESTAMP`
-  ).bind(clientKey, now.toISOString(), windowStart, windowStart, windowStart, MAX_FAILURES, blockUntil).run();
+       updated_at = CURRENT_TIMESTAMP
+     WHERE blocked_until IS NULL OR blocked_until <= ?
+     RETURNING client_key`
+  ).bind(clientKey, now.toISOString(), windowStart, windowStart, windowStart, MAX_FAILURES, blockUntil, now.toISOString())
+    .first<{ client_key: string }>();
+  return Boolean(row);
+}
+
+function loginBlockedResponse(retryAfter: number) {
+  return jsonError(
+    "Too many failed login attempts. Try again later.",
+    "RATE_LIMITED",
+    { status: 429, headers: { "Retry-After": String(retryAfter) } },
+    { retryAfter }
+  );
 }
 
 async function clearLoginFailures(env: Env, clientKey: string) {
@@ -73,12 +86,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     const clientKey = await getClientKey(request);
     const retryAfter = await readLoginBlock(env, clientKey);
     if (retryAfter > 0) {
-      return jsonError(
-        "Too many failed login attempts. Try again later.",
-        "RATE_LIMITED",
-        { status: 429, headers: { "Retry-After": String(retryAfter) } },
-        { retryAfter }
-      );
+      return loginBlockedResponse(retryAfter);
     }
 
     const turnstileError = await verifyTurnstileRequest(
@@ -88,8 +96,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     );
     if (turnstileError) return turnstileError;
 
+    // 先原子占用额度，避免并发请求在密码校验完成前一起越过失败上限。
+    if (!(await reserveLoginAttempt(env, clientKey))) {
+      return loginBlockedResponse(Math.max(1, await readLoginBlock(env, clientKey)));
+    }
+
     if (!password || !(await verifyPassword(password, env))) {
-      await recordLoginFailure(env, clientKey);
       return jsonError("Invalid password.", "INVALID_PASSWORD", { status: 401 });
     }
 

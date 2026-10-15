@@ -1,4 +1,4 @@
-import { CheckCircle2, ChevronDown, Circle, SquarePen, Trash2 } from "lucide-react";
+import { CheckCircle2, Circle, SquarePen, Trash2 } from "lucide-react";
 import { formatAdminDate } from "../../admin-helpers";
 import { cleanArticleDisplayText, getArticleDisplayTitle, type getArticleText } from "../../article-helpers";
 import { CompactTagRow } from "../../shared-ui";
@@ -6,6 +6,8 @@ import type { getTelegramText } from "../../telegram";
 import type { ArticleSummary } from "../../types";
 import { useAdminCardActionMenu } from "../../useAdminCardActionMenu";
 import { AdminTelegramPushButton } from "../AdminTelegramPushButton";
+import { AdminCardActionMenu } from "../AdminCardActionMenu";
+import type { Messages } from "../../i18n";
 
 export function AdminArticleCard({
   article,
@@ -16,6 +18,7 @@ export function AdminArticleCard({
   onEdit,
   onTelegram,
   onTogglePublished,
+  t,
   telegramEnabled,
   telegramText
 }: {
@@ -27,6 +30,7 @@ export function AdminArticleCard({
   onEdit: () => void;
   onTelegram: () => void;
   onTogglePublished: () => void;
+  t: Messages;
   telegramEnabled: boolean;
   telegramText: ReturnType<typeof getTelegramText>;
 }) {
@@ -85,57 +89,30 @@ export function AdminArticleCard({
               <Circle size={16} />
             )}
           </button>
-          <button className={`icon-button admin-tool-menu-trigger ${
-              actions.open ? "is-active" : ""
-            }`}
-            type="button"
-            aria-expanded={actions.open}
-            aria-haspopup="menu"
-            aria-label={`${displayTitle} actions`}
-            disabled={isBusy}
-            ref={actions.triggerRef}
-            onKeyDown={actions.handleTriggerKeyDown}
-            onClick={() => actions.setOpen((current) => !current)}
-          >
-            <ChevronDown size={17} />
-          </button>
-          {actions.open ? (
-            <div className="admin-tool-action-menu" role="menu" onKeyDown={actions.handleMenuKeyDown}>
-              <button disabled={isBusy}
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  actions.close();
-                  onEdit();
-                }}
-              >
-                <SquarePen size={18} />
-                <span className="admin-action-label-full">
-                  {articleText.editArticle}
-                </span>
-                <span className="admin-action-label-short">
-                  {articleText.editAction}
-                </span>
-              </button>
-              <button className="danger"
-                disabled={isBusy}
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  actions.close();
-                  onDelete();
-                }}
-              >
-                <Trash2 size={16} />
-                <span className="admin-action-label-full">
-                  {articleText.deleteArticle}
-                </span>
-                <span className="admin-action-label-short">
-                  {articleText.deleteAction}
-                </span>
-              </button>
-            </div>
-          ) : null}
+          <AdminCardActionMenu
+            actions={actions}
+            label={t.actions.menu(displayTitle)}
+            triggerDisabled={isBusy}
+            items={[
+              {
+                key: "edit",
+                label: articleText.editArticle,
+                shortLabel: articleText.editAction,
+                icon: <SquarePen size={18} />,
+                disabled: isBusy,
+                onSelect: onEdit
+              },
+              {
+                key: "delete",
+                label: articleText.deleteArticle,
+                shortLabel: articleText.deleteAction,
+                icon: <Trash2 size={16} />,
+                disabled: isBusy,
+                danger: true,
+                onSelect: onDelete
+              }
+            ]}
+          />
         </div>
       </div>
 

@@ -68,7 +68,7 @@ The application reads the following environment variables:
 
 | Variable | Required | Recommended type | Description |
 | --- | --- | --- | --- |
-| `ADMIN_PASSWORD` | Yes | Secret | Admin password and session-signing secret; use a unique password of at least 12 characters. |
+| `ADMIN_PASSWORD` | Yes | Secret | Initial admin password; use a unique password of at least 12 characters. Sessions use a separate random signing key generated in D1. |
 | `GITHUB_TOKEN` | No | Secret | Raises the limit for admin-side public repository metadata requests. Use a read-only token without write, delete, or administration permissions; without it, the admin browser requests GitHub directly. |
 | `IMGBED_TOKEN` | No | Secret | API token for [CloudFlare ImgBed](https://github.com/MarSeventh/CloudFlare-ImgBed). Grant only the `upload` permission, redeploy, then configure and enable the image bed under Admin > Service Settings. Uploads PNG, JPEG, WebP, GIF, or AVIF files up to 10 MB for tool previews, article covers, and Telegram push images. |
 | `TURNSTILE_SITE_KEY` | No; configure together with the secret key | Plain variable | Turnstile Site Key for the administrator login page; configure it together with the secret key. |

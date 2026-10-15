@@ -119,9 +119,9 @@ type ContentItemsResponse = {
   limit: number;
   hasMore: boolean;
   nextCursor: string | null;
-  total: number;
-  sourceCounts: Record<string, number>;
-  categoryCounts: Record<string, number>;
+  total: number | null;
+  sourceCounts: Record<string, number> | null;
+  categoryCounts: Record<string, number> | null;
 };
 
 type FeedPreviewResponse = {
@@ -523,6 +523,7 @@ export async function loadContentItems(
     sort?: "latest" | "oldest";
     limit?: number;
     cursor?: string;
+    includeCounts?: boolean;
   } = {}
 ): Promise<ContentItemsResponse> {
   const searchParams = new URLSearchParams();
@@ -549,6 +550,10 @@ export async function loadContentItems(
 
   if (params.cursor) {
     searchParams.set("cursor", params.cursor);
+  }
+
+  if (params.includeCounts === false) {
+    searchParams.set("counts", "0");
   }
 
   const response = await fetch(
@@ -907,17 +912,47 @@ export async function saveImageBedSettings(
   input: Omit<ImageBedSettings, "available">,
   token: string
 ): Promise<ImageBedSettings> {
-  return (await requestJsonWithTimeout<ImageBedSettingsResponse>(
-    "/api/admin/image-bed-settings",
-    {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(input)
-    }
-  )).settings;
+  const rawBaseUrl = input.baseUrl.trim();
+  const expected = {
+    enabled: input.enabled === true,
+    baseUrl: normalizeProxyBaseUrl(rawBaseUrl),
+    uploadChannel: ["telegram", "cfr2", "s3", "discord", "huggingface", "webdav"].includes(input.uploadChannel)
+      ? input.uploadChannel : "telegram",
+    channelName: input.channelName.trim().slice(0, 80),
+    uploadNameType: ["default", "index", "origin", "short"].includes(input.uploadNameType)
+      ? input.uploadNameType : "default",
+    uploadFolder: input.uploadFolder.trim().slice(0, 200)
+      .replace(/\\/g, "/").replace(/^\/+|\/+$/g, "")
+  };
+  const validTarget = rawBaseUrl.length <= 2048 &&
+    (!rawBaseUrl || Boolean(expected.baseUrl)) &&
+    (!expected.enabled || Boolean(expected.baseUrl)) &&
+    (!expected.uploadFolder || !expected.uploadFolder.split("/")
+      .some((segment) => !segment || segment === "." || segment === ".."));
+
+  return confirmTimedOutWrite({
+    write: async () => (await requestJsonWithTimeout<ImageBedSettingsResponse>(
+      "/api/admin/image-bed-settings",
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(input)
+      }
+    )).settings,
+    confirm: () => loadImageBedSettings(token, {
+      timeoutMs: TIMED_OUT_WRITE_CONFIRM_TIMEOUT_MS
+    }),
+    matches: (current) => validTarget &&
+      current.enabled === expected.enabled &&
+      current.baseUrl === expected.baseUrl &&
+      current.uploadChannel === expected.uploadChannel &&
+      current.channelName === expected.channelName &&
+      current.uploadNameType === expected.uploadNameType &&
+      current.uploadFolder === expected.uploadFolder
+  });
 }
 
 export async function uploadAdminImage(file: File, token: string) {
@@ -1272,7 +1307,8 @@ export async function updateTelegramMessage(
       body: JSON.stringify({
         bodyMarkdown, mediaEnabled, mediaUrl, locale,
         category: options.category ?? "",
-        title: options.title ?? "", resource: options.resource
+        title: options.title ?? "", resource: options.resource,
+        confirmUncertainRetry: options.confirmUncertainRetry === true
       })
     }
   );

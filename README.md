@@ -68,7 +68,7 @@ HTools 是一款运行于 Cloudflare Pages Functions + D1 的开源工具导航�
 
 | 变量 | 必需 | 建议类型 | 说明 |
 | --- | --- | --- | --- |
-| `ADMIN_PASSWORD` | 是 | Secret | 后台登录密码和会话签名密钥，建议使用至少 12 位的独立强密码。 |
+| `ADMIN_PASSWORD` | 是 | Secret | 初始后台登录密码，建议使用至少 12 位的独立强密码；会话签名使用 D1 自动生成的独立随机密钥。 |
 | `GITHUB_TOKEN` | 否 | Secret | 提高后台读取公开 GitHub 仓库信息的请求限额，建议使用无写入、删除或管理权限的只读 Token；未配置时由管理员浏览器直接请求。 |
 | `IMGBED_TOKEN` | 否 | Secret | [CloudFlare ImgBed](https://github.com/MarSeventh/CloudFlare-ImgBed) 的 API Token，建议只授予 `upload` 权限；重新部署后在后台“服务设置”填写图床地址和上传方式并开启。可为工具预览图、文章封面和 Telegram 推送图片上传 PNG、JPEG、WebP、GIF 或 AVIF，单张不超过 10MB。 |
 | `TURNSTILE_SITE_KEY` | 否，需与私密密钥同时配置 | 普通变量 | 管理员登录页使用的 Turnstile 站点密钥，需与私密密钥同时配置。 |

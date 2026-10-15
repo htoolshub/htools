@@ -376,7 +376,7 @@ test("the production schema initializes a real local D1 database idempotently", 
     assert.equal(toolColumns.get("github_license").notnull, 1);
     assert.equal(toolColumns.get("github_license").dflt_value, "''");
 
-    assert.deepEqual(checks[2].results, [{ value: "17" }]);
+    assert.deepEqual(checks[2].results, [{ value: "18" }]);
     assert.equal(checks[3].results[0].total, 1);
     assert.equal(checks[4].results[0].total, 1);
     assert.match(
@@ -734,11 +734,13 @@ test("Pages Functions automatically initialize and upgrade a real local D1 datab
          WHERE type = 'table' AND name IN
            ('tools', 'app_settings', 'articles', 'content_sources',
             'content_items', 'telegram_messages', 'telegram_push_locks');
-         SELECT value FROM app_settings WHERE key = 'database_schema_version'`
+          SELECT value FROM app_settings WHERE key = 'database_schema_version';
+          PRAGMA table_info(telegram_messages)`
       ]
     );
     assert.equal(emptyChecks[0].results[0].total, 7);
-    assert.deepEqual(emptyChecks[1].results, [{ value: "17" }]);
+    assert.deepEqual(emptyChecks[1].results, [{ value: "18" }]);
+    assert.ok(emptyChecks[2].results.some((column) => column.name === "last_pushed_media_enabled"));
 
     await runWrangler(root, configPath, legacyPersistPath, [
       "--command",
@@ -848,7 +850,7 @@ test("Pages Functions automatically initialize and upgrade a real local D1 datab
     assert.deepEqual(legacyChecks[1].results, [
       { github_language: "", github_license: "" }
     ]);
-    assert.deepEqual(legacyChecks[2].results, [{ value: "17" }]);
+    assert.deepEqual(legacyChecks[2].results, [{ value: "18" }]);
     assert.deepEqual(legacyChecks[3].results, []);
     assert.deepEqual(JSON.parse(legacyChecks[4].results[0].value), {
       enabled: true,
@@ -939,7 +941,7 @@ test("Pages Functions automatically initialize and upgrade a real local D1 datab
          AND name = 'telegram_push_locks'`
       ]
     );
-    assert.deepEqual(version14Checks[0].results, [{ value: "17" }]);
+    assert.deepEqual(version14Checks[0].results, [{ value: "18" }]);
     assert.match(version14Checks[1].results[0].sql, /'content'/);
     assert.deepEqual(version14Checks[2].results, [{
       id: "v14-record",
@@ -1019,17 +1021,18 @@ test("Pages Functions automatically initialize and upgrade a real local D1 datab
         `SELECT value FROM app_settings WHERE key = 'database_schema_version';
          SELECT name FROM sqlite_master WHERE type = 'table'
          AND name = 'telegram_push_locks';
-         SELECT id, custom_title, message_markdown, updated_at
+          SELECT id, custom_title, message_markdown, updated_at, last_pushed_media_enabled
          FROM telegram_messages WHERE id = 'v15-record'`
       ]
     );
-    assert.deepEqual(version15Checks[0].results, [{ value: "17" }]);
+    assert.deepEqual(version15Checks[0].results, [{ value: "18" }]);
     assert.deepEqual(version15Checks[1].results, [{ name: "telegram_push_locks" }]);
     assert.deepEqual(version15Checks[2].results, [{
       id: "v15-record",
       custom_title: "Version 15",
       message_markdown: "**Version 15**",
-      updated_at: "2026-08-07T00:00:00.000Z"
+      updated_at: "2026-08-07T00:00:00.000Z",
+      last_pushed_media_enabled: null
     }]);
   } finally {
     if (pagesProcess) await stopPagesDev(pagesProcess);
@@ -1523,11 +1526,11 @@ test("full backup round-trips all current data without exporting secrets", {
        INSERT INTO telegram_messages
          (id, resource_type, resource_id, custom_title, resource_data, category, chat_id, target_ref,
           message_id, message_markdown, media_enabled, media_url,
-          last_pushed_hash, sent_at, updated_at)
+           last_pushed_hash, sent_at, updated_at, last_pushed_media_enabled)
        VALUES
          ('backup-message', 'tool', 'backup-tool', '', '', 'News', '-1001234567890',
           '-1001234567890', '42', '**Backup Tool**', 0, '', 'hash',
-          '2026-01-05', '2026-01-05');
+           '2026-01-05', '2026-01-05', 1);
        INSERT INTO telegram_push_locks
          (resource_type, resource_id, operation, lock_token, state, expires_at)
        VALUES
@@ -1557,6 +1560,7 @@ test("full backup round-trips all current data without exporting secrets", {
     assert.equal(exportResponse.status, 200, JSON.stringify(backup));
     assert.equal(backup.source, "htools-backup");
     assert.equal(backup.version, "4");
+    assert.equal(backup.data.telegramMessages[0].last_pushed_media_enabled, 1);
     assert.deepEqual(backup.counts, {
       tools: 1,
       articles: 1,
@@ -1625,7 +1629,8 @@ test("full backup round-trips all current data without exporting secrets", {
        SELECT COUNT(*) AS total FROM content_items
        WHERE id = 'backup-item' AND article_id = 'backup-article';
        SELECT COUNT(*) AS total FROM telegram_messages
-       WHERE id = 'backup-message' AND message_id = '42';
+        WHERE id = 'backup-message' AND message_id = '42'
+          AND media_enabled = 0 AND last_pushed_media_enabled = 1;
        SELECT COUNT(*) AS total FROM telegram_push_locks;
        SELECT COUNT(*) AS total FROM app_settings WHERE key IN
          ('github_settings', 'telegram_settings', 'admin_turnstile_enabled')`
