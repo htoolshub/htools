@@ -1,10 +1,12 @@
 import {
   createToken,
   getDatabase,
+  InvalidRequestError,
   json,
   jsonError,
   verifyTurnstileRequest,
   verifyPassword,
+  writeErrorResponse,
   type Env
 } from "../../_shared";
 
@@ -81,6 +83,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       password?: unknown;
       turnstileToken?: unknown;
     };
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      throw new InvalidRequestError("Request body must be an object.");
+    }
     const password =
       typeof payload.password === "string" ? payload.password.trim() : "";
     const clientKey = await getClientKey(request);
@@ -109,8 +114,6 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
     return json({ token: await createToken(env) });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unable to login.";
-    return jsonError(message, "INVALID_REQUEST", { status: 400 });
+    return writeErrorResponse(error, "Unable to login.");
   }
 };

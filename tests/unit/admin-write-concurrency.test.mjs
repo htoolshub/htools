@@ -196,6 +196,48 @@ test("Turnstile 失败不占密码额度，封禁请求不访问 Turnstile", asy
   assert.equal(fetch.mock.callCount(), calls);
 });
 
+test("未配置初始密码时登录返回服务端错误，格式错误的请求仍返回 400", async (t) => {
+  const { env } = fixture(t);
+  delete env.ADMIN_PASSWORD;
+  const missingPassword = await loginRequest(env, "any-password");
+  assert.equal(missingPassword.status, 500);
+  assert.equal((await missingPassword.json()).code, "SERVER_ERROR");
+
+  const malformed = await login.onRequestPost({ env, request: new Request("https://example.com/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "CF-Connecting-IP": "192.0.2.13" },
+    body: "{"
+  }) });
+  assert.equal(malformed.status, 400);
+  assert.equal((await malformed.json()).code, "INVALID_REQUEST");
+});
+
+for (const body of ["null", "[]", '"invalid"', "42", "true", "false"]) {
+  test(`登录拒绝非对象请求体 ${body}，不占密码额度或请求外部服务`, async (t) => {
+    const { db, env, sqlite } = fixture(t);
+    const prepare = t.mock.method(db, "prepare");
+    const fetch = t.mock.method(globalThis, "fetch", async () => Response.json({ success: true }));
+    const response = await login.onRequestPost({ env, request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "CF-Connecting-IP": "192.0.2.13" },
+      body
+    }) });
+    assert.equal(response.status, 400);
+    assert.equal((await response.json()).code, "INVALID_REQUEST");
+    assert.equal(prepare.mock.callCount(), 0);
+    assert.equal(fetch.mock.callCount(), 0);
+    assert.equal(sqlite.prepare("SELECT COUNT(*) AS total FROM admin_login_attempts").get().total, 0);
+  });
+}
+
+test("登录遇到数据库故障仍返回服务端错误", async (t) => {
+  const { db, env } = fixture(t);
+  t.mock.method(db, "prepare", () => { throw new Error("模拟数据库不可用"); });
+  const response = await loginRequest(env);
+  assert.equal(response.status, 500);
+  assert.equal((await response.json()).code, "SERVER_ERROR");
+});
+
 test("正常同步跨多个 SQL 批次写入并更新已有内容", async (t) => {
   const { db, sqlite } = fixture(t);
   seedSource(sqlite);
@@ -207,6 +249,33 @@ test("正常同步跨多个 SQL 批次写入并更新已有内容", async (t) =>
   assert.equal(second.imported, 0);
   assert.equal(second.updated, 8);
   assert.equal(sqlite.prepare("SELECT COUNT(*) AS total FROM content_items").get().total, 8);
+});
+
+test("单次同步上限 50 条按 D1 参数上限推导批次，每条 SQL 不超过 100 个参数", async (t) => {
+  const { db, sqlite } = fixture(t);
+  seedSource(sqlite);
+  const upserts = [];
+  const prepare = db.prepare;
+  db.prepare = (sql) => {
+    const statement = prepare(sql);
+    if (!/WITH incoming/.test(sql)) return statement;
+    const bind = statement.bind;
+    statement.bind = (...values) => {
+      upserts.push({ sql, count: values.length });
+      return bind.apply(statement, values);
+    };
+    return statement;
+  };
+  t.mock.method(globalThis, "fetch", async () => feedResponse("bulk", 60));
+  const result = await shared.syncContentSource(db, "source-1");
+  assert.equal(result.imported, 50);
+  assert.equal(sqlite.prepare("SELECT COUNT(*) AS total FROM content_items").get().total, 50);
+  assert.ok(upserts.length > 1);
+  const rowParameters = upserts[0].sql.match(/\(\?(?:, \?)*\)/)[0].split("?").length - 1;
+  for (const [index, { count }] of upserts.entries()) {
+    assert.ok(count <= 100, `第 ${index + 1} 批 ${count} 个参数`);
+    if (index < upserts.length - 1) assert.ok(count + rowParameters > 100, `第 ${index + 1} 批未装满`);
+  }
 });
 
 for (const operation of ["source", "category", "all", "factory"]) {

@@ -533,6 +533,14 @@ class CdpClient {
   }
 }
 
+// VS Code 会给子进程带上 Windows 兼容层变量 __COMPAT_LAYER；Edge 检测到后会退出并重启自身，
+// 脚本会误判为启动失败，重启出的 Edge 无人关闭并锁住临时目录。测试浏览器不需要兼容层，启动前直接去掉。
+export function createEdgeEnvironment(env = process.env) {
+  return Object.fromEntries(
+    Object.entries(env).filter(([key]) => key.toUpperCase() !== "__COMPAT_LAYER")
+  );
+}
+
 export async function launchEdge(profilePath) {
   const executable = await findEdgeExecutable();
   await mkdir(profilePath, { recursive: true });
@@ -557,7 +565,7 @@ export async function launchEdge(profilePath) {
 
   const child = spawn(executable, args, {
     cwd: projectRoot,
-    env: process.env,
+    env: createEdgeEnvironment(),
     stdio: ["ignore", "pipe", "pipe"],
     windowsHide: true
   });

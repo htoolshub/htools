@@ -1726,7 +1726,7 @@ const FEED_MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 const FEED_MAX_REDIRECTS = 5;
 
 export async function fetchFeedPreview(feedUrl: string): Promise<ParsedFeed> {
-  const url = normalizeSafeFeedUrl(feedUrl);
+  const url = normalizeSafeFetchUrl(feedUrl);
 
   if (!url) {
     throw new InvalidRequestError("Feed URL is not allowed.");
@@ -1922,7 +1922,7 @@ export async function saveRssHubSettings(
 
   if (
     requestedBaseUrl.trim() &&
-    (!normalizedBaseUrl || !normalizeSafeFeedUrl(normalizedBaseUrl))
+    (!normalizedBaseUrl || !normalizeSafeFetchUrl(normalizedBaseUrl))
   ) {
     throw new InvalidRequestError("RSSHub base URL must be a public http/https URL.");
   }
@@ -2105,7 +2105,7 @@ async function fetchFeedText(initialUrl: string) {
         } catch {
           throw new UpstreamServiceError("Feed redirect URL is not allowed.");
         }
-        const nextUrl = normalizeSafeFeedUrl(redirectedUrl);
+        const nextUrl = normalizeSafeFetchUrl(redirectedUrl);
         if (!nextUrl) {
           throw new UpstreamServiceError("Feed redirect URL is not allowed.");
         }
@@ -2142,7 +2142,7 @@ async function fetchFeedText(initialUrl: string) {
   throw new UpstreamServiceError("Feed redirected too many times.");
 }
 
-function isRedirectStatus(status: number) {
+export function isRedirectStatus(status: number) {
   return status === 301 || status === 302 || status === 303 || status === 307 || status === 308;
 }
 
@@ -2192,7 +2192,8 @@ async function readLimitedResponseText(response: Response, maximumBytes: number)
   return text;
 }
 
-function normalizeSafeFeedUrl(value: string) {
+// 订阅源抓取与链接检测共用：只放行可公开访问的 http/https 地址，拒绝内网、本机与保留地址。
+export function normalizeSafeFetchUrl(value: string) {
   const normalized = normalizeHttpUrl(value);
   if (!normalized) return "";
 
@@ -2321,6 +2322,7 @@ function parseFeedIpv6Words(hostname: string) {
 }
 
 export const CONTENT_SOURCE_SYNC_EPOCH_KEY = "content_source_sync_epoch";
+const D1_MAX_BOUND_PARAMETERS = 100;
 
 export async function syncContentSource(db: D1Database, sourceId: string) {
   const source = await db.prepare(
@@ -2414,13 +2416,16 @@ export async function syncContentSource(db: D1Database, sourceId: string) {
     }
   }
 
-  // ponytail: 每条 15 个参数，另有 10 个源守卫参数；6 条正好达到 D1 单条 SQL 的 100 参数上限。
-  const upsertBatchSize = 6;
+  // D1 单条 SQL 最多绑定 100 个参数；批次大小按每行实际参数数和源守卫参数数推导，增删字段时自动缩放。
+  const upsertColumnCount = upsertRows[0]?.length ?? 1;
+  const upsertBatchSize = Math.max(
+    1,
+    Math.floor((D1_MAX_BOUND_PARAMETERS - sourceConditionValues.length) / upsertColumnCount)
+  );
+  const upsertPlaceholders = `(${Array(upsertColumnCount).fill("?").join(", ")})`;
   for (let index = 0; index < upsertRows.length; index += upsertBatchSize) {
     const rows = upsertRows.slice(index, index + upsertBatchSize);
-    const placeholders = rows
-      .map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-      .join(", ");
+    const placeholders = rows.map(() => upsertPlaceholders).join(", ");
     statements.push(
       db.prepare(
         `WITH incoming

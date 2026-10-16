@@ -1,9 +1,13 @@
 import {
   getDatabase,
   getProxySettings,
+  InvalidRequestError,
+  isRedirectStatus,
   json,
+  normalizeSafeFetchUrl,
   proxifyUrl,
   requireAdmin,
+  writeErrorResponse,
   type Env,
   type ProxySettings
 } from "../../_shared";
@@ -27,6 +31,10 @@ const DEFAULT_TIMEOUT_SECONDS = 6;
 const MAX_TIMEOUT_SECONDS = 9;
 const MIN_PROXY_TIMEOUT_MS = 1200;
 const MAX_PROXY_TIMEOUT_MS = 3000;
+const MAX_REDIRECTS = 5;
+const BLOCKED_URL_MESSAGE = "URL is not allowed for server-side checking.";
+
+class BlockedUrlError extends Error {}
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const unauthorized = await requireAdmin(request, env);
@@ -39,6 +47,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       links?: unknown;
       timeout?: unknown;
     };
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      throw new InvalidRequestError("Request body must be an object.");
+    }
     const targets = readTargets(payload.links);
     const timeoutSeconds = readTimeout(payload.timeout);
     const headers = getSafeForwardedHeaders(request);
@@ -52,24 +63,22 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       )
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unable to check links.";
-    return json({ error: message }, { status: 400 });
+    return writeErrorResponse(error, "Unable to check links.");
   }
 };
 
 function readTargets(value: unknown): LinkCheckTarget[] {
   if (!Array.isArray(value) || value.length === 0) {
-    throw new Error("links must include at least one target.");
+    throw new InvalidRequestError("links must include at least one target.");
   }
 
   if (value.length > MAX_BATCH_SIZE) {
-    throw new Error(`links can include at most ${MAX_BATCH_SIZE} targets.`);
+    throw new InvalidRequestError(`links can include at most ${MAX_BATCH_SIZE} targets.`);
   }
 
   return value.map((item) => {
     if (!item || typeof item !== "object") {
-      throw new Error("Each link target must be an object.");
+      throw new InvalidRequestError("Each link target must be an object.");
     }
 
     const target = item as { id?: unknown; kind?: unknown };
@@ -82,7 +91,7 @@ function readTargets(value: unknown): LinkCheckTarget[] {
 
 function readString(value: unknown, field: string) {
   if (typeof value !== "string" || !value.trim()) {
-    throw new Error(`${field} is required.`);
+    throw new InvalidRequestError(`${field} is required.`);
   }
 
   return value.trim().slice(0, 256);
@@ -93,11 +102,15 @@ function readKind(value: unknown): LinkKind {
     return value;
   }
 
-  throw new Error("kind must be url or demoUrl.");
+  throw new InvalidRequestError("kind must be url or demoUrl.");
 }
 
 function readTimeout(value: unknown) {
-  const numberValue = Number(value ?? DEFAULT_TIMEOUT_SECONDS);
+  const timeout = value ?? DEFAULT_TIMEOUT_SECONDS;
+  if (typeof timeout !== "number" && typeof timeout !== "string") {
+    throw new InvalidRequestError("timeout must be a number or string.");
+  }
+  const numberValue = Number(timeout);
 
   if (!Number.isFinite(numberValue)) {
     return DEFAULT_TIMEOUT_SECONDS;
@@ -165,13 +178,13 @@ async function checkStoredLink(
     });
   }
 
-  if (!isCheckableUrl(url)) {
+  if (!normalizeSafeFetchUrl(url)) {
     return buildResult(target, row.name, url, {
       status: 0,
       ok: false,
       startedAt,
       checkedAt,
-      error: "URL is not allowed for server-side checking."
+      error: BLOCKED_URL_MESSAGE
     });
   }
 
@@ -187,7 +200,7 @@ async function checkStoredLink(
           )
         : 0;
     const directTimeoutMs = Math.max(1000, totalTimeoutMs - proxyBudgetMs);
-    const response = await fetchWithTimeout(url, {
+    const { response, finalUrl } = await fetchWithTimeout(url, {
       headers,
       timeoutMs: directTimeoutMs
     });
@@ -201,9 +214,19 @@ async function checkStoredLink(
       ok: response.status < 400,
       startedAt,
       checkedAt,
-      finalUrl: response.url
+      finalUrl
     });
   } catch (error) {
+    if (error instanceof BlockedUrlError) {
+      return buildResult(target, row.name, url, {
+        status: 0,
+        ok: false,
+        startedAt,
+        checkedAt,
+        error: BLOCKED_URL_MESSAGE
+      });
+    }
+
     const remainingMs = Math.max(
       0,
       timeoutSeconds * 1000 - (Date.now() - startedAt)
@@ -248,7 +271,7 @@ async function checkLinkViaProxy(
   }
 
   try {
-    const response = await fetchWithTimeout(proxyUrl, {
+    const { response } = await fetchWithTimeout(proxyUrl, {
       headers,
       timeoutMs: Math.min(MAX_PROXY_TIMEOUT_MS, timeoutMs)
     });
@@ -260,14 +283,18 @@ async function checkLinkViaProxy(
     if (response.status < 400) {
       return { ok: true };
     }
-  } catch {
-    return { ok: false, error: "Network request failed." };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof BlockedUrlError ? BLOCKED_URL_MESSAGE : "Network request failed."
+    };
   }
 
   return { ok: false, error: "Network request failed." };
 }
 
-function fetchWithTimeout(
+// 直连、代理首跳和后续跳转共用地址校验，任何入口都不能绕过内网拦截。
+async function fetchWithTimeout(
   url: string,
   {
     headers,
@@ -277,12 +304,41 @@ function fetchWithTimeout(
     timeoutMs: number;
   }
 ) {
-  return fetch(url, {
-    method: "GET",
-    headers,
-    redirect: "follow",
-    signal: AbortSignal.timeout(timeoutMs)
-  });
+  const signal = AbortSignal.timeout(timeoutMs);
+  let currentUrl = normalizeSafeFetchUrl(url);
+  if (!currentUrl) {
+    throw new BlockedUrlError(BLOCKED_URL_MESSAGE);
+  }
+
+  for (let redirectCount = 0; ; redirectCount += 1) {
+    const response = await fetch(currentUrl, {
+      method: "GET",
+      headers,
+      redirect: "manual",
+      signal
+    });
+    const location = isRedirectStatus(response.status)
+      ? response.headers.get("Location")
+      : null;
+
+    if (!location) {
+      return { response, finalUrl: currentUrl };
+    }
+
+    if (response.body) {
+      await response.body.cancel().catch(() => undefined);
+    }
+
+    if (redirectCount >= MAX_REDIRECTS) {
+      throw new Error("Too many redirects.");
+    }
+
+    const nextUrl = normalizeSafeFetchUrl(new URL(location, currentUrl).toString());
+    if (!nextUrl) {
+      throw new BlockedUrlError(BLOCKED_URL_MESSAGE);
+    }
+    currentUrl = nextUrl;
+  }
 }
 
 function buildResult(
@@ -309,75 +365,6 @@ function buildResult(
     finalUrl: result.finalUrl,
     error: result.error
   };
-}
-
-function isCheckableUrl(value: string) {
-  try {
-    const url = new URL(value);
-
-    if (url.protocol !== "http:" && url.protocol !== "https:") {
-      return false;
-    }
-
-    const hostname = url.hostname.toLowerCase();
-
-    if (hostname === "localhost" || hostname.endsWith(".localhost")) {
-      return false;
-    }
-
-    return !isBlockedIp(hostname);
-  } catch {
-    return false;
-  }
-}
-
-function isBlockedIp(hostname: string) {
-  return hostname.includes(":") ? isBlockedIpv6(hostname) : isBlockedIpv4(hostname);
-}
-
-function isBlockedIpv4(hostname: string) {
-  const parts = hostname.split(".");
-
-  if (parts.length !== 4) {
-    return false;
-  }
-
-  const bytes = parts.map((part) => {
-    if (!/^\d+$/.test(part)) {
-      return Number.NaN;
-    }
-
-    const value = Number(part);
-    return value >= 0 && value <= 255 ? value : Number.NaN;
-  });
-
-  if (bytes.some(Number.isNaN)) {
-    return false;
-  }
-
-  const [a, b] = bytes as [number, number, number, number];
-
-  return (
-    a === 0 ||
-    a === 10 ||
-    a === 127 ||
-    (a === 100 && b >= 64 && b <= 127) ||
-    (a === 169 && b === 254) ||
-    (a === 172 && b >= 16 && b <= 31) ||
-    (a === 192 && b === 168) ||
-    (a === 198 && (b === 18 || b === 19)) ||
-    a >= 224
-  );
-}
-
-function isBlockedIpv6(hostname: string) {
-  return (
-    hostname === "::" ||
-    hostname === "::1" ||
-    hostname.startsWith("fc") ||
-    hostname.startsWith("fd") ||
-    hostname.startsWith("fe80:")
-  );
 }
 
 function toErrorMessage(error: unknown) {

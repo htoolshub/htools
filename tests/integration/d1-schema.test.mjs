@@ -678,6 +678,70 @@ test("the production schema initializes a real local D1 database idempotently", 
   }
 });
 
+test("真实 Pages 具名路由带安全头，登录与链接检测拒绝非对象请求体", {
+  timeout: 60_000
+}, async () => {
+  const root = await mkdtemp(join(tmpdir(), "htools-page-policies-integration-"));
+  const assetsPath = join(root, "assets");
+  let pagesProcess = null;
+  try {
+    await mkdir(assetsPath, { recursive: true });
+    await writeFile(join(assetsPath, "index.html"), "<!doctype html><title>test</title>", "utf8");
+    await writeFile(join(assetsPath, "asset.js"), "/* integration asset */", "utf8");
+    const pages = await startPagesDev(assetsPath, join(root, "persist"));
+    pagesProcess = pages.child;
+    await pages.response.arrayBuffer();
+    const origin = new URL(pages.response.url).origin;
+    const checkHeaders = (response, path) => {
+      assert.equal(response.headers.get("X-Content-Type-Options"), "nosniff", path);
+      assert.equal(response.headers.get("Referrer-Policy"), "strict-origin-when-cross-origin", path);
+      assert.equal(response.headers.get("X-Frame-Options"), path.startsWith("/admin") ? "DENY" : null, path);
+    };
+    for (const path of ["/", "/admin", "/admin/", "/admin/settings/site", "/asset.js",
+      "/api/tools", "/api/auth/config", "/api/site-settings", "/api/unknown",
+      "/rss.xml", "/rss.json", "/sitemap.xml", "/robots.txt"]) {
+      const response = await fetch(`${origin}${path}`, { redirect: "manual", signal: AbortSignal.timeout(10_000) });
+      checkHeaders(response, path);
+      assert.equal(response.status, path === "/api/unknown" ? 404 : 200, path);
+      if (path.startsWith("/api/") || path.startsWith("/admin")) {
+        assert.equal(response.headers.get("X-Robots-Tag"), "noindex, nofollow, noarchive", path);
+      }
+      await response.arrayBuffer();
+    }
+    const login = await fetch(`${origin}/api/auth/login`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "test-password" }), signal: AbortSignal.timeout(10_000)
+    });
+    checkHeaders(login, "/api/auth/login");
+    assert.equal(login.status, 200);
+    const { token } = await login.json();
+    assert.equal(typeof token, "string");
+    for (const path of ["/api/auth/login", "/api/admin/link-check"]) {
+      for (const body of ["null", "[]", '"text"', "42", "false", "{"]) {
+        const response = await fetch(`${origin}${path}`, {
+          method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body, signal: AbortSignal.timeout(10_000)
+        });
+        checkHeaders(response, path);
+        assert.equal(response.status, 400, `${path}: ${body}`);
+        assert.equal((await response.json()).code, "INVALID_REQUEST");
+      }
+    }
+    for (const timeout of [{ toString: null }, [{ toString: null }], {}, [], true, false]) {
+      const response = await fetch(`${origin}/api/admin/link-check`, {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ links: [{ id: "invalid-timeout", kind: "url" }], timeout }),
+        signal: AbortSignal.timeout(10_000)
+      });
+      assert.equal(response.status, 400, JSON.stringify(timeout));
+      assert.equal((await response.json()).code, "INVALID_REQUEST");
+    }
+  } finally {
+    if (pagesProcess) await stopPagesDev(pagesProcess);
+    await rm(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+  }
+});
+
 test("Pages Functions automatically initialize and upgrade a real local D1 database", {
   timeout: 180_000
 }, async () => {

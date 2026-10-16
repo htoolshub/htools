@@ -2,10 +2,37 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   REGRESSION_VIEWPORTS,
+  createEdgeEnvironment,
   isSafeChildPath,
   parseCliArgs
 } from "../../scripts/browser-regression.mjs";
 import { readFile } from "node:fs/promises";
+
+test("启动 Edge 时去掉 Windows 兼容层变量，其余环境变量原样保留", () => {
+  const env = {
+    __COMPAT_LAYER: "DetectorsAppHealth",
+    __compat_layer: "RunAsInvoker",
+    PATH: "C:\\Windows",
+    LOCALAPPDATA: "C:\\Users\\test\\AppData\\Local",
+    EDGE_PATH: "C:\\Edge\\msedge.exe"
+  };
+  assert.deepEqual(createEdgeEnvironment(env), {
+    PATH: "C:\\Windows",
+    LOCALAPPDATA: "C:\\Users\\test\\AppData\\Local",
+    EDGE_PATH: "C:\\Edge\\msedge.exe"
+  });
+  assert.equal(env.__COMPAT_LAYER, "DetectorsAppHealth", "不能改动调用方传入的环境对象");
+});
+
+test("所有 Edge 启动都经过兼容层清理", async () => {
+  const source = await readFile(
+    new URL("../../scripts/browser-regression.mjs", import.meta.url),
+    "utf8"
+  );
+  const launch = source.slice(source.indexOf("export async function launchEdge"));
+  assert.match(launch.slice(0, launch.indexOf("\n}\n")), /env: createEdgeEnvironment\(\)/);
+  assert.equal((source.match(/spawn\(executable,/g) ?? []).length, 1);
+});
 
 test("browser regression keeps the four project viewport contracts", () => {
   assert.deepEqual(
