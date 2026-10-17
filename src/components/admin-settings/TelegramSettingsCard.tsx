@@ -2,12 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { useLoadingSkeleton } from "../../useLoadingSkeleton";
 import { saveTelegramSettings, testTelegramSettings } from "../../admin-api";
 import { getLocalizedErrorMessage } from "../../site-helpers";
-import { SkeletonVisibility } from "../../shared-ui";
 import {
-  AdminSettingsActionsSkeleton,
-  AdminSettingsCopySkeleton,
-  AdminSettingsFieldSkeleton,
-  AdminSettingsTextMask
+  AdminSkeletonLines,
+  getAdminLoadingProps
 } from "../admin-skeletons";
 import { SettingsStatusBadge } from "./SettingsStatusBadge";
 import type { getAdminMaintenanceText } from "../../admin-text";
@@ -116,32 +113,7 @@ export function TelegramSettingsCard({
     }
   }
 
-  if (loading) {
-    return (
-      <article className="source-public-card telegram-settings-card">
-        <SkeletonVisibility visible={showSkeleton}>
-          <div className="admin-settings-card-loading" aria-hidden="true">
-            <AdminSettingsCopySkeleton
-              className="source-card-heading"
-              description={maintenanceText.telegramDescription}
-              title={maintenanceText.telegramTitle}
-              withStatus
-            />
-            <div className="turnstile-config-help">
-              <AdminSettingsTextMask>
-                {`TGTOKEN = ${maintenanceText.telegramTokenLabel}`}
-              </AdminSettingsTextMask>
-            </div>
-            <AdminSettingsFieldSkeleton />
-            <AdminSettingsFieldSkeleton />
-            <AdminSettingsActionsSkeleton count={2} />
-          </div>
-        </SkeletonVisibility>
-      </article>
-    );
-  }
-
-  if (error) {
+  if (!loading && error) {
     return (
       <article className="source-public-card telegram-settings-card">
         <div className="settings-card-error" role="alert">
@@ -156,7 +128,7 @@ export function TelegramSettingsCard({
   }
 
   return (
-    <article className="source-public-card telegram-settings-card">
+    <article className="source-public-card telegram-settings-card" {...getAdminLoadingProps(loading, showSkeleton)}>
       <div className="source-card-heading">
         <h3>{maintenanceText.telegramTitle}</h3>
         <SettingsStatusBadge
@@ -276,6 +248,7 @@ export function TelegramSettingsCard({
           </button>
         </div>
       </form>
+      <AdminSkeletonLines loading={loading} visible={showSkeleton} />
     </article>
   );
 }

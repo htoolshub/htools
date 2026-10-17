@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { loadUmamiSettings, saveUmamiSettings } from "../../admin-api";
 import { getLocalizedErrorMessage } from "../../site-helpers";
-import { SkeletonVisibility } from "../../shared-ui";
 import { useLoadingSkeleton } from "../../useLoadingSkeleton";
 import {
   hasCompleteUmamiSettings,
@@ -9,9 +8,8 @@ import {
   normalizeUmamiWebsiteId
 } from "../../umami";
 import {
-  AdminSettingsActionsSkeleton,
-  AdminSettingsCopySkeleton,
-  AdminSettingsFieldSkeleton
+  AdminSkeletonLines,
+  getAdminLoadingProps
 } from "../admin-skeletons";
 import { SettingsStatusBadge } from "./SettingsStatusBadge";
 import type { getAdminMaintenanceText } from "../../admin-text";
@@ -163,24 +161,8 @@ export function UmamiSettingsCard({
   }
 
   return (
-    <article className="source-public-card umami-settings-card">
-      {loading ? (
-        <SkeletonVisibility visible={showSkeleton}>
-          <div className="admin-settings-card-loading" aria-hidden="true">
-            <AdminSettingsCopySkeleton
-              className="source-card-heading"
-              description={maintenanceText.umamiDescription}
-              title={maintenanceText.umamiTitle}
-              withStatus
-            />
-            <form className="proxy-settings-form">
-              <AdminSettingsFieldSkeleton />
-              <AdminSettingsFieldSkeleton />
-              <AdminSettingsActionsSkeleton count={1} />
-            </form>
-          </div>
-        </SkeletonVisibility>
-      ) : loadError ? (
+    <article className="source-public-card umami-settings-card" {...getAdminLoadingProps(loading, showSkeleton)}>
+      {!loading && loadError ? (
         <div className="settings-card-error" role="alert">
           <h3>{maintenanceText.umamiTitle}</h3>
           <p>{loadError}</p>
@@ -255,6 +237,7 @@ export function UmamiSettingsCard({
           </form>
         </>
       )}
+      <AdminSkeletonLines loading={loading} visible={showSkeleton} />
     </article>
   );
 }

@@ -118,7 +118,9 @@ test("分类骨架继续按页面指定数量显示，延迟显示期间不闪�
   };
   for (const skeletonItems of [6, 12]) {
     const html = renderToStaticMarkup(createElement(CategoryRail, { ...props, skeletonItems }));
-    assert.equal((html.match(/category-skeleton-item/g) ?? []).length, skeletonItems);
+    assert.equal((html.match(/class="category-item category-item-skeleton"/g) ?? []).length, skeletonItems);
+    assert.equal((html.match(/skeleton-shimmer skeleton-line is-long/g) ?? []).length, skeletonItems);
+    assert.ok(!html.includes('category-rail-skeleton'));
     assert.ok(html.includes('aria-hidden="true"'));
     assert.ok(!html.includes("<button"));
   }

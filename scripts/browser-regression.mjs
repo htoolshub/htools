@@ -1479,12 +1479,21 @@ async function installCriticalFlowHelpers(client) {
           throw new Error("Collapsed admin identity container still looks like a button.");
         }
         const logoutRect = logout.getBoundingClientRect();
+        const navigationButton = workspace.querySelector(".admin-sidebar-nav button");
+        const navigationRect = navigationButton.getBoundingClientRect();
+        const bottomButtons = Array.from(workspace.querySelectorAll(".admin-sidebar-bottom .icon-button"));
         if (
-          !visible(logout) ||
-          Math.abs(logoutRect.width - 38) > 1 ||
-          Math.abs(logoutRect.height - 38) > 1
+          !visible(navigationButton) ||
+          bottomButtons.length !== 3 ||
+          bottomButtons.some((button) => {
+            const rect = button.getBoundingClientRect();
+            return !visible(button) ||
+              Math.abs(rect.width - navigationRect.width) > 1 ||
+              Math.abs(rect.height - navigationRect.height) > 1 ||
+              Math.abs(rect.left + rect.width / 2 - navigationRect.left - navigationRect.width / 2) > 1;
+          })
         ) {
-          throw new Error("Collapsed logout icon does not preserve the shared icon button size.");
+          throw new Error("收起侧栏的语言、主题和退出按钮必须与导航按钮等大且居中对齐。");
         }
         return {
           x: logoutRect.left + logoutRect.width / 2,
@@ -3046,7 +3055,7 @@ async function installCriticalFlowHelpers(client) {
       },
       async exerciseTelegramSettings({ footer }) {
         const cardElement = await waitFor(
-          () => document.querySelector(".telegram-settings-card:not(:has(.skeleton-layout-mask))"),
+          () => document.querySelector(".telegram-settings-card:not([data-admin-loading])"),
           "Telegram settings"
         );
         const form = await waitFor(() => cardElement.querySelector("form"), "Telegram settings form");

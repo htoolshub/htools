@@ -1,5 +1,6 @@
 import type { FormEvent } from "react";
 import AdminMarkdownEditor from "../AdminMarkdownEditor";
+import { AdminSkeletonLines, getAdminLoadingProps } from "../admin-skeletons";
 import type { Locale, Messages } from "../../i18n";
 import type { ProxySettings } from "../../types";
 
@@ -10,6 +11,7 @@ export function LegalSettingsCard({
   dirty,
   englishLabel,
   formId,
+  loading = false,
   locale,
   onChange,
   onReset,
@@ -19,7 +21,8 @@ export function LegalSettingsCard({
   saveLabel,
   text,
   title,
-  chineseLabel
+  chineseLabel,
+  visible = true
 }: {
   busy: boolean;
   content: { zh: string; en: string };
@@ -27,6 +30,7 @@ export function LegalSettingsCard({
   dirty: boolean;
   englishLabel: string;
   formId: string;
+  loading?: boolean;
   locale: Locale;
   onChange: (locale: Locale, value: string) => void;
   onReset: () => void;
@@ -37,11 +41,12 @@ export function LegalSettingsCard({
   text: Messages["markdownEditor"];
   title: string;
   chineseLabel: string;
+  visible?: boolean;
 }) {
   const descriptionId = `${formId}-description`;
 
   return (
-    <article className="source-public-card legal-settings-card">
+    <article className="source-public-card legal-settings-card" {...getAdminLoadingProps(loading, visible)}>
       <div>
         <h3>{title}</h3>
         <p id={descriptionId}>{description}</p>
@@ -92,6 +97,7 @@ export function LegalSettingsCard({
           </button>
         </div>
       </form>
+      <AdminSkeletonLines loading={loading} visible={visible} />
     </article>
   );
 }

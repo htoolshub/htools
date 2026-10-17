@@ -77,16 +77,10 @@ import {
 } from "./components/AdminTelegramPush";
 import { useAdminCardActionMenu } from "./useAdminCardActionMenu";
 import {
-  AdminLinkCheckSkeleton,
   AdminResourceCardSkeletonGrid,
-  AdminSettingsActionsSkeleton,
-  AdminSettingsCopySkeleton,
-  AdminSettingsFieldSkeleton,
-  BackupRestoreCardSkeleton,
+  AdminSkeletonLines,
   ContentFlowSkeleton,
-  FactoryResetCardSkeleton,
-  ProxySettingsCardSkeleton,
-  SiteSettingsGroupSkeleton
+  getAdminLoadingProps
 } from "./components/admin-skeletons";
 import {
   GitHubSettingsForm,
@@ -100,6 +94,7 @@ import {
   UmamiSettingsCard
 } from "./components/admin-settings";
 import ArticleDetailContent, {
+  ArticleBodySkeleton,
   ArticleDetailContentSkeleton
 } from "./components/ArticleDetailContent";
 import {
@@ -5035,13 +5030,9 @@ export default function AdminApp({
                     resource={telegramQuickResource}
                   />
                 ) : (
-                  <AdminDetailPlaceholder
-                    className="telegram-channel-preview-message"
-                    icon={<Send size={16} />}
-                    role="status"
-                  >
-                    {telegramText.loading}
-                  </AdminDetailPlaceholder>
+                  <div className="telegram-channel-preview-message">
+                    <ArticleBodySkeleton />
+                  </div>
                 )}
               </section>
             </div>
@@ -5125,12 +5116,9 @@ export default function AdminApp({
               <div className="tool-form-field telegram-message-preview-field is-placeholder">
                 <span className="tool-form-label">{telegramText.previewTitle}</span>
                 <section className="telegram-message-preview">
-                  <AdminDetailPlaceholder
-                    className="telegram-channel-preview-message"
-                    icon={<Send size={16} />}
-                  >
-                    {telegramText.loading}
-                  </AdminDetailPlaceholder>
+                  <div className="telegram-channel-preview-message">
+                    <ArticleBodySkeleton />
+                  </div>
                 </section>
               </div>
             </div>
@@ -5381,13 +5369,9 @@ export default function AdminApp({
                 onModeChange={setTelegramMarkdownEditorMode}
                 preview={
                   telegramMessageLoading ? (
-                    <AdminDetailPlaceholder
-                      className="telegram-channel-preview-message"
-                      icon={<Send size={16} />}
-                      role="status"
-                    >
-                      {telegramText.loading}
-                    </AdminDetailPlaceholder>
+                    <div className="telegram-channel-preview-message">
+                      <ArticleBodySkeleton />
+                    </div>
                   ) : (
                     <TelegramMessagePreview
                       content={telegramPreviewMarkdown}
@@ -5464,7 +5448,7 @@ export default function AdminApp({
         >
           <div className="content-browse-dialog-body">
             {browsingArticleLoading ? (
-              <ArticleDetailContentSkeleton locale={locale} />
+              <ArticleDetailContentSkeleton />
             ) : browsingArticleDetail ? (
               <ArticleDetailContent
                 article={browsingArticleDetail}
@@ -6287,12 +6271,7 @@ export default function AdminApp({
               onChange={() => undefined}
               preview={
                 convertArticlePreviewLoading ? (
-                  <AdminDetailPlaceholder
-                    icon={<FileText size={16} />}
-                    role="status"
-                  >
-                    {contentText.convertPreviewLoading}
-                  </AdminDetailPlaceholder>
+                  <ArticleBodySkeleton />
                 ) : convertArticlePreview ? (
                   <MarkdownContent
                     content={convertArticlePreview.content}
@@ -6871,7 +6850,7 @@ function AdminContentFlowPanel({
   if (isLoadingContent && !hasLoadedContent) {
     return (
       <SkeletonVisibility visible={showSkeletons}>
-        <ContentFlowSkeleton contentText={contentText} locale={locale} />
+        <ContentFlowSkeleton contentText={contentText} />
       </SkeletonVisibility>
     );
   }
@@ -6881,7 +6860,7 @@ function AdminContentFlowPanel({
   }
 
   const readerBody = readerLoading ? (
-    <ArticleDetailContentSkeleton locale={locale} />
+    <ArticleDetailContentSkeleton />
   ) : readerArticle ? (
     <ArticleDetailContent
       article={readerArticle}
@@ -9367,11 +9346,7 @@ function AdminSystemSettingsPanel({
           id="system-settings-panel-site"
           role="tabpanel"
         >
-          {siteSettingsLoading ? (
-            <SkeletonVisibility visible={showSiteSettingsSkeleton}>
-              <SiteSettingsGroupSkeleton />
-            </SkeletonVisibility>
-          ) : siteSettingsError ? (
+          {!siteSettingsLoading && siteSettingsError ? (
             <article className="source-public-card settings-load-error-card">
               <div className="settings-card-error" role="alert">
                 <h3>{maintenanceText.systemGroupGeneral}</h3>
@@ -9385,7 +9360,7 @@ function AdminSystemSettingsPanel({
             </article>
           ) : (
           <>
-          <article className="source-public-card site-identity-card">
+          <article className="source-public-card site-identity-card" {...getAdminLoadingProps(siteSettingsLoading, showSiteSettingsSkeleton)}>
           <div>
             <h3>{maintenanceText.siteTitle}</h3>
             <p id="site-identity-description">{maintenanceText.siteDescription}</p>
@@ -9513,9 +9488,10 @@ function AdminSystemSettingsPanel({
               </div>
             </div>
           </form>
+          <AdminSkeletonLines loading={siteSettingsLoading} visible={showSiteSettingsSkeleton} />
           </article>
 
-          <article className="source-public-card home-copy-settings-card">
+          <article className="source-public-card home-copy-settings-card" {...getAdminLoadingProps(siteSettingsLoading, showSiteSettingsSkeleton)}>
           <div>
             <h3>{maintenanceText.homeSettingsTitle}</h3>
             <p id="home-copy-settings-description">{maintenanceText.homeSettingsDescription}</p>
@@ -9610,9 +9586,10 @@ function AdminSystemSettingsPanel({
               </button>
             </div>
           </form>
+          <AdminSkeletonLines loading={siteSettingsLoading} visible={showSiteSettingsSkeleton} />
           </article>
 
-          <article className="source-public-card footer-settings-card">
+          <article className="source-public-card footer-settings-card" {...getAdminLoadingProps(siteSettingsLoading, showSiteSettingsSkeleton)}>
           <div>
             <h3>{maintenanceText.footerTitle}</h3>
             <p id="footer-settings-description">{maintenanceText.footerDescription}</p>
@@ -9702,9 +9679,12 @@ function AdminSystemSettingsPanel({
               </button>
             </div>
           </form>
+          <AdminSkeletonLines loading={siteSettingsLoading} visible={showSiteSettingsSkeleton} />
           </article>
           <LegalSettingsCard
             busy={aboutPageBusy}
+            loading={siteSettingsLoading}
+            visible={showSiteSettingsSkeleton}
             chineseLabel={maintenanceText.legalChinese}
             content={aboutForm}
             description={maintenanceText.aboutSettingsDescription}
@@ -9729,6 +9709,8 @@ function AdminSystemSettingsPanel({
 
           <LegalSettingsCard
             busy={privacyPageBusy}
+            loading={siteSettingsLoading}
+            visible={showSiteSettingsSkeleton}
             chineseLabel={maintenanceText.legalChinese}
             content={privacyForm}
             description={maintenanceText.privacySettingsDescription}
@@ -9753,6 +9735,8 @@ function AdminSystemSettingsPanel({
 
           <LegalSettingsCard
             busy={termsPageBusy}
+            loading={siteSettingsLoading}
+            visible={showSiteSettingsSkeleton}
             chineseLabel={maintenanceText.legalChinese}
             content={termsForm}
             description={maintenanceText.termsSettingsDescription}
@@ -9786,20 +9770,8 @@ function AdminSystemSettingsPanel({
           role="tabpanel"
         >
           <div className="integration-settings-stack">
-          <article className="source-public-card public-source-card">
-          {sourceSettingsLoading ? (
-            <SkeletonVisibility visible={showSourceSettingsSkeleton}>
-              <div className="admin-settings-card-loading" aria-hidden="true">
-                <AdminSettingsCopySkeleton
-                  className="source-card-heading"
-                  description={maintenanceText.publicDescription}
-                  title={maintenanceText.publicTitle}
-                  withStatus
-                />
-                <AdminSettingsFieldSkeleton />
-              </div>
-            </SkeletonVisibility>
-          ) : sourceSettingsError ? (
+          <article className="source-public-card public-source-card" {...getAdminLoadingProps(sourceSettingsLoading, showSourceSettingsSkeleton)}>
+          {!sourceSettingsLoading && sourceSettingsError ? (
             <div className="settings-card-error" role="alert">
               <h3>{maintenanceText.publicTitle}</h3>
               <p>{sourceSettingsError}</p>
@@ -9834,6 +9806,7 @@ function AdminSystemSettingsPanel({
           </label>
           </>
           )}
+          <AdminSkeletonLines loading={sourceSettingsLoading} visible={showSourceSettingsSkeleton} />
           </article>
 
           <article className="source-public-card github-submission-card">
@@ -9882,21 +9855,8 @@ function AdminSystemSettingsPanel({
             t={t}
             token={token}
           />
-          <article className="source-public-card ai-settings-card">
-          {adminAiSettingsLoading ? (
-            <SkeletonVisibility visible>
-              <div className="admin-settings-card-loading" aria-hidden="true">
-                <AdminSettingsCopySkeleton
-                  className="source-card-heading"
-                  description={maintenanceText.aiDescription}
-                  title={maintenanceText.aiTitle}
-                  withStatus
-                />
-                <AdminSettingsFieldSkeleton />
-                <AdminSettingsActionsSkeleton count={1} />
-              </div>
-            </SkeletonVisibility>
-          ) : adminAiSettingsLoadError ? (
+          <article className="source-public-card ai-settings-card" {...getAdminLoadingProps(adminAiSettingsLoading)}>
+          {!adminAiSettingsLoading && adminAiSettingsLoadError ? (
             <div className="settings-card-error" role="alert">
               <h3>{maintenanceText.aiTitle}</h3>
               <p>{getLocalizedErrorMessage(adminAiSettingsLoadError, t)}</p>
@@ -9958,6 +9918,7 @@ function AdminSystemSettingsPanel({
               </form>
             </>
           )}
+          <AdminSkeletonLines loading={adminAiSettingsLoading} />
           </article>
           <TelegramSettingsCard
             locale={locale}
@@ -9971,12 +9932,8 @@ function AdminSystemSettingsPanel({
             t={t}
             token={token}
           />
-          <article className="source-public-card proxy-settings-card">
-          {proxySettingsLoading ? (
-            <SkeletonVisibility visible={showProxySettingsSkeleton}>
-              <ProxySettingsCardSkeleton maintenanceText={maintenanceText} />
-            </SkeletonVisibility>
-          ) : proxySettingsError ? (
+          <article className="source-public-card proxy-settings-card" {...getAdminLoadingProps(proxySettingsLoading, showProxySettingsSkeleton)}>
+          {!proxySettingsLoading && proxySettingsError ? (
             <div className="settings-card-error" role="alert">
               <h3>{maintenanceText.proxyTitle}</h3>
               <p>{proxySettingsError}</p>
@@ -10083,6 +10040,7 @@ function AdminSystemSettingsPanel({
           </form>
           </>
           )}
+          <AdminSkeletonLines loading={proxySettingsLoading} visible={showProxySettingsSkeleton} />
           </article>
           </div>
         </div>
@@ -10106,13 +10064,7 @@ function AdminSystemSettingsPanel({
             token={token}
           />
 
-          <article className="source-public-card factory-reset-card">
-          {securitySettingsLoading ? (
-            <SkeletonVisibility visible={showSecuritySettingsSkeleton}>
-              <FactoryResetCardSkeleton maintenanceText={maintenanceText} />
-            </SkeletonVisibility>
-          ) : (
-          <>
+          <article className="source-public-card factory-reset-card" {...getAdminLoadingProps(securitySettingsLoading, showSecuritySettingsSkeleton)}>
           <div>
             <h3>{maintenanceText.resetTitle}</h3>
             <p id="factory-reset-description">{maintenanceText.resetDescription}</p>
@@ -10127,19 +10079,12 @@ function AdminSystemSettingsPanel({
               {maintenanceText.resetButton}
             </button>
           </div>
-          </>
-          )}
+          <AdminSkeletonLines loading={securitySettingsLoading} visible={showSecuritySettingsSkeleton} />
           </article>
           </div>
 
           <div className="security-settings-backup">
-          <article className="source-public-card backup-restore-card">
-          {securitySettingsLoading ? (
-            <SkeletonVisibility visible={showSecuritySettingsSkeleton}>
-              <BackupRestoreCardSkeleton maintenanceText={maintenanceText} />
-            </SkeletonVisibility>
-          ) : (
-          <>
+          <article className="source-public-card backup-restore-card" {...getAdminLoadingProps(securitySettingsLoading, showSecuritySettingsSkeleton)}>
           <div>
             <h3>{maintenanceText.backupTitle}</h3>
             <p id="backup-settings-description">{maintenanceText.backupDescription}</p>
@@ -10182,8 +10127,7 @@ function AdminSystemSettingsPanel({
               {maintenanceText.backupRestore}
             </button>
           </div>
-          </>
-          )}
+          <AdminSkeletonLines loading={securitySettingsLoading} visible={showSecuritySettingsSkeleton} />
           </article>
           </div>
         </div>
@@ -10355,18 +10299,6 @@ function AdminLinkCheckPanel({
       ? t.linkCheck.emptyNoBrokenLinks
       : t.linkCheck.emptyNoMatchingResults;
   const showToolsLoadingSkeleton = useLoadingSkeleton(isLoadingTools);
-
-  if (isLoadingTools) {
-    return (
-      <SkeletonVisibility visible={showToolsLoadingSkeleton}>
-        <AdminLinkCheckSkeleton
-          maintenanceText={maintenanceText}
-          section={section}
-          t={t}
-        />
-      </SkeletonVisibility>
-    );
-  }
 
   function getSourceFileKey(file: File) {
     return `file:${file.name}:${file.size}:${file.lastModified}`;
@@ -10622,7 +10554,7 @@ function AdminLinkCheckPanel({
       {section === "import-export" ? (
         <section className="admin-maintenance-panel">
           <section className="source-import-panel">
-        <div className="source-import-main">
+        <div className="source-import-main" {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
           <div className="link-check-heading">
             <h2>{maintenanceText.sourceTitle}</h2>
             <p>{maintenanceText.sourceDescription}</p>
@@ -10704,37 +10636,45 @@ function AdminLinkCheckPanel({
           </div>
 
           <div className="source-report-grid" aria-live="polite">
-            <div>
+            <div {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
               <span>{maintenanceText.sourceTotal}</span>
               <strong>{displayedSourcePreview.total}</strong>
+              <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} compact />
             </div>
-            <div>
+            <div {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
               <span>{maintenanceText.sourceValid}</span>
               <strong>{displayedSourcePreview.valid}</strong>
+              <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} compact />
             </div>
-            <div>
+            <div {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
               <span>{maintenanceText.sourceDuplicate}</span>
               <strong>{displayedSourcePreview.duplicateInSource}</strong>
+              <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} compact />
             </div>
-            <div>
+            <div {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
               <span>{maintenanceText.sourceExisting}</span>
               <strong>{displayedSourcePreview.duplicateInSite}</strong>
+              <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} compact />
             </div>
-            <div>
+            <div {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
               <span>{maintenanceText.sourceMissing}</span>
               <strong>{displayedSourcePreview.invalid}</strong>
+              <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} compact />
             </div>
-            <div>
+            <div {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
               <span>{maintenanceText.sourceWillCreate}</span>
               <strong>{displayedSourcePreview.willCreate}</strong>
+              <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} compact />
             </div>
-            <div>
+            <div {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
               <span>{maintenanceText.sourceWillUpdate}</span>
               <strong>{displayedSourcePreview.willUpdate}</strong>
+              <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} compact />
             </div>
-            <div>
+            <div {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
               <span>{maintenanceText.sourceWillSkip}</span>
               <strong>{displayedSourcePreview.willSkip}</strong>
+              <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} compact />
             </div>
           </div>
 
@@ -10751,25 +10691,29 @@ function AdminLinkCheckPanel({
             </div>
           ) : null}
 
+          <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} />
         </div>
 
-        <div className="source-import-main source-export-card">
+        <div className="source-import-main source-export-card" {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
           <div className="link-check-heading">
             <h2>{maintenanceText.sourceExportTitle}</h2>
             <p>{maintenanceText.sourceExportDescription}</p>
           </div>
           <div className="source-report-grid source-export-summary">
-            <div>
+            <div {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
               <span>{maintenanceText.sourceExportCount}</span>
               <strong>{tools.length}</strong>
+              <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} compact />
             </div>
-            <div>
+            <div {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
               <span>{maintenanceText.sourceExportFormat}</span>
               <strong>JSON</strong>
+              <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} compact />
             </div>
-            <div>
+            <div {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
               <span>{maintenanceText.sourceExportScope}</span>
               <strong>{maintenanceText.sourceExportScopeAll}</strong>
+              <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} compact />
             </div>
           </div>
           <div className="source-action-row">
@@ -10780,6 +10724,7 @@ function AdminLinkCheckPanel({
               {maintenanceText.sourceExport}
             </button>
           </div>
+          <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} />
         </div>
       </section>
 
@@ -10787,7 +10732,7 @@ function AdminLinkCheckPanel({
       ) : (
         <section className="admin-maintenance-panel admin-maintenance-link-panel">
 
-      <div className="link-check-hero">
+      <div className="link-check-hero" {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
         <div className="link-check-heading">
           <h2>{maintenanceText.linkModuleTitle}</h2>
           <p>{maintenanceText.linkModuleDescription}</p>
@@ -10855,32 +10800,38 @@ function AdminLinkCheckPanel({
             {t.linkCheck.exportCsv}
           </button>
         </div>
+        <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} />
       </div>
 
       <div className="link-check-stats" aria-label={t.linkCheck.progressTitle}>
-        <div>
+        <div {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
           <span>{t.linkCheck.total}</span>
           <strong>{totalCount}</strong>
+          <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} compact />
         </div>
-        <div>
+        <div {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
           <span>{t.linkCheck.checked}</span>
           <strong>{checkedCount}</strong>
+          <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} compact />
         </div>
-        <div>
+        <div {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
           <span>{t.linkCheck.normal}</span>
           <strong>{normalCount}</strong>
+          <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} compact />
         </div>
-        <div>
+        <div {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
           <span>{t.linkCheck.abnormal}</span>
           <strong>{abnormalCount}</strong>
+          <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} compact />
         </div>
-        <div>
+        <div {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
           <span>{t.linkCheck.networkError}</span>
           <strong>{networkErrorCount}</strong>
+          <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} compact />
         </div>
       </div>
 
-      <section className="link-check-progress">
+      <section className="link-check-progress" {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
         <div className="link-check-progress-head">
           <div>
             <h3>{t.linkCheck.progressTitle}</h3>
@@ -10895,9 +10846,10 @@ function AdminLinkCheckPanel({
         <div className="link-check-progress-track" aria-hidden="true">
           <span style={{ width: `${progress}%` }} />
         </div>
+        <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} />
       </section>
 
-      <section className="link-check-results">
+      <section className="link-check-results" {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}>
         <div className="link-check-results-head">
           <div>
             <h3>{t.linkCheck.resultsTitle}</h3>
@@ -11033,6 +10985,7 @@ function AdminLinkCheckPanel({
             </table>
           </div>
         )}
+        <AdminSkeletonLines loading={isLoadingTools} visible={showToolsLoadingSkeleton} />
       </section>
         </section>
       )}

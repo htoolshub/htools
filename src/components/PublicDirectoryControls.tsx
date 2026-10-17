@@ -24,11 +24,13 @@ export function CategoryRail({
     <aside className="category-rail">
       {isLoading ? (
         showSkeletons ? (
-          <div className="category-rail-skeleton" aria-hidden="true">
+          <>
             {Array.from({ length: skeletonItems }).map((_, index) => (
-              <span className="skeleton-shimmer category-skeleton-item" key={index} />
+              <div className="category-item category-item-skeleton" aria-hidden="true" key={index}>
+                <span className="skeleton-shimmer skeleton-line is-long" />
+              </div>
             ))}
-          </div>
+          </>
         ) : null
       ) : (
         categories.map((category) => {

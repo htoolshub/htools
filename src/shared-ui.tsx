@@ -184,23 +184,6 @@ export function SkeletonVisibility({
   return <>{children}</>;
 }
 
-export function SkeletonLayoutMask({
-  children,
-  className = ""
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      aria-hidden="true"
-      className={`skeleton-layout-mask ${className}`.trim()}
-    >
-      {children}
-    </div>
-  );
-}
-
 export function CompactTagRow({
   fallbackCategory = "",
   tags,

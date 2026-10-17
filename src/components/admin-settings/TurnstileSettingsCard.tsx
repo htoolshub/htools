@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { loadTurnstileSettings, saveTurnstileSettings } from "../../admin-api";
 import { getLocalizedErrorMessage } from "../../site-helpers";
-import { SkeletonVisibility } from "../../shared-ui";
 import { useLoadingSkeleton } from "../../useLoadingSkeleton";
 import {
-  AdminSettingsCopySkeleton,
-  AdminSettingsTextMask
+  AdminSkeletonLines,
+  getAdminLoadingProps
 } from "../admin-skeletons";
 import { SettingsStatusBadge } from "./SettingsStatusBadge";
 import type { getAdminMaintenanceText } from "../../admin-text";
@@ -73,27 +72,8 @@ export function TurnstileSettingsCard({
   }
 
   return (
-    <article className="source-public-card turnstile-settings-card">
-      {loading ? (
-        <SkeletonVisibility visible={showSkeleton}>
-          <div className="admin-settings-card-loading" aria-hidden="true">
-            <AdminSettingsCopySkeleton
-              className="source-card-heading"
-              description={maintenanceText.turnstileDescription}
-              title={maintenanceText.turnstileTitle}
-              withStatus
-            />
-            <div className="turnstile-config-help">
-              <AdminSettingsTextMask>
-                {`TURNSTILE_SITE_KEY = ${maintenanceText.turnstileSiteKeyLabel}`}
-              </AdminSettingsTextMask>
-              <AdminSettingsTextMask>
-                {`TURNSTILE_SECRET_KEY = ${maintenanceText.turnstileSecretKeyLabel}`}
-              </AdminSettingsTextMask>
-            </div>
-          </div>
-        </SkeletonVisibility>
-      ) : loadError ? (
+    <article className="source-public-card turnstile-settings-card" {...getAdminLoadingProps(loading, showSkeleton)}>
+      {!loading && loadError ? (
         <div className="settings-card-error" role="alert">
           <h3>{maintenanceText.turnstileTitle}</h3>
           <p>{loadError}</p>
@@ -127,6 +107,7 @@ export function TurnstileSettingsCard({
           </div>
         </div>
       )}
+      <AdminSkeletonLines loading={loading} visible={showSkeleton} />
     </article>
   );
 }

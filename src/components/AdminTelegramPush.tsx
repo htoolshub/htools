@@ -180,7 +180,11 @@ function TelegramPushRecordCard({
           </div>
           <div className="admin-tool-title-meta">
             {displayDate ? <span>{displayDate}</span> : null}
-            {record.deliveryUncertain ? <span>{text.statusUncertain}</span> : null}
+            <span>
+              {record.deliveryUncertain
+                ? text.statusUncertain
+                : pushed ? text.statusPushed : text.statusDraft}
+            </span>
           </div>
         </div>
         <div className="admin-tool-card-actions" ref={actions.rootRef}>

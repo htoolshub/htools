@@ -3,6 +3,7 @@ import { formatGitHubCount, formatGitHubUpdatedAt } from "../admin-display";
 import type { GitHubToolMetadata } from "../types";
 import AdminDetailPlaceholder from "./AdminDetailPlaceholder";
 import AdminFieldAssistButton from "./AdminFieldAssistButton";
+import { AdminSkeletonLines, getAdminLoadingProps } from "./admin-skeletons";
 
 type AdminGitHubMetadataDetailText = {
   empty: string;
@@ -65,27 +66,27 @@ export function AdminGitHubMetadataCard({
 }) {
   if (!canLoad && !metadata) return null;
 
-  const detailItems = metadata
-    ? [
-        { label: detailText.stars, value: formatGitHubCount(metadata.stars) },
-        { label: detailText.forks, value: formatGitHubCount(metadata.forks) },
-        { label: detailText.language, value: metadata.language || "-" },
-        { label: detailText.license, value: metadata.license || "-" },
-        { label: detailText.updatedAt, value: formatGitHubUpdatedAt(metadata.updatedAt) || "-" }
-      ]
-    : [];
+  const isLoading = previewLoading || loading;
+  const showDetails = Boolean(metadata) || isLoading;
+  const detailItems = [
+    { label: detailText.stars, value: metadata ? formatGitHubCount(metadata.stars) : "" },
+    { label: detailText.forks, value: metadata ? formatGitHubCount(metadata.forks) : "" },
+    { label: detailText.language, value: metadata ? metadata.language || "-" : "" },
+    { label: detailText.license, value: metadata ? metadata.license || "-" : "" },
+    { label: detailText.updatedAt, value: metadata ? formatGitHubUpdatedAt(metadata.updatedAt) || "-" : "" }
+  ];
 
   return (
     <div
-      className={`tool-form-field tool-github-detail-field ${metadata ? "" : "is-placeholder"}`.trim()}
+      className={`tool-form-field tool-github-detail-field ${showDetails ? "" : "is-placeholder"}`.trim()}
     >
       <span className="tool-form-label">{detailText.title}</span>
-      <section className="tool-github-detail-card">
-        {metadata ? (
+      <section className="tool-github-detail-card" {...getAdminLoadingProps(isLoading)}>
+        {showDetails ? (
           <>
             <div className="tool-github-detail-repo">
               <Github size={16} />
-              <span>{metadata.fullName}</span>
+              <span>{metadata?.fullName ?? ""}</span>
             </div>
             <div className="tool-github-detail-grid">
               {detailItems.map((item) => (
@@ -99,15 +100,11 @@ export function AdminGitHubMetadataCard({
         ) : (
           <AdminDetailPlaceholder
             icon={<Github size={16} />}
-            role={previewLoading || loading ? "status" : undefined}
           >
-            {previewLoading || loading
-              ? detailText.loading
-              : failed
-                ? detailText.failed
-                : detailText.empty}
+            {failed ? detailText.failed : detailText.empty}
           </AdminDetailPlaceholder>
         )}
+        <AdminSkeletonLines loading={isLoading} />
       </section>
     </div>
   );

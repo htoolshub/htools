@@ -63,6 +63,32 @@ test("public tool and article tags use the shared category fallback", () => {
   );
 });
 
+test("公开文章卡片骨架保留真实内容区并只显示通用细线", () => {
+  const skeleton = appSource.slice(
+    appSource.indexOf("function ArticleItemSkeleton()"),
+    appSource.indexOf("function AboutPage(")
+  );
+  assert.match(skeleton, /className="article-item article-item-skeleton" aria-hidden="true"/);
+  for (const className of ["article-date", "tag-row-shell", "tag-row"]) {
+    assert.match(skeleton, new RegExp(`className="${className}"`));
+  }
+  assert.match(skeleton, /<h3><span className="skeleton-shimmer skeleton-line/);
+  assert.match(skeleton, /<p><span className="skeleton-shimmer skeleton-line/);
+  assert.doesNotMatch(skeleton, /SkeletonLayoutMask|CompactTagRow|Clock3|placeholder|<img|<button|<a\s/);
+  assert.equal((appSource.match(/<ArticleItemSkeleton\b/g) ?? []).length, 2);
+});
+
+test("关于和法律页面的加载共用通用正文骨架", () => {
+  const skeleton = appSource.slice(
+    appSource.indexOf("function AboutContentSkeleton()"),
+    appSource.indexOf("function LegalPage(")
+  );
+  assert.match(skeleton, /return <ArticleBodySkeleton \/>/);
+  assert.doesNotMatch(skeleton, /content|\.split\(|SkeletonLayoutMask/);
+  assert.equal((appSource.match(/<AboutContentSkeleton \/>/g) ?? []).length, 4);
+  assert.doesNotMatch(appSource, /<AboutContentSkeleton content=/);
+});
+
 test("locale selection persists globally and markdown controls follow document language", () => {
   assert.match(appSource, /localStorage\.setItem\("htools_locale", locale\)/);
   assert.match(markdownSource, /document\.documentElement\.lang/);

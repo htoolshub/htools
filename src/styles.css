@@ -723,12 +723,25 @@ html[data-theme="dark"] .global-search-shortcut {
   padding: 32px 24px;
 }
 
-.article-item-skeleton > div {
-  width: min(100%, 620px);
+.article-item-skeleton {
+  pointer-events: none;
 }
 
-.article-item-skeleton .skeleton-line + .skeleton-line {
-  margin-top: 12px;
+.article-item-skeleton .article-date,
+.article-item.article-item-skeleton h3 {
+  display: grid;
+  min-height: 1lh;
+  align-items: center;
+}
+
+.article-item.article-item-skeleton p {
+  display: grid;
+  min-height: 2lh;
+  align-items: center;
+}
+
+.article-item-skeleton .tag-row {
+  align-items: center;
 }
 
 .home-footer {
@@ -1160,10 +1173,6 @@ html[data-theme="dark"] .global-search-shortcut {
 
 .article-detail-cover-frame.is-loaded .article-detail-cover {
   opacity: 1;
-}
-
-.article-detail-loading {
-  pointer-events: none;
 }
 
 .markdown-content {
@@ -3037,6 +3046,27 @@ html[data-theme="dark"] .mobile-nav-drawer {
   min-width: 0;
 }
 
+.tool-card-skeleton {
+  pointer-events: none;
+}
+
+.tool-card-skeleton h2,
+.tool-card-skeleton h3 {
+  display: grid;
+  min-height: 1lh;
+  align-items: center;
+}
+
+.tool-card-skeleton .tool-body p {
+  display: grid;
+  grid-template-rows: repeat(2, 1lh);
+  align-items: center;
+}
+
+.tool-card-skeleton .tag-row {
+  align-items: center;
+}
+
 .tag-row-shell {
   position: relative;
   min-width: 0;
@@ -3176,17 +3206,8 @@ html[data-theme="dark"] .skeleton-shimmer::after {
   width: 42%;
 }
 
-.category-rail-skeleton {
-  display: grid;
-  width: min(220px, 100%);
-  gap: 10px;
-  padding-top: 2px;
-}
-
-.category-skeleton-item {
-  width: 100%;
-  height: 42px;
-  border-radius: 8px;
+.category-item-skeleton {
+  pointer-events: none;
 }
 
 @keyframes skeleton-shimmer {
@@ -3812,9 +3833,6 @@ html[data-theme="dark"] .auth-form input.is-invalid::placeholder {
 }
 
 .admin-workspace {
-  --admin-skeleton-control-height: 44px;
-  --admin-skeleton-textarea-height: 112px;
-  --admin-skeleton-editor-height: 260px;
   --bg: #09090b;
   --surface: #18181b;
   --surface-2: #18181b;
@@ -4073,6 +4091,20 @@ html[data-theme="light"] .admin-workspace {
   height: 36px;
   min-height: 36px;
   border-color: transparent;
+}
+
+@media (min-width: 921px) {
+  .admin-workspace.is-sidebar-collapsed .admin-sidebar-utility {
+    padding: 0;
+  }
+
+  .admin-workspace.is-sidebar-collapsed .admin-sidebar-bottom .icon-button {
+    flex-basis: 42px;
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+    min-height: 42px;
+  }
 }
 
 .admin-workspace.is-sidebar-collapsed .admin-utility-menu .floating-menu {
@@ -4892,20 +4924,22 @@ html[data-theme="light"] .admin-workspace {
 }
 
 .admin-tool-card-actions {
+  --admin-card-action-size: 32px;
   position: relative;
   display: flex;
   flex: 0 0 auto;
   gap: 2px;
-  margin-top: -4px;
+  /* 标题行高为 14px，按按钮实际尺寸对齐中心，保留完整点击区域。 */
+  margin-top: calc((14px - var(--admin-card-action-size)) / 2);
   white-space: nowrap;
 }
 
 .admin-tool-card-actions .icon-button {
-  flex-basis: 24px;
-  width: 24px;
-  min-width: 24px;
-  height: 24px;
-  min-height: 24px;
+  flex: 0 0 var(--admin-card-action-size);
+  width: var(--admin-card-action-size);
+  min-width: var(--admin-card-action-size);
+  height: var(--admin-card-action-size);
+  min-height: var(--admin-card-action-size);
   border-color: transparent;
   border-radius: 7px;
   color: var(--text);
@@ -5238,6 +5272,43 @@ html[data-theme="light"] .admin-workspace {
 
 .admin-resource-card-skeleton {
   pointer-events: none;
+}
+
+[data-admin-loading] {
+  position: relative;
+}
+
+[data-admin-loading] > :not(.admin-loading-lines),
+[data-admin-loading] > :not(.admin-loading-lines) * {
+  visibility: hidden !important;
+}
+
+.admin-loading-lines {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  align-items: center;
+  gap: 12px;
+  padding: inherit;
+  pointer-events: none;
+}
+
+.admin-loading-lines.is-compact {
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.admin-loading-lines.is-pending {
+  visibility: hidden;
+}
+
+.security-settings-updated-at {
+  min-height: 1.4em;
+}
+
+[data-admin-loading] .tool-github-detail-repo > span:empty,
+[data-admin-loading] .tool-github-detail-item > strong:empty {
+  min-height: 1lh;
 }
 
 .admin-empty-state {
@@ -5708,8 +5779,7 @@ html[data-theme="dark"] .telegram-message-count .is-invalid {
   line-height: 1;
 }
 
-.home-copy-description-field textarea,
-.home-copy-description-field .admin-settings-textarea-skeleton {
+.home-copy-description-field textarea {
   width: 100%;
   min-height: 84px;
 }
@@ -5785,8 +5855,7 @@ html[data-theme="dark"] .telegram-message-count .is-invalid {
     grid-template-rows: auto auto;
   }
 
-  .home-copy-description-field textarea,
-  .home-copy-description-field .admin-settings-textarea-skeleton {
+  .home-copy-description-field textarea {
     height: 70px;
     min-height: 70px;
   }
@@ -6100,20 +6169,6 @@ html[data-theme="dark"] .telegram-message-count .is-invalid {
   overflow-wrap: anywhere;
 }
 
-.admin-stat-label-skeleton {
-  width: fit-content;
-  max-width: 100%;
-  min-height: 20px;
-  border-radius: 999px;
-  color: transparent !important;
-}
-
-.admin-stat-value-skeleton {
-  width: 38px;
-  height: 20px;
-  border-radius: 999px;
-}
-
 .source-error-list {
   display: grid;
   gap: 7px;
@@ -6308,14 +6363,6 @@ html[data-theme="dark"] .telegram-message-count .is-invalid {
   opacity: 0.55;
 }
 
-.settings-status-switch-skeleton {
-  display: inline-block;
-  width: 86px;
-  height: 24px;
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--surface-2) 78%, var(--text) 8%) !important;
-}
-
 .public-source-card .source-public-actions .ghost-button {
   min-width: 142px;
 }
@@ -6492,7 +6539,6 @@ html[data-theme="dark"] .telegram-message-count .is-invalid {
   min-width: 0;
 }
 
-.admin-settings-card-loading,
 .settings-card-error {
   display: grid;
   min-width: 0;
@@ -7826,17 +7872,8 @@ html[data-theme="dark"] .admin-workspace .link-check-table th {
     min-width: max-content;
   }
 
-  .category-rail-skeleton {
-    display: flex;
-    flex: 0 0 auto;
-    width: auto;
-    gap: 8px;
-    padding-top: 0;
-  }
-
-  .category-skeleton-item {
+  .category-item-skeleton {
     flex: 0 0 112px;
-    width: auto;
   }
 
   .tool-grid {
@@ -8871,226 +8908,7 @@ html[data-theme="dark"] .admin-workspace .link-check-table th {
 
 .content-flow-skeleton {
   pointer-events: none;
-}
-
-.admin-panel-skeleton {
-  pointer-events: none;
-}
-
-.admin-settings-field-skeleton {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-}
-
-.admin-settings-heading-skeleton {
-  display: grid;
-  align-content: start;
-  gap: 10px;
-  min-width: 0;
-}
-
-.admin-settings-copy-skeleton {
-  display: grid;
-  min-width: 0;
-  align-content: start;
-  gap: 10px;
-}
-
-.admin-settings-copy-skeleton h3,
-.admin-settings-copy-skeleton p {
-  margin: 0;
-}
-
-.admin-settings-text-mask {
-  display: inline;
-  color: transparent !important;
-  border-radius: 4px;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-  padding: 1px 2px;
-  overflow: visible;
-}
-
-.admin-settings-text-mask::after {
-  border-radius: inherit;
-}
-
-.turnstile-config-help > .admin-settings-text-mask {
-  width: fit-content;
-  max-width: 100%;
-}
-
-.admin-settings-heading-skeleton.has-status {
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px 12px;
-  align-items: start;
-}
-
-.admin-settings-heading-skeleton.has-status .skeleton-line:last-child {
-  grid-column: 1 / -1;
-}
-
-.admin-settings-input-skeleton {
-  width: 100%;
-  height: var(--admin-skeleton-control-height, 44px);
-  border-radius: 8px;
-}
-
-.admin-settings-textarea-skeleton {
-  width: 100%;
-  min-height: var(--admin-skeleton-textarea-height, 112px);
-  border-radius: 8px;
-}
-
-.admin-settings-textarea-skeleton.is-editor {
-  min-height: var(--admin-skeleton-editor-height, 260px);
-}
-
-.admin-settings-help-skeleton {
-  max-width: 100%;
-}
-
-.admin-settings-logo-skeleton {
-  width: 42px;
-  height: 42px;
-  flex: 0 0 auto;
-  border-radius: 8px;
-}
-
-.admin-settings-icon-action-skeleton {
-  flex: 0 0 38px;
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-}
-
-.admin-settings-preview-lines {
-  display: grid;
-  width: min(100%, 220px);
-  min-width: 0;
-  gap: 6px;
-}
-
-.admin-settings-button-skeleton {
-  width: 112px;
-  height: 38px;
-  border-radius: 8px;
-}
-
-.admin-settings-button-skeleton.is-secondary {
-  width: 96px;
-}
-
-.admin-workspace .admin-settings-heading-skeleton > .skeleton-line:first-child {
-  width: min(34%, 220px);
-  height: 22px;
-}
-
-.admin-workspace .admin-settings-heading-skeleton > .skeleton-line:last-child {
-  width: min(76%, 780px);
-  height: 20px;
-}
-
-.admin-workspace .admin-settings-field-skeleton > .skeleton-line {
-  width: min(28%, 180px);
-  height: 20px;
-}
-
-.admin-workspace .admin-settings-help-skeleton {
-  width: min(78%, 820px);
-  height: 19px;
-}
-
-.admin-workspace .admin-settings-button-skeleton {
-  height: 42px;
-}
-
-.admin-security-form .admin-settings-field-skeleton:first-child {
-  grid-column: 1 / -1;
-}
-
-.admin-segmented-toggle-skeleton {
-  pointer-events: none;
-}
-
-.admin-segmented-toggle-skeleton .admin-settings-button-skeleton {
-  width: 88px;
-  height: 34px;
-  border-radius: 6px;
-}
-
-.link-check-percent-skeleton {
-  width: 48px;
-  height: 28px;
-  border-radius: 8px;
-}
-
-.skeleton-layout-mask {
-  pointer-events: none;
   user-select: none;
-}
-
-.skeleton-layout-mask h1,
-.skeleton-layout-mask h2,
-.skeleton-layout-mask h3,
-.skeleton-layout-mask p,
-.skeleton-layout-mask li,
-.skeleton-layout-mask a,
-.skeleton-layout-mask code,
-.skeleton-layout-mask .article-date,
-.skeleton-layout-mask .tag,
-.skeleton-layout-mask .admin-tool-avatar,
-.skeleton-layout-mask .content-source-icon,
-.skeleton-layout-mask .admin-tool-title-meta span,
-.skeleton-layout-mask .content-source-group-copy strong,
-.skeleton-layout-mask .content-source-group-copy small,
-.skeleton-layout-mask .content-source-toolbar-title strong,
-.skeleton-layout-mask .content-source-copy strong,
-.skeleton-layout-mask .content-source-copy small,
-.skeleton-layout-mask .content-item-select strong,
-.skeleton-layout-mask .content-item-title-row time,
-.skeleton-layout-mask .article-detail-meta span,
-.skeleton-layout-mask .content-item-summary,
-.skeleton-layout-mask label > span,
-.skeleton-layout-mask label > small {
-  color: transparent !important;
-  background: color-mix(in srgb, var(--surface-2) 78%, var(--text) 8%);
-  border-radius: 6px;
-}
-
-.skeleton-layout-mask p,
-.skeleton-layout-mask label > small {
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-}
-
-.skeleton-layout-mask input,
-.skeleton-layout-mask select,
-.skeleton-layout-mask textarea {
-  color: transparent !important;
-  border-color: transparent !important;
-  background: color-mix(in srgb, var(--surface-2) 78%, var(--text) 8%) !important;
-  opacity: 1 !important;
-}
-
-.skeleton-layout-mask button {
-  color: transparent !important;
-  opacity: 1 !important;
-}
-
-.skeleton-layout-mask .admin-tool-link-text {
-  color: transparent !important;
-  background: color-mix(in srgb, var(--surface-2) 78%, var(--text) 8%);
-}
-
-.skeleton-layout-mask .primary-button {
-  border-color: transparent !important;
-  background: color-mix(in srgb, var(--surface-2) 78%, var(--text) 8%) !important;
-}
-
-.skeleton-layout-mask svg {
-  visibility: hidden;
 }
 
 @keyframes admin-skeleton-surface-shimmer {
@@ -9103,37 +8921,7 @@ html[data-theme="dark"] .admin-workspace .link-check-table th {
   }
 }
 
-.admin-workspace .skeleton-shimmer,
-.admin-workspace .skeleton-layout-mask h1,
-.admin-workspace .skeleton-layout-mask h2,
-.admin-workspace .skeleton-layout-mask h3,
-.admin-workspace .skeleton-layout-mask p,
-.admin-workspace .skeleton-layout-mask li,
-.admin-workspace .skeleton-layout-mask a,
-.admin-workspace .skeleton-layout-mask code,
-.admin-workspace .skeleton-layout-mask .article-date,
-.admin-workspace .skeleton-layout-mask .tag,
-.admin-workspace .skeleton-layout-mask .admin-tool-avatar,
-.admin-workspace .skeleton-layout-mask .admin-tool-title-meta span,
-.admin-workspace .skeleton-layout-mask .content-source-group-copy strong,
-.admin-workspace .skeleton-layout-mask .content-source-group-copy small,
-.admin-workspace .skeleton-layout-mask .content-source-toolbar-title strong,
-.admin-workspace .skeleton-layout-mask .content-source-copy strong,
-.admin-workspace .skeleton-layout-mask .content-source-copy small,
-.admin-workspace .skeleton-layout-mask .content-item-select strong,
-.admin-workspace .skeleton-layout-mask .content-item-title-row time,
-.admin-workspace .skeleton-layout-mask .article-detail-meta span,
-.admin-workspace .skeleton-layout-mask .content-item-summary,
-.admin-workspace .skeleton-layout-mask label > span,
-.admin-workspace .skeleton-layout-mask label > small,
-.admin-workspace .skeleton-layout-mask input,
-.admin-workspace .skeleton-layout-mask select,
-.admin-workspace .skeleton-layout-mask textarea,
-.admin-workspace .skeleton-layout-mask button:not(.content-source-main):not(.content-item-select),
-.admin-workspace .skeleton-layout-mask .admin-tool-link-text,
-.admin-workspace .tool-card-skeleton-media,
-.admin-workspace .article-cover-skeleton,
-.admin-workspace .content-flow-skeleton .content-source-icon {
+.admin-workspace .skeleton-shimmer {
   background-color: transparent !important;
   background-image: linear-gradient(
     90deg,
@@ -9151,50 +8939,7 @@ html[data-theme="dark"] .admin-workspace .link-check-table th {
   display: none;
 }
 
-.admin-workspace .skeleton-layout-mask button:not(.content-source-main):not(.content-item-select) {
-  border-color: transparent !important;
-}
-
-.admin-workspace .skeleton-layout-mask input,
-.admin-workspace .skeleton-layout-mask select {
-  height: var(--admin-skeleton-control-height);
-}
-
-.admin-workspace .skeleton-layout-mask textarea {
-  min-height: var(--admin-skeleton-textarea-height);
-}
-
-html[data-theme="dark"] .admin-workspace .skeleton-shimmer,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask h1,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask h2,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask h3,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask p,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask li,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask a,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask code,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask .article-date,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask .tag,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask .admin-tool-avatar,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask .admin-tool-title-meta span,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask .content-source-group-copy strong,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask .content-source-group-copy small,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask .content-source-toolbar-title strong,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask .content-source-copy strong,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask .content-source-copy small,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask .content-item-select strong,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask .content-item-title-row time,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask .article-detail-meta span,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask .content-item-summary,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask label > span,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask label > small,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask input,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask select,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask textarea,
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask button:not(.content-source-main):not(.content-item-select),
-html[data-theme="dark"] .admin-workspace .skeleton-layout-mask .admin-tool-link-text,
-html[data-theme="dark"] .admin-workspace .tool-card-skeleton-media,
-html[data-theme="dark"] .admin-workspace .article-cover-skeleton,
-html[data-theme="dark"] .admin-workspace .content-flow-skeleton .content-source-icon {
+html[data-theme="dark"] .admin-workspace .skeleton-shimmer {
   background-image: linear-gradient(
     90deg,
     color-mix(in srgb, var(--surface-2) 74%, #fff 8%) 0%,
@@ -9206,11 +8951,12 @@ html[data-theme="dark"] .admin-workspace .content-flow-skeleton .content-source-
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .admin-workspace .skeleton-shimmer,
-  .admin-workspace .skeleton-layout-mask *,
-  .admin-workspace .tool-card-skeleton-media,
-  .admin-workspace .article-cover-skeleton,
-  .admin-workspace .content-flow-skeleton .content-source-icon {
+  .tool-card-skeleton .skeleton-shimmer::after,
+  .article-item-skeleton .skeleton-shimmer::after,
+  .category-item-skeleton .skeleton-shimmer::after,
+  .article-body-skeleton .skeleton-shimmer,
+  .article-body-skeleton .skeleton-shimmer::after,
+  .admin-workspace .skeleton-shimmer {
     animation: none !important;
   }
 }
@@ -9222,52 +8968,34 @@ html[data-theme="dark"] .admin-workspace .content-flow-skeleton .content-source-
   background: color-mix(in srgb, var(--surface-2) 78%, var(--text) 8%);
 }
 
-.article-detail-loading .article-cover-skeleton {
-  display: block;
-  aspect-ratio: 2 / 1;
-  background: color-mix(in srgb, var(--surface-2) 78%, var(--text) 8%);
-}
-
-.content-flow-skeleton .content-source-icon {
-  background: color-mix(in srgb, var(--surface-2) 78%, var(--text) 8%);
-}
-
-.content-flow-skeleton .content-source-copy strong {
-  width: 100%;
+.article-body-skeleton {
+  display: grid;
   min-width: 0;
+  align-content: start;
+  gap: 24px;
+  padding-block: 4px;
 }
 
-.content-flow-skeleton .content-source-copy small,
-.content-flow-skeleton .content-source-group-copy small {
-  width: 24px;
-  min-width: 24px;
+.article-body-skeleton-paragraph {
+  display: grid;
+  gap: 12px;
 }
 
-.content-flow-skeleton .content-source-group-copy strong {
-  width: 100%;
-  min-width: 0;
-}
-
-.content-flow-skeleton .content-source-toolbar-title strong {
-  width: 132px;
+.content-flow-skeleton .content-item-title-row strong,
+.content-flow-skeleton .content-item-title-row time {
+  display: grid;
+  min-height: 1lh;
+  align-items: center;
 }
 
 .content-flow-skeleton .content-item-title-row time {
-  width: 72px;
+  width: 5em;
 }
 
-.skeleton-layout-mask .link-check-progress-track > span {
-  width: 0 !important;
-}
-
-.admin-link-empty-skeleton .skeleton-line {
-  display: block;
-  width: min(42%, 260px);
-  margin-inline: auto;
-}
-
-.content-flow-skeleton .content-flow-section-head .skeleton-line {
-  max-width: 100%;
+.content-flow-skeleton .content-item-summary {
+  display: grid;
+  grid-template-rows: repeat(2, 1lh);
+  align-items: center;
 }
 
 .content-flow-empty {
@@ -9394,10 +9122,6 @@ html[data-theme="dark"] .admin-workspace .content-flow-skeleton .content-source-
     display: block;
     top: 14px;
     right: 8px;
-  }
-
-  .content-item-mobile-actions .admin-tool-card-actions {
-    margin-top: 0;
   }
 
   .content-item-title-row {
@@ -9877,8 +9601,7 @@ html[data-theme="dark"] .admin-workspace .content-flow-skeleton .content-source-
   }
 
   .link-check-actions .primary-button,
-  .link-check-actions .ghost-button,
-  .link-check-actions .admin-settings-button-skeleton {
+  .link-check-actions .ghost-button {
     width: 100%;
   }
 
@@ -10271,22 +9994,6 @@ html[data-theme="dark"] .admin-workspace .content-flow-skeleton .content-source-
     text-align: center;
   }
 }
-.link-check-results-head .admin-settings-heading-skeleton,
-.link-check-progress-head .admin-settings-heading-skeleton {
-  flex: 1 1 auto;
-  width: min(100%, 780px);
-}
-
-.admin-tool-card-actions .icon-button {
-  flex: 0 0 32px;
-  width: 32px;
-  min-width: 32px;
-  height: 32px;
-  min-height: 32px;
-  border-radius: 7px;
-  padding: 0;
-}
-
 .admin-tool-card-actions .icon-button svg,
 .admin-category-filter-list .admin-category-option-action svg {
   width: 15px;
@@ -10298,12 +10005,8 @@ html[data-theme="dark"] .admin-workspace .content-flow-skeleton .content-source-
 }
 
 @media (max-width: 760px) {
-  .admin-tool-card-actions .icon-button {
-    flex-basis: 36px;
-    width: 36px;
-    min-width: 36px;
-    height: 36px;
-    min-height: 36px;
+  .admin-tool-card-actions {
+    --admin-card-action-size: 36px;
   }
 }
 

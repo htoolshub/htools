@@ -2,11 +2,10 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { loadAdminSecuritySettings, updateAdminPassword } from "../../admin-api";
 import { formatAdminDate } from "../../admin-helpers";
 import { getLocalizedErrorMessage } from "../../site-helpers";
-import { SkeletonVisibility } from "../../shared-ui";
 import { useLoadingSkeleton } from "../../useLoadingSkeleton";
 import {
-  AdminSettingsCopySkeleton,
-  AdminSettingsFieldSkeleton
+  AdminSkeletonLines,
+  getAdminLoadingProps
 } from "../admin-skeletons";
 import type { getAdminMaintenanceText } from "../../admin-text";
 import type { Messages } from "../../i18n";
@@ -214,23 +213,8 @@ export function SecuritySettingsCard({
   }
 
   return (
-    <article className="source-public-card admin-security-card">
-      {loading ? (
-        <SkeletonVisibility visible={showSkeleton}>
-          <div className="admin-settings-card-loading" aria-hidden="true">
-            <AdminSettingsCopySkeleton
-              description={maintenanceText.securityDescription}
-              title={maintenanceText.securityTitle}
-            />
-            <form className="admin-security-form">
-              <AdminSettingsFieldSkeleton />
-              <AdminSettingsFieldSkeleton />
-              <AdminSettingsFieldSkeleton />
-              <span className="skeleton-shimmer admin-settings-button-skeleton" />
-            </form>
-          </div>
-        </SkeletonVisibility>
-      ) : loadError ? (
+    <article className="source-public-card admin-security-card" {...getAdminLoadingProps(loading, showSkeleton)}>
+      {!loading && loadError ? (
         <div className="settings-card-error" role="alert">
           <h3>{maintenanceText.securityTitle}</h3>
           <p>{loadError}</p>
@@ -245,13 +229,11 @@ export function SecuritySettingsCard({
           <div>
             <h3>{maintenanceText.securityTitle}</h3>
             <p id="security-settings-description">{maintenanceText.securityDescription}</p>
-            {settings?.updatedAt ? (
-              <p>
-                {maintenanceText.securityUpdatedAt(
-                  formatAdminDate(settings.updatedAt)
-                )}
-              </p>
-            ) : null}
+            <p className="security-settings-updated-at">
+              {!loading && settings?.updatedAt
+                ? maintenanceText.securityUpdatedAt(formatAdminDate(settings.updatedAt))
+                : null}
+            </p>
           </div>
           <form aria-describedby="security-settings-description" className="admin-security-form" onSubmit={save}>
             <label>
@@ -310,6 +292,7 @@ export function SecuritySettingsCard({
           </form>
         </>
       )}
+      <AdminSkeletonLines loading={loading} visible={showSkeleton} />
     </article>
   );
 }

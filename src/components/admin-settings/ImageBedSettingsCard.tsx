@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { loadImageBedSettings, saveImageBedSettings } from "../../admin-api";
 import { getLocalizedErrorMessage } from "../../site-helpers";
-import { SkeletonVisibility } from "../../shared-ui";
 import {
-  AdminSettingsActionsSkeleton,
-  AdminSettingsCopySkeleton,
-  AdminSettingsFieldSkeleton
+  AdminSkeletonLines,
+  getAdminLoadingProps
 } from "../admin-skeletons";
 import { SettingsStatusBadge } from "./SettingsStatusBadge";
 import type { getAdminMaintenanceText } from "../../admin-text";
@@ -157,25 +155,8 @@ export function ImageBedSettingsCard({
   }
 
   return (
-    <article className="source-public-card image-bed-settings-card">
-      {loading ? (
-        <SkeletonVisibility visible>
-          <div className="admin-settings-card-loading" aria-hidden="true">
-            <AdminSettingsCopySkeleton
-              className="source-card-heading"
-              description={maintenanceText.imageBedDescription}
-              title={maintenanceText.imageBedTitle}
-              withStatus
-            />
-            <AdminSettingsFieldSkeleton />
-            <AdminSettingsFieldSkeleton />
-            <AdminSettingsFieldSkeleton />
-            <AdminSettingsFieldSkeleton />
-            <AdminSettingsFieldSkeleton />
-            <AdminSettingsActionsSkeleton count={1} />
-          </div>
-        </SkeletonVisibility>
-      ) : loadError ? (
+    <article className="source-public-card image-bed-settings-card" {...getAdminLoadingProps(loading)}>
+      {!loading && loadError ? (
         <div className="settings-card-error" role="alert">
           <h3>{maintenanceText.imageBedTitle}</h3>
           <p>{loadError}</p>
@@ -276,6 +257,7 @@ export function ImageBedSettingsCard({
           </form>
         </>
       )}
+      <AdminSkeletonLines loading={loading} />
     </article>
   );
 }

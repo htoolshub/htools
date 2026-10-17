@@ -26,10 +26,6 @@ const maintenanceSource = adminSource.slice(
   adminSource.indexOf("type AdminMaintenanceSection"),
   adminSource.indexOf("function getLinkCheckResultText")
 );
-const linkCheckSkeletonSource = await readFile(
-  new URL("../../src/components/admin-skeletons/LinkCheckSkeleton.tsx", import.meta.url),
-  "utf8"
-);
 
 test("import/export and link check are separate settings navigation entries", () => {
   const settingsNavigation = adminSource.slice(
@@ -110,8 +106,8 @@ test("import and export use separate responsive cards", () => {
     /className="primary-button"[\s\S]*?onClick=\{\(\) => void exportSource\(\)\}[\s\S]*?sourceExport/
   );
   assert.match(
-    linkCheckSkeletonSource,
-    /<AdminStatsSkeleton[\s\S]*?className="source-report-grid source-export-summary source-report-grid-skeleton"[\s\S]*?sourceExportCount[\s\S]*?sourceExportFormat[\s\S]*?sourceExportScope/
+    maintenanceSource,
+    /className="source-import-main source-export-card" \{\.\.\.getAdminLoadingProps\(isLoadingTools, showToolsLoadingSkeleton\)\}/
   );
   assert.match(
     stylesSource,
@@ -135,8 +131,8 @@ test("source preview is stable before detection and uses shared text hierarchy",
   assert.doesNotMatch(adminSource, /sourceCheckedAt|source-message subtle/);
   assert.doesNotMatch(stylesSource, /\.source-message/);
   assert.match(
-    linkCheckSkeletonSource,
-    /className="source-report-grid source-report-grid-skeleton"[\s\S]*?sourceTotal[\s\S]*?sourceValid[\s\S]*?sourceDuplicate[\s\S]*?sourceWillSkip/
+    maintenanceSource,
+    /className="source-report-grid" aria-live="polite">\s*<div \{\.\.\.getAdminLoadingProps\(isLoadingTools, showToolsLoadingSkeleton\)\}>[\s\S]*?sourceTotal[\s\S]*?displayedSourcePreview\.total[\s\S]*?<AdminSkeletonLines loading=\{isLoadingTools\} visible=\{showToolsLoadingSkeleton\} compact \/>/
   );
   assert.match(
     stylesSource,
@@ -166,19 +162,34 @@ test("imports accept URL and local htools.json through one preview pipeline", ()
   assert.match(textSource, /sourceFileTooLarge: "Keep the subscription source file under 10MB\."/);
 });
 
-test("link-check skeleton preserves the initial empty result structure", () => {
-  assert.match(
-    linkCheckSkeletonSource,
-    /section === "import-export"[\s\S]*?className="admin-maintenance-panel"[\s\S]*?className="source-import-panel"/
+test("maintenance loading overlays simple lines on the real card and result structure", () => {
+  assert.doesNotMatch(maintenanceSource, /if \(isLoadingTools\)|AdminLinkCheckSkeleton/);
+  for (const className of [
+    "source-import-main",
+    "source-import-main source-export-card",
+    "link-check-hero",
+    "link-check-progress",
+    "link-check-results"
+  ]) {
+    assert.ok(maintenanceSource.includes(
+      `className="${className}" {...getAdminLoadingProps(isLoadingTools, showToolsLoadingSkeleton)}`
+    ));
+  }
+  assert.equal(
+    maintenanceSource.match(/getAdminLoadingProps\(isLoadingTools, showToolsLoadingSkeleton\)/g)?.length,
+    21
   );
-  assert.match(
-    linkCheckSkeletonSource,
-    /className="admin-maintenance-panel admin-maintenance-link-panel"/
+  assert.equal(
+    maintenanceSource.match(/<AdminSkeletonLines loading=\{isLoadingTools\} visible=\{showToolsLoadingSkeleton\} compact \/>/g)?.length,
+    16
   );
-  assert.match(
-    linkCheckSkeletonSource,
-    /className="link-check-empty-state admin-link-empty-skeleton"[\s\S]*?className="skeleton-shimmer skeleton-line is-medium"/
+  assert.equal(
+    maintenanceSource.match(/<AdminSkeletonLines loading=\{isLoadingTools\} visible=\{showToolsLoadingSkeleton\} \/>/g)?.length,
+    5
   );
+  assert.match(maintenanceSource, /className="link-check-empty-state">\s*\{emptyMessage\}/);
+  assert.match(maintenanceSource, /statusItems\.map\(\(item\) =>/);
+  assert.doesNotMatch(maintenanceSource, /tabsStatus\(0, 0\)/);
   assert.match(stylesSource, /\.link-check-empty-state\s*\{[\s\S]*?min-height: 112px;/);
 });
 

@@ -727,10 +727,14 @@ test("后台分类选项留出行间距，操作按钮与选项等高且独立�
     1,
     "分类操作尺寸只在公共分类规则中定义，不跟随卡片断点覆盖"
   );
-  assert.match(styles, /\n\.admin-tool-card-actions \.icon-button \{[^}]*height:\s*32px/);
+  assert.match(ruleFor(".admin-tool-card-actions {"), /--admin-card-action-size:\s*32px/);
+  const cardActionRule = ruleFor(".admin-tool-card-actions .icon-button {");
+  for (const property of ["width", "min-width", "height", "min-height"]) {
+    assert.match(cardActionRule, new RegExp(`${property}:\\s*var\\(--admin-card-action-size\\)`));
+  }
   assert.match(
     styles,
-    /@media \(max-width: 760px\) \{\s*\.admin-tool-card-actions \.icon-button \{[^}]*height:\s*36px/
+    /@media \(max-width: 760px\) \{\s*\.admin-tool-card-actions \{[^}]*--admin-card-action-size:\s*36px/
   );
 });
 

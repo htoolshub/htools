@@ -320,10 +320,7 @@ test("integration status switches share one accessible component and wording", a
     stylesSource,
     /\.settings-status-switch\s*\{[\s\S]*?height:\s*24px;[\s\S]*?min-height:\s*24px;[\s\S]*?align-items:\s*center;/
   );
-  assert.match(
-    stylesSource,
-    /\.settings-status-switch-skeleton\s*\{[\s\S]*?height:\s*24px;/
-  );
+  assert.doesNotMatch(stylesSource, /\.settings-status-switch-skeleton\s*\{/);
   assert.match(
     stylesSource,
     /\.source-card-heading\s*\{[\s\S]*?align-items:\s*center;/

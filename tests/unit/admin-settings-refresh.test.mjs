@@ -32,11 +32,10 @@ const replacements = {
   "../../useLoadingSkeleton": moduleUrl("export const useLoadingSkeleton = (loading) => loading;"),
   "../../../shared/rsshub": moduleUrl("export const normalizeRssHubBaseUrl = (value) => value.trim();"),
   "../admin-skeletons": moduleUrl(`
-    export function AdminSettingsActionsSkeleton() {}
-    export function AdminSettingsCopySkeleton() {}
-    export function AdminSettingsFieldSkeleton() {}
-    export function AdminSettingsTextMask() {}
-    export function GitHubSettingsFormSkeleton() {}
+    export function AdminSkeletonLines() {}
+    export function getAdminLoadingProps(loading) {
+      return loading ? { "aria-busy": true, inert: true, "data-admin-loading": "true" } : {};
+    }
   `),
   "./SettingsStatusBadge": moduleUrl("export function SettingsStatusBadge() {}")
 };
@@ -137,6 +136,29 @@ const cards = [
 for (const card of cards) {
   const Component = await loadComponent(card.name);
   card.Component = Component;
+  test(`${card.name} 加载期间保留真实表单结构并限制交互，完成后解除加载态`, async () => {
+    const pending = deferred();
+    const mounted = mount(Component, { load: () => pending.promise });
+    try {
+      const controls = mounted.find((node) => ["input", "select"].includes(node.type));
+      assert.ok(controls.length > 0, "真实字段应在加载期间参与布局");
+      const loadingRoot = mounted.find((node) => node.props?.["aria-busy"] === true);
+      assert.equal(loadingRoot.length, 1);
+      assert.equal(loadingRoot[0].props.inert, true);
+      assert.equal(mounted.find((node) => node.type?.name === "AdminSkeletonLines")[0].props.loading, true);
+
+      pending.resolve(card.restored);
+      await mounted.flush();
+      assert.equal(mounted.find((node) => node.props?.["aria-busy"] === true).length, 0);
+      assert.deepEqual(
+        mounted.find((node) => ["input", "select"].includes(node.type)).map((node) => node.type),
+        controls.map((node) => node.type)
+      );
+      assert.equal(mounted.find((node) => node.type?.name === "AdminSkeletonLines")[0].props.loading, false);
+      assert.equal(mounted.find((node) => node.type === "input")[0].props.value, card.value);
+    } finally { mounted.unmount(); }
+  });
+
   test(`${card.name} 在备份恢复刷新后同步新配置并替换旧草稿`, async () => {
     let saved = card.initial;
     let reads = 0;

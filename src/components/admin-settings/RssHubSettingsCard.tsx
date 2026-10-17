@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { loadRssHubSettings, saveRssHubSettings } from "../../admin-api";
 import { getLocalizedErrorMessage } from "../../site-helpers";
-import { SkeletonVisibility } from "../../shared-ui";
 import { normalizeRssHubBaseUrl } from "../../../shared/rsshub";
 import {
-  AdminSettingsActionsSkeleton,
-  AdminSettingsFieldSkeleton,
-  AdminSettingsTextMask
+  AdminSkeletonLines,
+  getAdminLoadingProps
 } from "../admin-skeletons";
 import { SettingsStatusBadge } from "./SettingsStatusBadge";
 import type { getAdminMaintenanceText } from "../../admin-text";
@@ -100,25 +98,7 @@ export function RssHubSettingsCard({
     }
   }
 
-  if (loading) {
-    return (
-      <article className="source-public-card rsshub-settings-card">
-        <SkeletonVisibility visible>
-          <div className="admin-settings-card-loading" aria-hidden="true">
-            <div className="source-card-heading">
-              <h3><AdminSettingsTextMask>{maintenanceText.rssHubTitle}</AdminSettingsTextMask></h3>
-              <span className="skeleton-shimmer settings-config-status-skeleton" />
-              <p><AdminSettingsTextMask>{maintenanceText.rssHubDescription}</AdminSettingsTextMask></p>
-            </div>
-            <AdminSettingsFieldSkeleton />
-            <AdminSettingsActionsSkeleton count={1} />
-          </div>
-        </SkeletonVisibility>
-      </article>
-    );
-  }
-
-  if (loadError) {
+  if (!loading && loadError) {
     return (
       <article className="source-public-card rsshub-settings-card">
         <div className="settings-card-error" role="alert">
@@ -135,7 +115,7 @@ export function RssHubSettingsCard({
   const dirty = baseUrl.trim() !== (settings?.baseUrl ?? "");
 
   return (
-    <article className="source-public-card rsshub-settings-card">
+    <article className="source-public-card rsshub-settings-card" {...getAdminLoadingProps(loading)}>
       <div className="source-card-heading">
         <h3>{maintenanceText.rssHubTitle}</h3>
         <SettingsStatusBadge
@@ -174,6 +154,7 @@ export function RssHubSettingsCard({
           </button>
         </div>
       </form>
+      <AdminSkeletonLines loading={loading} />
     </article>
   );
 }

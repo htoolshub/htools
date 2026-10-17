@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { loadGitHubSettings, saveGitHubSettings } from "../../admin-api";
 import { getLocalizedErrorMessage } from "../../site-helpers";
-import { SkeletonVisibility } from "../../shared-ui";
 import { useLoadingSkeleton } from "../../useLoadingSkeleton";
-import { GitHubSettingsFormSkeleton } from "../admin-skeletons";
+import { AdminSkeletonLines, getAdminLoadingProps } from "../admin-skeletons";
 import { SettingsStatusBadge } from "./SettingsStatusBadge";
 import type { getAdminMaintenanceText } from "../../admin-text";
 import type { Messages } from "../../i18n";
@@ -185,15 +184,7 @@ export function GitHubSettingsForm({
     }
   }
 
-  if (isLoadingSettings) {
-    return (
-      <SkeletonVisibility visible={showSettingsSkeleton}>
-        <GitHubSettingsFormSkeleton maintenanceText={maintenanceText} />
-      </SkeletonVisibility>
-    );
-  }
-
-  if (settingsError) {
+  if (!isLoadingSettings && settingsError) {
     return (
       <div className="settings-card-error" role="alert">
         <h3>{maintenanceText.githubSubmissionTitle}</h3>
@@ -212,6 +203,7 @@ export function GitHubSettingsForm({
       aria-describedby="github-settings-description"
       className="tool-form github-settings-form"
       onSubmit={handleSave}
+      {...getAdminLoadingProps(isLoadingSettings, showSettingsSkeleton)}
     >
       <div className="settings-card-heading github-settings-heading">
         <div>
@@ -275,6 +267,7 @@ export function GitHubSettingsForm({
           {t.actions.saveSettings}
         </button>
       </div>
+      <AdminSkeletonLines loading={isLoadingSettings} visible={showSettingsSkeleton} />
     </form>
   );
 }

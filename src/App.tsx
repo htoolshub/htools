@@ -73,7 +73,6 @@ import {
   PublicGlowAction,
   SiteBrandIdentity,
   SiteSettingsContext,
-  SkeletonLayoutMask,
   SkeletonVisibility,
   useSiteSettings
 } from "./shared-ui";
@@ -81,6 +80,7 @@ import UtilityMenuControls, {
   type UtilityMenuController
 } from "./components/UtilityMenuControls";
 import ArticleDetailContent, {
+  ArticleBodySkeleton,
   ArticleDetailContentSkeleton
 } from "./components/ArticleDetailContent";
 import { CategoryRail, DirectoryPagination } from "./components/PublicDirectoryControls";
@@ -1321,7 +1321,7 @@ function HomePage({
             {isLoading ? (
               <SkeletonVisibility visible={showToolSkeletons}>
                 {Array.from({ length: 8 }).map((_, index) => (
-                  <ToolCardSkeleton key={index} />
+                  <ToolCardSkeleton home key={index} />
                 ))}
               </SkeletonVisibility>
             ) : latestTools.length > 0 ? (
@@ -1897,7 +1897,6 @@ function ArticleDetailPage({
           <SkeletonVisibility visible={showSkeleton}>
             <ArticleDetailContentSkeleton
               backLink={{ href: "/articles", label: articleText.backToArticles }}
-              locale={locale}
             />
           </SkeletonVisibility>
         ) : article ? (
@@ -2038,14 +2037,20 @@ function ArticleListItem({
 
 function ArticleItemSkeleton() {
   return (
-    <SkeletonLayoutMask className="article-item article-item-skeleton">
+    <div className="article-item article-item-skeleton" aria-hidden="true">
       <div>
-        <span className="article-date"><Clock3 size={16} />2026-07-18</span>
-        <h3>Article title placeholder</h3>
-        <p>Article summary placeholder follows the final card structure.</p>
-        <CompactTagRow tags={["Tag", "Category"]} />
+        <span className="article-date">
+          <span className="skeleton-shimmer skeleton-line is-short" />
+        </span>
+        <h3><span className="skeleton-shimmer skeleton-line is-medium" /></h3>
+        <p><span className="skeleton-shimmer skeleton-line is-long" /></p>
+        <div className="tag-row-shell">
+          <div className="tag-row">
+            <span className="skeleton-shimmer skeleton-line is-short" />
+          </div>
+        </div>
       </div>
-    </SkeletonLayoutMask>
+    </div>
   );
 }
 
@@ -2093,7 +2098,7 @@ function AboutPage({
               <Suspense
                 fallback={
                   <LoadingSkeleton>
-                    <AboutContentSkeleton content={aboutContent} />
+                    <AboutContentSkeleton />
                   </LoadingSkeleton>
                 }
               >
@@ -2105,7 +2110,7 @@ function AboutPage({
               </Suspense>
             ) : (
               <SkeletonVisibility visible={showSettingsSkeleton}>
-                <AboutContentSkeleton content={aboutContent} />
+                <AboutContentSkeleton />
               </SkeletonVisibility>
             )}
           </article>
@@ -2117,23 +2122,8 @@ function AboutPage({
   );
 }
 
-function AboutContentSkeleton({ content }: { content: string }) {
-  const blocks = content
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  return (
-    <SkeletonLayoutMask className="markdown-content about-content-skeleton">
-      {blocks.map((line, index) => {
-        if (line.startsWith("### ")) return <h3 key={index}>{line.slice(4)}</h3>;
-        if (line.startsWith("## ")) return <h2 key={index}>{line.slice(3)}</h2>;
-        if (line.startsWith("# ")) return <h1 key={index}>{line.slice(2)}</h1>;
-        if (/^[-*+]\s+/.test(line)) return <li key={index}>{line.replace(/^[-*+]\s+/, "")}</li>;
-        return <p key={index}>{line.replace(/^>\s?/, "")}</p>;
-      })}
-    </SkeletonLayoutMask>
-  );
+function AboutContentSkeleton() {
+  return <ArticleBodySkeleton />;
 }
 
 function LegalPage({
@@ -2182,7 +2172,7 @@ function LegalPage({
               <Suspense
                 fallback={
                   <LoadingSkeleton>
-                    <AboutContentSkeleton content={content} />
+                    <AboutContentSkeleton />
                   </LoadingSkeleton>
                 }
               >
@@ -2194,7 +2184,7 @@ function LegalPage({
               </Suspense>
             ) : (
               <SkeletonVisibility visible={showSettingsSkeleton}>
-                <AboutContentSkeleton content={content} />
+                <AboutContentSkeleton />
               </SkeletonVisibility>
             )}
           </article>
@@ -3055,24 +3045,35 @@ function getToolDemoHref(tool: Tool) {
   return demoUrl;
 }
 
-function ToolCardSkeleton() {
+function ToolCardSkeleton({ home = false }: { home?: boolean }) {
   return (
-    <SkeletonLayoutMask className="tool-card">
+    <article aria-hidden="true" className={`tool-card tool-card-skeleton${home ? " home-tool-card" : ""}`}>
       <div className="tool-card-media">
         <div className="tool-preview-shell">
           <div className="tool-image-link tool-card-skeleton-media" />
         </div>
       </div>
       <div className="tool-body">
-        <div className="tool-heading">
-          <h2><a className="tool-title-link" href="#">Tool name placeholder</a></h2>
-        </div>
-        <p>Tool description placeholder follows the final card structure.</p>
+        {home ? (
+          <h3><span className="skeleton-shimmer skeleton-line is-medium" /></h3>
+        ) : (
+          <div className="tool-heading">
+            <h2><span className="skeleton-shimmer skeleton-line is-medium" /></h2>
+          </div>
+        )}
+        <p>
+          <span className="skeleton-shimmer skeleton-line" />
+          <span className="skeleton-shimmer skeleton-line is-long" />
+        </p>
         <div className="tool-card-footer">
-          <CompactTagRow tags={["Tool", "Open Source", "Web"]} />
+          <div className="tag-row-shell">
+            <div className="tag-row">
+              <span className="skeleton-shimmer skeleton-line is-short" />
+            </div>
+          </div>
         </div>
       </div>
-    </SkeletonLayoutMask>
+    </article>
   );
 }
 

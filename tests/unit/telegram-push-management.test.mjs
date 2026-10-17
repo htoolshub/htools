@@ -315,7 +315,7 @@ test("Telegram previews use one concise title and one shared message border", ()
     /return \(\s*<div className=\{`telegram-channel-preview-message \$\{mediaEnabled \? "has-photo" : ""\}`\.trim\(\)\}>/
   );
   assert.doesNotMatch(adminSource, /tool-github-detail-card telegram-message-preview/);
-  assert.match(adminSource, /<AdminDetailPlaceholder[\s\S]*?telegram-channel-preview-message/);
+  assert.match(adminSource, /<div className="telegram-channel-preview-message">\s*<ArticleBodySkeleton \/>/);
   assert.match(githubMetadataSource, /<AdminDetailPlaceholder/);
   assert.match(detailPlaceholderSource, /className=\{`admin-detail-placeholder/);
   assert.doesNotMatch(styles, /tool-github-detail-placeholder/);
@@ -323,6 +323,60 @@ test("Telegram previews use one concise title and one shared message border", ()
     styles,
     /\.telegram-message-preview\s*\{[\s\S]*?border:\s*0;[\s\S]*?background:\s*transparent;[\s\S]*?padding:\s*0;/
   );
+});
+
+test("GitHub 信息卡加载复用真实仓库和五项网格，失败与空态保留提示", async () => {
+  const [React, { renderToStaticMarkup }, loadingSource] = await Promise.all([
+    import("react"),
+    import("react-dom/server"),
+    readFile(new URL("../../src/components/admin-skeletons/LoadingSkeleton.tsx", import.meta.url), "utf8")
+  ]);
+  const program = ts.transpileModule([
+    extractDeclarations(githubMetadataSource, ["AdminGitHubMetadataCard"], "AdminGitHubMetadata.tsx"),
+    extractDeclarations(loadingSource, ["getAdminLoadingProps", "AdminSkeletonLines"], "LoadingSkeleton.tsx")
+  ].join("\n"), {
+    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext, jsx: ts.JsxEmit.React }
+  }).outputText;
+  const Card = new Function("React", "Github", "formatGitHubCount", "formatGitHubUpdatedAt", "AdminDetailPlaceholder",
+    `${program}; return AdminGitHubMetadataCard;`
+  )(
+    React,
+    () => React.createElement("svg"),
+    String,
+    (value) => value,
+    ({ children }) => React.createElement("div", { className: "admin-detail-placeholder" }, children)
+  );
+  const detailText = {
+    empty: "暂无仓库信息", failed: "读取失败", loading: "读取中", title: "GitHub 信息",
+    stars: "星标", forks: "分支", language: "语言", license: "许可证", updatedAt: "更新时间"
+  };
+  const props = { canLoad: true, detailText, failed: false, loading: false, previewLoading: false, metadata: null };
+  const render = (overrides = {}) => renderToStaticMarkup(React.createElement(Card, { ...props, ...overrides }));
+  const metadata = { fullName: "example/project", stars: 123, forks: 45, language: "TypeScript", license: "MIT", updatedAt: "2026-10-17" };
+  for (const flags of [{ loading: true }, { previewLoading: true }]) {
+    for (const value of [null, metadata]) {
+      const html = render({ ...flags, metadata: value });
+      assert.match(html, /data-admin-loading="visible"/);
+      assert.match(html, /aria-busy="true"/);
+      assert.match(html, /inert=""/);
+      assert.equal((html.match(/class="tool-github-detail-item"/g) ?? []).length, 5);
+      assert.equal((html.match(/skeleton-shimmer skeleton-line/g) ?? []).length, 4);
+      assert.match(html, /class="tool-github-detail-repo"/);
+      assert.doesNotMatch(html, /admin-detail-placeholder|is-placeholder|读取中/);
+      if (!value) assert.equal((html.match(/<strong><\/strong>/g) ?? []).length, 5);
+    }
+  }
+  const loaded = render({ metadata });
+  assert.equal((loaded.match(/class="tool-github-detail-item"/g) ?? []).length, 5);
+  assert.match(loaded, /example\/project/);
+  assert.doesNotMatch(loaded, /data-admin-loading|inert=|admin-loading-lines/);
+  for (const failed of [false, true]) {
+    const html = render({ failed });
+    assert.match(html, /admin-detail-placeholder/);
+    assert.ok(html.includes(failed ? detailText.failed : detailText.empty));
+    assert.doesNotMatch(html, /tool-github-detail-grid|admin-loading-lines|data-admin-loading/);
+  }
+  assert.equal(render({ canLoad: false }), "");
 });
 
 test("pushed status remains informative without attempting to revert to draft", () => {
@@ -364,11 +418,14 @@ test("tool, article, and push loading states reuse one public card skeleton grid
     assert.doesNotMatch(source, /AdminToolCardSkeleton|AdminArticleCardSkeleton|TelegramPushRecordSkeleton/);
   }
   assert.doesNotMatch(styles, /admin-article-card-skeleton|admin-tool-card-skeleton/);
-  assert.match(styles, /skeleton-layout-mask/);
-  assert.match(
-    styles,
-    /\.skeleton-layout-mask \.admin-tool-link-text \{[\s\S]*?color: transparent !important/
-  );
+  assert.doesNotMatch(styles, /skeleton-layout-mask/);
+  assert.match(skeletonSource, /skeleton-shimmer skeleton-line/);
+  assert.match(skeletonSource, /aria-hidden="true"/);
+  assert.doesNotMatch(skeletonSource, /<button|<a\s|<img|<svg|CompactTagRow|admin-tool-avatar|admin-tool-card-actions|admin-tool-title-meta|admin-tool-link-text/);
+  for (const layoutClass of ["admin-tool-title", "admin-tool-description", "admin-tool-links"]) {
+    assert.match(skeletonSource, new RegExp(`className="${layoutClass}">\\s*<span className="skeleton-shimmer skeleton-line`));
+  }
+  assert.match(skeletonSource, /className="admin-tool-card-footer">\s*<div className="tag-row">\s*<span className="skeleton-shimmer skeleton-line/);
   assert.match(
     adminSource,
     /const showTelegramPushSkeletons = isInitialTelegramPushLoad;/

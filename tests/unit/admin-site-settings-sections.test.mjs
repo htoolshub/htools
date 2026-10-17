@@ -10,6 +10,28 @@ const settingsPanelSource = source.slice(
   source.indexOf("function AdminSystemSettingsPanel"),
   source.indexOf("function Dialog")
 );
+const legalCardSource = await readFile(
+  new URL("../../src/components/admin-settings/LegalSettingsCard.tsx", import.meta.url),
+  "utf8"
+);
+
+test("站点和服务设置在真实卡片内复用通用细线骨架", () => {
+  for (const cardClass of [
+    "site-identity-card", "home-copy-settings-card", "footer-settings-card",
+    "public-source-card", "ai-settings-card", "proxy-settings-card",
+    "factory-reset-card", "backup-restore-card"
+  ]) {
+    assert.match(
+      settingsPanelSource,
+      new RegExp(`className="source-public-card ${cardClass}" \\{\\.\\.\\.getAdminLoadingProps\\(`)
+    );
+  }
+  assert.doesNotMatch(settingsPanelSource, /<(?:SiteSettingsGroupSkeleton|ProxySettingsCardSkeleton|FactoryResetCardSkeleton|BackupRestoreCardSkeleton|AdminSettingsFieldSkeleton)\b/);
+  assert.equal((settingsPanelSource.match(/<LegalSettingsCard\s+busy=\{\w+\}\s+loading=\{siteSettingsLoading\}\s+visible=\{showSiteSettingsSkeleton\}/g) ?? []).length, 3);
+  assert.match(legalCardSource, /getAdminLoadingProps\(loading, visible\)/);
+  assert.match(legalCardSource, /<AdminSkeletonLines loading=\{loading\} visible=\{visible\} \/>/);
+  assert.equal((legalCardSource.match(/<AdminMarkdownEditor\b/g) ?? []).length, 2);
+});
 
 test("site identity, home, footer, about, privacy, and terms use independent submit handlers", () => {
   assert.match(settingsPanelSource, /onSubmit=\{saveSiteIdentityForm\}/);

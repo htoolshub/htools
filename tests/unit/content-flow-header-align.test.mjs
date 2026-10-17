@@ -70,6 +70,51 @@ test("左栏那两行说明文字已经不在标题块里，样式与遮罩残�
   assert.doesNotMatch(styles, /\.content-flow-section-head > p:first-of-type/);
 });
 
+test("订阅骨架复用三栏和真实行容器，仅显示通用细线", () => {
+  for (const className of [
+    "content-flow-rail",
+    "content-flow-main",
+    "content-flow-reader",
+    "content-flow-section-head",
+    "content-source-toolbar",
+    "content-reader-toolbar",
+    "content-source-list",
+    "content-source-group",
+    "content-item-list",
+    "content-item-card has-source-icon",
+    "content-item-select",
+    "content-item-title-row",
+    "content-item-summary"
+  ]) {
+    assert.ok(skeletonSource.includes(`className="${className}"`), `骨架必须保留 ${className}`);
+  }
+  assert.match(skeletonSource, /<ArticleDetailContentSkeleton \/>/);
+  assert.doesNotMatch(skeletonSource, /skeleton-layout-mask|lucide-react|<button\b|<small\b|<img\b/);
+  assert.doesNotMatch(skeletonSource, /content-source-group-wrap|content-source-group-items|content-source-icon/);
+  assert.doesNotMatch(skeletonSource, /placeholder|\d{4}-\d{2}-\d{2}/);
+  assert.doesNotMatch(styles, /\.skeleton-layout-mask \.content-(?:source|item)-/);
+});
+
+test("订阅条目细线保留标题日期行盒和两行摘要，不固定卡片总高度", () => {
+  assert.match(skeletonSource, /<strong><span className="skeleton-shimmer skeleton-line is-long" \/><\/strong>/);
+  assert.match(skeletonSource, /<time><span className="skeleton-shimmer skeleton-line is-long" \/><\/time>/);
+  assert.match(
+    skeletonSource,
+    /<span className="content-item-summary">\s*<span className="skeleton-shimmer skeleton-line is-long" \/>\s*<span className="skeleton-shimmer skeleton-line is-medium" \/>\s*<\/span>/
+  );
+  assert.match(
+    styles,
+    /\.content-flow-skeleton \.content-item-title-row strong,\s*\.content-flow-skeleton \.content-item-title-row time \{/
+  );
+  const titleLine = ruleFor(".content-flow-skeleton .content-item-title-row time");
+  assert.equal(declaration(titleLine, "min-height"), "1lh");
+  assert.equal(declaration(titleLine, "display"), "grid");
+  const summary = ruleFor(".content-flow-skeleton .content-item-summary");
+  assert.equal(declaration(summary, "display"), "grid");
+  assert.equal(declaration(summary, "grid-template-rows"), "repeat(2, 1lh)");
+  assert.doesNotMatch(styles, /\.content-flow-skeleton \.content-item-card(?:\s|[.{:#])/);
+});
+
 test("说明文字搬进订阅内容空态：两句拼接，且公共空态组件一个字未改", () => {
   assert.match(
     adminSource,

@@ -3,7 +3,7 @@ import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { getArticleDisplayTitle, getArticleText, stripLeadingArticleDuplicates } from "../article-helpers";
 import { formatAdminDate } from "../admin-helpers";
 import { proxifyUrl } from "../proxy";
-import { CompactTagRow, SkeletonLayoutMask } from "../shared-ui";
+import { CompactTagRow } from "../shared-ui";
 import type { Locale } from "../i18n";
 import type { Article, ProxySettings } from "../types";
 
@@ -74,33 +74,17 @@ export default function ArticleDetailContent({
 }
 
 export function ArticleDetailContentSkeleton({
-  backLink,
-  locale
+  backLink
 }: {
   backLink?: ArticleBackLink;
-  locale: Locale;
 }) {
-  const articleText = getArticleText(locale);
-
   return (
     <section className="article-detail-card article-detail-loading">
       {backLink ? (
-        <SkeletonLayoutMask>
-          <a className="ghost-button article-back-link" href={backLink.href}>
-            <ChevronLeft size={16} />{backLink.label}
-          </a>
-        </SkeletonLayoutMask>
+        <a className="ghost-button article-back-link" href={backLink.href}>
+          <ChevronLeft size={16} />{backLink.label}
+        </a>
       ) : null}
-      <SkeletonLayoutMask className="article-detail-head article-detail-head-skeleton">
-        <div className="article-detail-meta">
-          <span>Category</span>
-          <span>{articleText.publishedOn("2026-07-18")}</span>
-        </div>
-        <h1>Article detail title placeholder</h1>
-        <p>Article detail summary follows the final responsive typography.</p>
-        <CompactTagRow tags={["Article", "Category", "Guide"]} />
-      </SkeletonLayoutMask>
-      <div className="article-detail-cover-frame article-cover-skeleton" aria-hidden="true" />
       <ArticleBodySkeleton />
     </section>
   );
@@ -157,12 +141,14 @@ function ArticleDetailCover({
 
 export function ArticleBodySkeleton() {
   return (
-    <SkeletonLayoutMask className="markdown-content article-body-skeleton">
-      <h2>Article section heading</h2>
-      <p>Article paragraph content follows the final Markdown typography and width.</p>
-      <p>Additional paragraph content keeps the same spacing and responsive wrapping.</p>
-      <h3>Article subsection heading</h3>
-      <ul><li>Article list item</li><li>Article list item</li></ul>
-    </SkeletonLayoutMask>
+    <div className="article-body-skeleton" aria-hidden="true">
+      {Array.from({ length: 3 }, (_, index) => (
+        <div className="article-body-skeleton-paragraph" key={index}>
+          <span className="skeleton-shimmer skeleton-line" />
+          <span className="skeleton-shimmer skeleton-line is-long" />
+          <span className={`skeleton-shimmer skeleton-line ${index === 1 ? "is-short" : "is-medium"}`} />
+        </div>
+      ))}
+    </div>
   );
 }
