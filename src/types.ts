@@ -342,6 +342,7 @@ export type TelegramConnection = {
 export type TelegramMessage = {
   exists: boolean;
   targetChanged: boolean;
+  deliveryUncertain: boolean;
   syncStatus: "not_pushed" | "pending" | "synced";
   bodyMarkdown: string;
   mediaEnabled: boolean;
@@ -383,6 +384,7 @@ export type TelegramPushRecord = {
   mediaEnabled: boolean;
   mediaUrl: string;
   syncStatus: "not_pushed" | "pending" | "synced";
+  deliveryUncertain: boolean;
   sentAt: string;
   updatedAt: string;
 };

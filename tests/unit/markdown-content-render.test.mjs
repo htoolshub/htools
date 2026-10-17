@@ -8,6 +8,16 @@ import { compileTypescriptModule } from "../helpers/compile-typescript.mjs";
 
 const proxy = await compileTypescriptModule(new URL("../../src/proxy.ts", import.meta.url));
 after(() => proxy.cleanup());
+const stub = (body) => `data:text/javascript,${encodeURIComponent(body)}`;
+const articleHelpers = await compileTypescriptModule(new URL("../../src/article-helpers.ts", import.meta.url), {
+  importReplacements: {
+    "lucide-react": import.meta.resolve("lucide-react"),
+    "./admin-field-examples": stub("export const ADMIN_RESOURCE_FIELD_EXAMPLES = { zh: {}, en: {} };"),
+    "./i18n": stub("export const translations = { zh: {}, en: {} };"),
+    "./admin-helpers": stub('export const ADMIN_FEATURED_CATEGORY = "Featured";')
+  }
+});
+after(() => articleHelpers.cleanup());
 const source = await readFile(new URL("../../src/components/MarkdownContent.tsx", import.meta.url), "utf8");
 let compiled = ts.transpileModule(source, {
   fileName: "MarkdownContent.tsx",
@@ -17,8 +27,129 @@ for (const specifier of ["react", "react/jsx-runtime", "lucide-react", "react-ma
   compiled = compiled.replaceAll(`from "${specifier}"`, `from "${import.meta.resolve(specifier)}"`);
 }
 compiled = compiled.replaceAll('from "../proxy"', `from "${proxy.url.href}"`);
-const { default: MarkdownContent } = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`);
+compiled = compiled.replaceAll('from "../article-helpers"', `from "${articleHelpers.url.href}"`);
+const { default: MarkdownContent, ArticleSummary } = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`);
 const render = (content) => renderToStaticMarkup(createElement(MarkdownContent, { content, locale: "zh" }));
+const renderSummary = (summary, content) => renderToStaticMarkup(createElement(ArticleSummary, { summary, content }));
+
+test("HTML 简介判重保留代码字面量和行内元素之间的词界", () => {
+  for (const [summary, content] of [
+    ["Use xy.", "<pre>Use x_y.</pre>"],
+    ["Use xy.", "<div>Use x_y.</div>"],
+    ["We are now here", "<p>We are now<strong>here</strong></p>"],
+    ["We are nowhere", "We are now<br>here"]
+  ]) {
+    assert.equal(renderSummary(summary, content), `<p>${summary}</p>`);
+  }
+  assert.ok(render("<pre>Use x_y.</pre>").includes("Use x_y."));
+  assert.equal(renderSummary("We are nowhere", "<p>We are now<strong>here</strong></p>"), "");
+  assert.equal(renderSummary("Read docs.", "<p>Read <strong>docs</strong>.</p>"), "");
+  assert.equal(renderSummary("Read docs.", "<div>Read</div><div>docs.</div>"), "");
+});
+
+test("简介只与净化后的可见正文比较，被删除的标签和脚本不算重复", () => {
+  for (const [summary, content, visible] of [
+    ["#topic", "#topic\n\nDifferent paragraph.", "Different paragraph."],
+    ["Read docs.", "Read <script>docs</script>.", "Read ."],
+    ["Read docs.", "Read <style>docs</style>.", "Read ."]
+  ]) {
+    assert.equal(renderSummary(summary, content), `<p>${summary}</p>`);
+    const html = render(content);
+    assert.ok(html.includes(visible));
+    assert.doesNotMatch(html, /#topic|<script|<style/);
+  }
+  assert.equal(renderSummary("Different paragraph.", "#topic\n\nDifferent paragraph."), "");
+  assert.equal(renderSummary("Read docs.", "<!-- comment -->\n\nRead docs."), "");
+});
+
+test("简介比较遵循链接卡片的实际显示顺序，原文卡片内容继续参与比较", () => {
+  const links = "::links\n# Resources\n- [Docs](https://example.com/docs)\n::";
+  assert.equal(renderSummary("Start here.", `${links}\n\nStart here.`), "");
+  assert.equal(renderSummary("Resources Docs", links), "");
+  assert.equal(renderSummary("Original Link Docs", "## Original Link\n[Docs](https://example.com/docs)"), "");
+  assert.equal(renderSummary("Read docs.", "Read[^note] docs.\n\n[^note]: Other details."), "");
+});
+
+test("文章简介按英文词界比较，多余空白不影响去重", () => {
+  for (const [summary, content] of [
+    ["We need a part.", "We need apart."],
+    ["We are now here.", "We are nowhere."],
+    ["We need apart.", "We need a part."]
+  ]) {
+    assert.equal(renderSummary(summary, content), `<p>${summary}</p>`);
+  }
+  assert.equal(renderSummary("We need a part.", "We\nneed a   part.\n\nMore details."), "");
+});
+
+test("重复简介兼容无序、有序、嵌套与任务列表，正文列表保留", () => {
+  for (const content of [
+    "- Read docs.",
+    "1. Read docs.",
+    "- [x] Read docs.",
+    "> - Read docs.",
+    "- Read\n  - docs."
+  ]) {
+    assert.equal(renderSummary("Read docs.", content), "");
+    assert.match(render(content), /<li[ >]/);
+  }
+  assert.equal(renderSummary("Read apart.", "- Read a\n- part."), "<p>Read apart.</p>");
+});
+
+test("重复简介识别完整、折叠和快捷引用，正文链接仍可访问", () => {
+  for (const content of [
+    "Read [docs][d].\n\n[d]: https://example.com/docs",
+    'Read [docs][DOCS].\n\n[docs]: <https://example.com/docs> "说明"',
+    "Read [docs][].\n\n[docs]: https://example.com/docs",
+    "Read [docs].\n\n[docs]: https://example.com/docs"
+  ]) {
+    assert.equal(renderSummary("Read docs.", content), "");
+    assert.match(render(content), /href="https:\/\/example\.com\/docs"/);
+  }
+});
+
+test("未定义引用与代码里的Markdown、HTML及标识符不能误隐藏简介", () => {
+  for (const [summary, content] of [
+    ["Read docs.", "Read [docs][missing]."],
+    ["Read docs.", "`Read [docs][d].`\n\n[d]: https://example.com/docs"],
+    ["Read docs.", "```md\nRead [docs][d].\n```\n\n[d]: https://example.com/docs"],
+    ["Read docs.", "`Read <tag>docs</tag>.`"],
+    ["Use xy.", "`Use x_y.`"],
+    ["First item.", "    - First item."],
+    ["First item.", "```md\n* First item.\n```"],
+    ["First item.", "\\* First item."]
+  ]) {
+    assert.equal(renderSummary(summary, content), `<p>${summary}</p>`);
+  }
+});
+
+test("简介比较兼容中文实体、链接、引用和图片，正文保持完整", () => {
+  const summary = "第一段 A & B 内容。第二段包含链接和引用。";
+  const paragraphs = "第一段 A &amp; B 内容。\n\n> 第二段包含[链接](https://example.com)和引用。";
+  for (const image of [
+    "",
+    "![图片说明](image.png)\n\n",
+    "[![图片说明](image.png)](https://example.com/image)\n\n",
+    "![图片说明][cover]\n\n[cover]: image.png\n\n"
+  ]) {
+    const content = image + paragraphs;
+    assert.equal(renderSummary(summary, content), "");
+    const html = render(content);
+    assert.ok(html.includes("第一段 A &amp; B 内容。"));
+    assert.match(html, /<blockquote>/);
+    assert.match(html, /href="https:\/\/example\.com"/);
+  }
+});
+
+test("独立简介、正文较短或仅在中间匹配时仍显示，空简介不占位置", () => {
+  for (const [summary, content] of [
+    ["Independent summary.", "Read docs."],
+    ["Read docs and examples.", "Read docs."],
+    ["Read docs.", "Start here.\n\nRead docs."]
+  ]) {
+    assert.equal(renderSummary(summary, content), `<p>${summary}</p>`);
+  }
+  assert.equal(renderSummary("", "Read docs."), "");
+});
 
 for (const fence of ["```", "~~~~"]) {
   test(`${fence} 围栏代码保留 script 与 style 原文并转义显示`, () => {

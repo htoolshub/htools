@@ -79,6 +79,31 @@ function record(database) {
   return database.sqlite.prepare("SELECT * FROM telegram_messages WHERE id = 'delivery-record'").get();
 }
 
+function deliveryLock(database) {
+  return database.sqlite.prepare("SELECT * FROM telegram_push_locks WHERE resource_type = 'custom' AND resource_id = ?").get(resourceId);
+}
+
+function seedUncertainLock(database, { operation = "send", state = "uncertain", expiresAt = "2099-01-01" } = {}) {
+  database.sqlite.prepare(`INSERT INTO telegram_push_locks
+    (resource_type, resource_id, operation, lock_token, state, expires_at)
+    VALUES ('custom', ?, ?, 'preserved-lock', ?, ?)`).run(resourceId, operation, state, expiresAt);
+}
+
+function interceptMessageWrite(database, beforeWrite) {
+  const prepare = database.db.prepare.bind(database.db);
+  database.db.prepare = (sql) => {
+    const statement = prepare(sql);
+    if (/^\s*(?:UPDATE|INSERT INTO) telegram_messages\b/.test(sql)) {
+      const run = statement.run;
+      statement.run = async () => {
+        await beforeWrite();
+        return run.call(statement);
+      };
+    }
+    return statement;
+  };
+}
+
 function mockRemote(t, { dropFirstSend = false, delayedSend = null } = {}) {
   const methods = [];
   const messages = new Map([[42, "photo"]]);
@@ -169,7 +194,7 @@ test("旧未知类型的文字消息可通过 editMessageMedia 转成照片", as
   } finally { database.sqlite.close(); }
 });
 
-test("替换发送结果未知时，普通更新与保存在锁过期后仍不能再次发送", async (t) => {
+test("替换发送结果未知时可以保存草稿，锁过期后仍须确认才能再次发送", async (t) => {
   const database = createDatabase();
   try {
     seed(database);
@@ -179,7 +204,10 @@ test("替换发送结果未知时，普通更新与保存在锁过期后仍不�
     await assert.rejects(telegram.updateTelegramMessage(database.env, "custom", resourceId, origin, payload), /result is uncertain/);
     database.sqlite.exec("UPDATE telegram_push_locks SET expires_at = '2000-01-01T00:00:00.000Z'");
     await assert.rejects(telegram.updateTelegramMessage(database.env, "custom", resourceId, origin, payload), /result is uncertain/);
-    await assert.rejects(telegram.saveTelegramMessage(database.env, "custom", resourceId, origin, payload), /result is uncertain/);
+    const lock = deliveryLock(database);
+    const saved = await telegram.saveTelegramMessage(database.env, "custom", resourceId, origin, payload);
+    assert.equal(saved.deliveryUncertain, true);
+    assert.deepEqual(deliveryLock(database), lock);
     assert.deepEqual(remote.methods, ["sendMessage"]);
     assert.equal(record(database).message_id, "42");
     assert.equal(record(database).last_pushed_media_enabled, 1);
@@ -205,6 +233,7 @@ test("确认标记不能抢占仍在发送的替换请求", async (t) => {
     const first = telegram.updateTelegramMessage(database.env, "custom", resourceId, origin, payload);
     await started;
     await assert.rejects(telegram.updateTelegramMessage(database.env, "custom", resourceId, origin, { ...payload, confirmUncertainRetry: true }), /already in progress/);
+    await assert.rejects(telegram.saveTelegramMessage(database.env, "custom", resourceId, origin, payload), /already in progress/);
     assert.deepEqual(remote.methods, ["sendMessage"]);
     release();
     await first;
@@ -220,8 +249,164 @@ test("原地编辑的不确定锁仍可安全接管，不转为重新发送", as
       (resource_type, resource_id, operation, lock_token, state, expires_at)
       VALUES ('custom', ?, 'update', 'old-edit', 'uncertain', '2099-01-01')`).run(resourceId);
     const remote = mockRemote(t);
+    const saved = await telegram.saveTelegramMessage(database.env, "custom", resourceId, origin, payload);
+    assert.equal(saved.deliveryUncertain, false);
+    assert.equal(deliveryLock(database).operation, "update");
     await telegram.updateTelegramMessage(database.env, "custom", resourceId, origin, { ...payload, mediaEnabled: true });
     assert.deepEqual(remote.methods, ["editMessageMedia"]);
+  } finally { database.sqlite.close(); }
+});
+
+test("首次发送结果未知后可新建草稿，读取和列表保留未知状态，重推仍须确认", async (t) => {
+  const database = createDatabase();
+  try {
+    seed(database);
+    database.sqlite.exec("DELETE FROM telegram_messages");
+    const remote = mockRemote(t, { dropFirstSend: true });
+    const draft = { ...payload, title: "Delivery check" };
+    await assert.rejects(telegram.sendTelegramMessage(database.env, "custom", resourceId, origin, draft), /result is uncertain/);
+    const lock = deliveryLock(database);
+    assert.equal(database.sqlite.prepare("SELECT COUNT(*) AS total FROM telegram_messages").get().total, 0);
+    assert.equal((await telegram.getTelegramMessageState(database.env, "custom", resourceId, origin)).deliveryUncertain, true);
+    const saved = await telegram.saveTelegramMessage(database.env, "custom", resourceId, origin, draft);
+    assert.equal(saved.deliveryUncertain, true);
+    assert.equal(saved.exists, false);
+    assert.equal(saved.bodyMarkdown, draft.bodyMarkdown);
+    assert.deepEqual(deliveryLock(database), lock);
+    assert.equal((await telegram.listTelegramPushRecords(database.env, origin)).records[0].deliveryUncertain, true);
+    await assert.rejects(telegram.sendTelegramMessage(database.env, "custom", resourceId, origin, draft), /result is uncertain/);
+    assert.deepEqual(remote.methods, ["sendMessage"]);
+    remote.messages.delete(43);
+    const sent = await telegram.sendTelegramMessage(database.env, "custom", resourceId, origin, { ...draft, confirmUncertainRetry: true });
+    assert.equal(sent.deliveryUncertain, false);
+    assert.equal((await telegram.getTelegramMessageState(database.env, "custom", resourceId, origin)).deliveryUncertain, false);
+    assert.equal((await telegram.listTelegramPushRecords(database.env, origin)).records[0].deliveryUncertain, false);
+    assert.deepEqual(remote.methods, ["sendMessage", "sendMessage"]);
+  } finally { database.sqlite.close(); }
+});
+
+test("未知与已过期发送允许更新既有草稿，但不改远端记录和原锁", async (t) => {
+  const database = createDatabase();
+  try {
+    seed(database);
+    const remote = mockRemote(t);
+    for (const state of ["uncertain", "active"]) {
+      database.sqlite.exec("DELETE FROM telegram_push_locks");
+      seedUncertainLock(database, { state, expiresAt: "2000-01-01" });
+      const before = record(database);
+      const lock = deliveryLock(database);
+      const draft = { ...payload, bodyMarkdown: `**Saved ${state}**` };
+      const saved = await telegram.saveTelegramMessage(database.env, "custom", resourceId, origin, draft);
+      assert.equal(saved.deliveryUncertain, true);
+      assert.equal(record(database).message_markdown, draft.bodyMarkdown);
+      for (const field of ["chat_id", "target_ref", "message_id", "sent_at", "last_pushed_hash", "last_pushed_media_enabled"]) {
+        assert.equal(record(database)[field], before[field]);
+      }
+      assert.deepEqual(deliveryLock(database), lock);
+      await assert.rejects(telegram.updateTelegramMessage(database.env, "custom", resourceId, origin, draft), /result is uncertain/);
+    }
+    assert.deepEqual(remote.methods, []);
+  } finally { database.sqlite.close(); }
+});
+
+test("未知草稿并发保存拒绝旧快照，同一毫秒内的单项编辑也不会丢失", async (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-17T00:00:00.000Z") });
+  const remote = t.mock.method(globalThis, "fetch", () => { throw new Error("保存不应请求 Telegram"); });
+  const edits = [
+    ["正文", { bodyMarkdown: "**后发起且先保存成功的新正文**" }, "message_markdown"],
+    ["标题", { title: "新标题" }, "custom_title"],
+    ["资源信息", { resource: { description: "新简介" } }, "resource_data"],
+    ["分类", { category: "新分类" }, "category"],
+    ["图片开关", { mediaEnabled: true }, "media_enabled"],
+    ["图片地址", { mediaUrl: `${origin}/new-photo.png` }, "media_url"]
+  ];
+  for (const [name, edit, field] of edits) {
+    await t.test(name, async () => {
+      const database = createDatabase();
+      try {
+        seed(database);
+        seedUncertainLock(database);
+        await telegram.saveTelegramMessage(database.env, "custom", resourceId, origin, payload);
+        const before = record(database);
+        const lock = deliveryLock(database);
+        let newerRecord;
+        let intercepted = false;
+        interceptMessageWrite(database, async () => {
+          if (intercepted) return;
+          intercepted = true;
+          const newer = await telegram.saveTelegramMessage(database.env, "custom", resourceId, origin,
+            { ...payload, ...edit });
+          assert.equal(newer.deliveryUncertain, true);
+          newerRecord = record(database);
+          assert.notEqual(newerRecord[field], before[field]);
+          assert.equal(newerRecord.updated_at, before.updated_at);
+        });
+        await assert.rejects(telegram.saveTelegramMessage(database.env, "custom", resourceId, origin,
+          { ...payload, bodyMarkdown: "**较早发起的旧正文**" }), /already in progress/);
+        assert.deepEqual(record(database), newerRecord);
+        assert.deepEqual(deliveryLock(database), lock);
+        for (const key of ["chat_id", "target_ref", "message_id", "sent_at", "last_pushed_hash", "last_pushed_media_enabled"]) {
+          assert.equal(newerRecord[key], before[key]);
+        }
+        const savedAgain = await telegram.saveTelegramMessage(database.env, "custom", resourceId, origin,
+          { ...payload, ...edit });
+        assert.equal(savedAgain.deliveryUncertain, true);
+        assert.equal(savedAgain.bodyMarkdown, newerRecord.message_markdown);
+        assert.equal(record(database)[field], newerRecord[field]);
+        assert.deepEqual(deliveryLock(database), lock);
+      } finally { database.sqlite.close(); }
+    });
+  }
+  assert.equal(remote.mock.callCount(), 0);
+});
+
+test("未知草稿条件写入遇到重推或删除接管时拒绝保存，不误报成功", async (t) => {
+  t.mock.method(globalThis, "fetch", () => { throw new Error("保存不应请求 Telegram"); });
+  for (const change of ["retry", "delete", "created"]) {
+    const database = createDatabase();
+    try {
+      seed(database);
+      seedUncertainLock(database);
+      if (change === "created") database.sqlite.exec("DELETE FROM telegram_messages");
+      const previous = record(database);
+      interceptMessageWrite(database, () => {
+        if (change === "retry") {
+          database.sqlite.exec("UPDATE telegram_push_locks SET state = 'active', lock_token = 'retry-lock'");
+        } else if (change === "delete") {
+          database.sqlite.exec("DELETE FROM telegram_messages; DELETE FROM telegram_push_locks");
+        } else {
+          database.sqlite.prepare(`INSERT INTO telegram_messages
+            (id, resource_type, resource_id, chat_id, message_id, message_markdown)
+            VALUES ('concurrent-draft', 'custom', ?, '', '', '并发保存的内容')`).run(resourceId);
+        }
+      });
+      await assert.rejects(telegram.saveTelegramMessage(database.env, "custom", resourceId, origin,
+        { ...payload, title: "Delivery check", bodyMarkdown: "**不应写入**" }), /already in progress/);
+      if (change === "retry") assert.deepEqual(record(database), previous);
+      if (change === "delete") assert.equal(record(database), undefined);
+      if (change === "created") {
+        assert.equal(database.sqlite.prepare("SELECT COUNT(*) AS total FROM telegram_messages").get().total, 1);
+        assert.equal(database.sqlite.prepare("SELECT message_markdown FROM telegram_messages").get().message_markdown, "并发保存的内容");
+      }
+    } finally { database.sqlite.close(); }
+  }
+});
+
+test("未知草稿写库失败时保留旧内容和原不确定锁", async (t) => {
+  const database = createDatabase();
+  try {
+    seed(database);
+    seedUncertainLock(database);
+    const remote = mockRemote(t);
+    const before = record(database);
+    const lock = deliveryLock(database);
+    database.sqlite.exec(`CREATE TRIGGER reject_draft BEFORE UPDATE ON telegram_messages
+      BEGIN SELECT RAISE(ABORT, '模拟草稿写库失败'); END`);
+    await assert.rejects(telegram.saveTelegramMessage(database.env, "custom", resourceId, origin,
+      { ...payload, bodyMarkdown: "**未保存的新内容**" }), /模拟草稿写库失败/);
+    assert.deepEqual(record(database), before);
+    assert.deepEqual(deliveryLock(database), lock);
+    assert.deepEqual(remote.methods, []);
   } finally { database.sqlite.close(); }
 });
 

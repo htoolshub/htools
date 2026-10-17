@@ -1,6 +1,6 @@
 import { ChevronLeft } from "lucide-react";
 import { Suspense, lazy, useEffect, useRef, useState } from "react";
-import { cleanArticleDisplayText, getArticleDisplayTitle, getArticleText, stripLeadingArticleDuplicates } from "../article-helpers";
+import { getArticleDisplayTitle, getArticleText, stripLeadingArticleDuplicates } from "../article-helpers";
 import { formatAdminDate } from "../admin-helpers";
 import { proxifyUrl } from "../proxy";
 import { CompactTagRow, SkeletonLayoutMask } from "../shared-ui";
@@ -8,6 +8,9 @@ import type { Locale } from "../i18n";
 import type { Article, ProxySettings } from "../types";
 
 const MarkdownContent = lazy(() => import("./MarkdownContent"));
+const ArticleSummary = lazy(() => import("./MarkdownContent").then((module) => ({
+  default: module.ArticleSummary
+})));
 
 type ArticleBackLink = {
   href: string;
@@ -27,12 +30,10 @@ export default function ArticleDetailContent({
 }) {
   const articleText = getArticleText(locale);
   const displayTitle = getArticleDisplayTitle(article);
-  const displaySummary = cleanArticleDisplayText(article.summary);
   const displayDate = formatAdminDate(article.published_at ?? article.updated_at);
   const bodyContent = stripLeadingArticleDuplicates(
     article.content,
     displayTitle || article.title,
-    displaySummary || article.summary,
     article.coverImage
   );
 
@@ -53,7 +54,9 @@ export default function ArticleDetailContent({
           ) : null}
         </div>
         <h1>{displayTitle}</h1>
-        <p>{displaySummary}</p>
+        <Suspense fallback={null}>
+          <ArticleSummary content={bodyContent} summary={article.summary} />
+        </Suspense>
         <CompactTagRow fallbackCategory={article.category} tags={article.tags} />
       </header>
 

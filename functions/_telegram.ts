@@ -102,6 +102,7 @@ export type TelegramMessageSyncStatus =
 
 export type TelegramMessageState = {
   exists: boolean;
+  deliveryUncertain: boolean;
   targetChanged: boolean;
   syncStatus: TelegramMessageSyncStatus;
   bodyMarkdown: string;
@@ -150,6 +151,7 @@ export type TelegramResource = {
 
 export type TelegramPushListRecord = {
   id: string;
+  deliveryUncertain: boolean;
   resourceType: TelegramResourceType;
   resourceId: string;
   title: string;
@@ -164,6 +166,7 @@ export type TelegramPushListRecord = {
 };
 
 type TelegramPushListRow = TelegramMessageRow & {
+  delivery_uncertain: number;
   resource_exists: number;
   sort_key: string;
 };
@@ -658,13 +661,17 @@ export async function listTelegramPushRecords(
               WHEN m.resource_type = 'content' THEN EXISTS(SELECT 1 FROM content_items WHERE id = m.resource_id)
               ELSE 0
             END AS resource_exists,
+            EXISTS(SELECT 1 FROM telegram_push_locks AS lock
+                    WHERE lock.resource_type = m.resource_type AND lock.resource_id = m.resource_id
+                      AND lock.operation = 'send'
+                      AND (lock.state = 'uncertain' OR lock.expires_at <= ?)) AS delivery_uncertain,
             ${sortExpression} AS sort_key
      FROM telegram_messages AS m
      WHERE ${pageConditions.join(" AND ")}
      ORDER BY ${orderClause}
      LIMIT ?`
   )
-    .bind(...pageParams, limit + 1)
+    .bind(new Date().toISOString(), ...pageParams, limit + 1)
     .all<TelegramPushListRow>();
   const hasMore = pageResult.results.length > limit;
   const rows = pageResult.results.slice(0, limit);
@@ -710,6 +717,11 @@ export async function getTelegramMessageState(
   )
     .bind(resourceType, resourceId)
     .first<TelegramMessageRow>();
+  const deliveryUncertain = await db.prepare(
+    `SELECT 1 AS found FROM telegram_push_locks
+     WHERE resource_type = ? AND resource_id = ? AND operation = 'send'
+       AND (state = 'uncertain' OR expires_at <= ?)`
+  ).bind(resourceType, resourceId, new Date().toISOString()).first();
   const resource = await loadStoredOrCurrentTelegramResource(
     db,
     resourceType,
@@ -731,7 +743,8 @@ export async function getTelegramMessageState(
     defaultMediaUrl,
     settings.target,
     resource,
-    await telegramResourceExists(db, resourceType, resourceId)
+    await telegramResourceExists(db, resourceType, resourceId),
+    Boolean(deliveryUncertain)
   );
 }
 
@@ -770,9 +783,22 @@ export async function saveTelegramMessage(
 ) {
   await requireEnabledTelegramSettings(env);
   const db = await getDatabase(env);
-  return withTelegramPushLock(db, resourceType, resourceId, "save", () =>
-    saveTelegramMessageUnlocked(env, db, resourceType, resourceId, origin, payload, locale)
-  );
+  try {
+    return await withTelegramPushLock(db, resourceType, resourceId, "save", () =>
+      saveTelegramMessageUnlocked(env, db, resourceType, resourceId, origin, payload, locale)
+    );
+  } catch (error) {
+    if (!(error instanceof InvalidRequestError) || error.message !== TELEGRAM_PUSH_UNCERTAIN_ERROR) throw error;
+    const lock = await db.prepare(
+      `SELECT lock_token FROM telegram_push_locks
+       WHERE resource_type = ? AND resource_id = ?
+         AND (state = 'uncertain' OR (operation = 'send' AND expires_at <= ?))`
+    ).bind(resourceType, resourceId, new Date().toISOString()).first<{ lock_token: string }>();
+    if (!lock) throw new InvalidRequestError(TELEGRAM_PUSH_IN_PROGRESS_ERROR);
+    return saveTelegramMessageUnlocked(
+      env, db, resourceType, resourceId, origin, payload, locale, lock.lock_token
+    );
+  }
 }
 
 async function saveTelegramMessageUnlocked(
@@ -782,7 +808,8 @@ async function saveTelegramMessageUnlocked(
   resourceId: string,
   origin: string,
   payload: TelegramMessagePayload,
-  locale: "zh" | "en"
+  locale: "zh" | "en",
+  uncertainLockToken?: string
 ) {
   const existing = await db.prepare(
     `SELECT * FROM telegram_messages
@@ -805,13 +832,26 @@ async function saveTelegramMessageUnlocked(
     : resource.category;
   const resourceData = serializeTelegramResource(resource);
   const now = new Date().toISOString();
+  // 未知发送仍保留原锁；把原锁校验与草稿写入放在同一 SQL 中，防止重推或删除接管后写入。
+  const lockCondition = uncertainLockToken
+    ? `EXISTS(SELECT 1 FROM telegram_push_locks
+              WHERE resource_type = ? AND resource_id = ? AND lock_token = ?
+                AND (state = 'uncertain' OR (operation = 'send' AND expires_at <= ?)))`
+    : "1 = 1";
+  const lockParams = uncertainLockToken ? [resourceType, resourceId, uncertainLockToken, now] : [];
+  let result: D1Result;
 
   if (existing) {
-    await db.prepare(
+    // 未知发送共用原锁，保存时还需核对读取的内容；时间戳可能相同，不能单独作为版本。
+    const snapshotCondition = uncertainLockToken
+      ? `AND custom_title = ? AND resource_data = ? AND category = ? AND message_markdown = ?
+         AND media_enabled = ? AND media_url = ? AND updated_at = ?`
+      : "";
+    result = await db.prepare(
       `UPDATE telegram_messages
        SET custom_title = ?, resource_data = ?, category = ?, message_markdown = ?, media_enabled = ?,
            media_url = ?, updated_at = ?
-       WHERE id = ?`
+       WHERE id = ? AND ${lockCondition} ${snapshotCondition}`
     )
       .bind(
         customTitle,
@@ -821,16 +861,23 @@ async function saveTelegramMessageUnlocked(
         media.enabled ? 1 : 0,
         media.url,
         now,
-        existing.id
+        existing.id,
+        ...lockParams,
+        ...(uncertainLockToken ? [
+          existing.custom_title, existing.resource_data, existing.category, existing.message_markdown,
+          existing.media_enabled, existing.media_url, existing.updated_at
+        ] : [])
       )
       .run();
   } else {
-    await db.prepare(
+    result = await db.prepare(
       `INSERT INTO telegram_messages
         (id, resource_type, resource_id, custom_title, resource_data, category, chat_id, target_ref,
          message_id, message_markdown, media_enabled,
          media_url, sent_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, '', '', '', ?, ?, ?, '', ?)`
+       SELECT ?, ?, ?, ?, ?, ?, '', '', '', ?, ?, ?, '', ?
+       WHERE ${lockCondition}
+         AND NOT EXISTS(SELECT 1 FROM telegram_messages WHERE resource_type = ? AND resource_id = ?)`
     )
       .bind(
         crypto.randomUUID(),
@@ -842,9 +889,16 @@ async function saveTelegramMessageUnlocked(
         messageMarkdown,
         media.enabled ? 1 : 0,
         media.url,
-        now
+        now,
+        ...lockParams,
+        resourceType,
+        resourceId
       )
       .run();
+  }
+
+  if (Number(result.meta?.changes ?? 0) === 0) {
+    throw new InvalidRequestError(TELEGRAM_PUSH_IN_PROGRESS_ERROR);
   }
 
   return getTelegramMessageState(
@@ -1722,6 +1776,7 @@ async function toTelegramPushListRecord(
 
   return {
     id: row.id,
+    deliveryUncertain: row.delivery_uncertain === 1,
     resourceType: row.resource_type,
     resourceId: row.resource_id,
     title: resource?.title ?? readTelegramMessageTitle(row.message_markdown),
@@ -2103,7 +2158,8 @@ async function toTelegramMessageState(
   defaultMediaUrl: string,
   targetRef: string,
   resource: TelegramResource,
-  resourceExists: boolean
+  resourceExists: boolean,
+  deliveryUncertain = false
 ): Promise<TelegramMessageState> {
   const sentMediaUrl = getTelegramMediaUrl(row?.media_url ?? "") || defaultMediaUrl;
   const storedMarkdown = row?.message_markdown || "";
@@ -2118,6 +2174,7 @@ async function toTelegramMessageState(
   );
   return {
     exists: Boolean(row?.message_id),
+    deliveryUncertain,
     targetChanged: hasTelegramTargetChanged(row, targetRef),
     syncStatus: !row?.message_id
       ? "not_pushed"

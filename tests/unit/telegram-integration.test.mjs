@@ -378,6 +378,11 @@ function createRecoveredTelegramDatabase(resourceExists = true) {
             if (/SELECT operation, state, expires_at\s+FROM telegram_push_locks/.test(sql)) {
               return lock ? { ...lock } : null;
             }
+            if (/SELECT 1 AS found FROM telegram_push_locks/.test(sql)) {
+              return lock?.operation === "send" && (lock.state === "uncertain" || lock.expires_at <= params[2])
+                ? { found: 1 }
+                : null;
+            }
             if (/SELECT \* FROM telegram_messages WHERE id = \?/.test(sql)) {
               return params[0] === record.id ? structuredClone(record) : null;
             }

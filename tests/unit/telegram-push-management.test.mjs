@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import ts from "typescript";
 
 const [
   adminSource,
@@ -49,6 +50,75 @@ const detailPlaceholderSource = (
 const githubMetadataSource = (
   await readFile(new URL("../../src/components/AdminGitHubMetadata.tsx", import.meta.url), "utf8")
 ).replace(/\r\n?/g, "\n");
+
+function extractDeclarations(source, names, fileName) {
+  const found = new Map();
+  const tree = ts.createSourceFile(fileName, source, ts.ScriptTarget.ES2022, true, ts.ScriptKind.TSX);
+  const visit = (node) => {
+    if (ts.isFunctionDeclaration(node) && names.includes(node.name?.text)) {
+      found.set(node.name.text, node.getText(tree).replace(/^export\s+/, ""));
+    } else if (ts.isVariableStatement(node)) {
+      for (const declaration of node.declarationList.declarations) {
+        if (ts.isIdentifier(declaration.name) && names.includes(declaration.name.text)) {
+          found.set(declaration.name.text, node.getText(tree).replace(/^export\s+/, ""));
+        }
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(tree);
+  return names.map((name) => {
+    assert.ok(found.has(name), `缺少真实声明 ${name}`);
+    return found.get(name);
+  }).join("\n");
+}
+
+const quickPushFunctions = [
+  extractDeclarations(adminSource, [
+    "TELEGRAM_PUSH_TOOL_FILTER", "TELEGRAM_PUSH_ARTICLE_FILTER", "TELEGRAM_PUSH_CONTENT_FILTER",
+    "isTelegramPushSourceFilter", "getTelegramStoredCategory", "getTelegramWriteEntityScope",
+    "getTelegramDefaultCategoryLabel", "openTelegramQuickPush", "confirmTelegramQuickPush"
+  ], "AdminApp.tsx"),
+  extractDeclarations(helperSource, [
+    "ADMIN_FEATURED_CATEGORY", "normalizeAdminCategoryValue", "isAllCategoryValue"
+  ], "admin-helpers.ts"),
+  extractDeclarations(clientTelegramSource, ["getTelegramText"], "telegram.ts")
+].join("\n");
+const quickPushProgram = ts.transpileModule(quickPushFunctions, {
+  compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext }
+}).outputText;
+
+// 请求、状态和预览渲染使用替身；分类归一化、草稿加载及保存执行产品真实函数。
+function createQuickPushRuntime(resourceType, category) {
+  const resource = { type: resourceType, id: "source-id", category: "来源自己的分类" };
+  const message = {
+    exists: false, resource: { ...resource, category }, bodyMarkdown: "已保存的草稿正文",
+    mediaEnabled: false, mediaUrl: "", deliveryUncertain: false
+  };
+  const writes = [];
+  let resolveLoad;
+  const loaded = new Promise((resolve) => { resolveLoad = resolve; });
+  const scope = {
+    token: "test-token", locale: "zh", adminView: "tools", t: {},
+    telegramSettings: { footerMarkdown: "" }, telegramQuickLoading: false, telegramQuickSaving: false,
+    getAdminWriteEntityKey: (kind, id) => `${kind}:${id}`,
+    acquireWriteAction: () => true, releaseWriteAction: () => {},
+    createOptimisticTelegramMessage: (previewResource) => ({ ...message, resource: previewResource }),
+    getLocalizedErrorMessage: (error) => error.message,
+    loadTelegramMessage: () => loaded,
+    saveTelegramMessage: async (...args) => { writes.push({ name: "save", args }); return message; },
+    sendTelegramMessage: async (...args) => { writes.push({ name: "send", args }); }
+  };
+  for (const [, name] of quickPushFunctions.matchAll(/\b(set[A-Z]\w*)\(/g)) {
+    const key = name[3].toLowerCase() + name.slice(4);
+    scope[name] = (value) => { scope[key] = typeof value === "function" ? value(scope[key]) : value; };
+  }
+  const actions = new Function("scope", `with (scope) { ${quickPushProgram}; return {
+    openTelegramQuickPush, confirmTelegramQuickPush, getTelegramDefaultCategoryLabel, getTelegramText
+  }; }`)(scope);
+  scope.telegramText = actions.getTelegramText(scope.locale);
+  return { scope, actions, resource, writes, finishLoad: () => resolveLoad(message) };
+}
 
 test("push management is a top-level admin route after content flow", () => {
   assert.match(helperSource, /\| "push"/);
@@ -107,11 +177,63 @@ test("push categories stay independent from tool, article, and content category 
   assert.match(adminSource, /\.\.\.adminCategorySettings\.push/);
   assert.match(adminSource, /\.\.\.telegramPushRecords\.map/);
   assert.match(adminSource, /function uniqueAdminCategories/);
-  // Quick push opens with an empty category, exactly like the tool, article and
-  // subscription editors. The resource type is not a category and must not preselect one.
+  // 新建快捷推送使用空值默认分类；已有草稿加载后恢复自己的分类，不继承来源分类。
   assert.match(adminSource, /setTelegramQuickCategory\(""\)/);
   assert.doesNotMatch(adminSource, /getTelegramPushDefaultFilter/);
 });
+
+test("两种推送入口复用公共分类控件的默认项", () => {
+  assert.equal((adminSource.match(/emptyOptionLabel=\{getTelegramDefaultCategoryLabel\(/g) ?? []).length, 2);
+  assert.match(adminSource, /emptyOptionLabel=\{getTelegramDefaultCategoryLabel\(telegramQuickResource\.type, telegramText\)\}/);
+  assert.match(adminSource, /emptyOptionLabel=\{getTelegramDefaultCategoryLabel\(telegramResource\.type, telegramText\)\}/);
+});
+
+test("推送默认分类按中英来源显示，自定义推送不冒用来源默认项", () => {
+  const { actions } = createQuickPushRuntime("tool", "");
+  for (const [locale, expected] of [
+    ["zh", ["工具库（默认）", "文章管理（默认）", "订阅内容（默认）"]],
+    ["en", ["Tool Library (default)", "Articles (default)", "Subscription Content (default)"]]
+  ]) {
+    const text = actions.getTelegramText(locale);
+    assert.deepEqual(
+      ["tool", "article", "content"].map((type) => actions.getTelegramDefaultCategoryLabel(type, text)),
+      expected
+    );
+    assert.equal(actions.getTelegramDefaultCategoryLabel("custom", text), undefined);
+  }
+});
+
+for (const resourceType of ["tool", "article", "content"]) {
+  test(`${resourceType} 快捷草稿加载后保存保留自定义分类并归一化旧默认值`, async () => {
+    for (const [category, expected] of [
+      ["项目推荐", "项目推荐"], ["  项目推荐  ", "项目推荐"], ["", ""], ["全部", ""],
+      ["__telegram_tool__", ""], ["__telegram_article__", ""], ["__telegram_content__", ""]
+    ]) {
+      const { scope, actions, resource, writes, finishLoad } = createQuickPushRuntime(resourceType, category);
+      const opening = actions.openTelegramQuickPush(resource);
+      assert.equal(scope.telegramQuickLoading, true);
+      assert.equal(scope.telegramQuickCategory, "");
+      await actions.confirmTelegramQuickPush();
+      assert.equal(writes.length, 0, "加载完成前不能保存");
+
+      finishLoad();
+      await opening;
+      assert.equal(scope.telegramQuickLoading, false);
+      assert.equal(scope.telegramQuickCategory, expected, `草稿分类回填：${category}`);
+      scope.telegramQuickMode = "draft";
+      await actions.confirmTelegramQuickPush();
+
+      assert.equal(writes.length, 1);
+      assert.equal(writes[0].name, "save", "草稿只保存，不发送 Telegram");
+      assert.deepEqual(writes[0].args.slice(0, 3), [resourceType, resource.id, "已保存的草稿正文"]);
+      assert.deepEqual(writes[0].args.at(-1), {
+        resource: { ...resource, category: expected }, category: expected
+      });
+      assert.equal(scope.status, scope.telegramText.saved);
+      assert.equal(scope.telegramQuickSaving, false);
+    }
+  });
+}
 
 test("push source categories remain reserved in both client and API validation", () => {
   assert.match(helperSource, /TELEGRAM_PUSH_CONTENT_CATEGORY = "__telegram_content__"/);
@@ -127,7 +249,7 @@ test("push pagination uses limit plus one without an unused total count", () => 
     telegramSource.indexOf("export async function listTelegramPushRecords"),
     telegramSource.indexOf("export async function getTelegramMessageState")
   );
-  assert.match(listImplementation, /\.bind\(\.\.\.pageParams, limit \+ 1\)/);
+  assert.match(listImplementation, /\.bind\(new Date\(\)\.toISOString\(\), \.\.\.pageParams, limit \+ 1\)/);
   assert.match(listImplementation, /const hasMore = pageResult\.results\.length > limit/);
   assert.doesNotMatch(listImplementation, /COUNT\(\*\) AS total/);
   assert.doesNotMatch(listImplementation, /countRow/);
@@ -205,8 +327,8 @@ test("Telegram previews use one concise title and one shared message border", ()
 
 test("pushed status remains informative without attempting to revert to draft", () => {
   assert.match(adminSource, /onPushedStatus=\{\(\) =>[\s\S]*?pushedNotice/);
-  assert.match(telegramPushSource, /aria-pressed=\{pushed\}/);
-  assert.match(telegramPushSource, /disabled=\{!pushed && !serviceEnabled\}/);
+  assert.match(telegramPushSource, /aria-pressed=\{pushed && !record\.deliveryUncertain\}/);
+  assert.match(telegramPushSource, /disabled=\{\(!pushed \|\| record\.deliveryUncertain\) && !serviceEnabled\}/);
   assert.match(telegramPushSource, /if \(pushed\) \{[\s\S]*?onPushedStatus\(\)/);
   assert.match(telegramPushSource, /else \{[\s\S]*?onPush\(\)/);
 });

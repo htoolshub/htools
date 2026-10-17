@@ -33,22 +33,21 @@ test("admin category filter supports consistent keyboard navigation", () => {
 });
 
 test("category filter width follows its stable prompt instead of the selected label", () => {
-  // Editors pass `scope` so the prompt reads "选择或新建工具分类"; filters pass allLabel.
-  // Either way the width comes from that prompt, never from the current selection.
+  // 编辑器使用所属分类提示或固定默认项，筛选器使用 allLabel；宽度不随选中项变化。
   assert.match(
     categoryFilterSource,
     /const widthLabel = allLabel \?\? resolvedEmptyLabel/
   );
   assert.match(
     categoryFilterSource,
-    /const resolvedEmptyLabel = scopeCategoryLabel[\s\S]{0,160}categoryText\.selectOrCreateLabel\(scopeCategoryLabel\)/
+    /const resolvedEmptyLabel = emptyOptionLabel \?\? \(scopeCategoryLabel[\s\S]{0,160}categoryText\.selectOrCreateLabel\(scopeCategoryLabel\)/
   );
   assert.match(
     categoryFilterSource,
     /getAdminCategoryLabelWidth\(widthLabel\)/
   );
   assert.doesNotMatch(categoryFilterSource, /labels\.map\(getAdminCategoryLabelWidth\)/);
-  // The old per-call-site override is gone: every editor now declares its scope instead.
+  // 普通编辑器仍通过 scope 选择提示，不恢复旧的 emptyLabel 覆盖参数。
   assert.doesNotMatch(categoryFilterSource, /emptyLabel/);
 });
 

@@ -1378,10 +1378,17 @@ async function installCriticalFlowHelpers(client) {
       }
     };
     const selectCategory = async (form, category) => {
-      click(form.querySelector(".tool-form-category-filter .admin-category-filter-trigger"));
+      const trigger = await waitFor(
+        () => {
+          const button = form.querySelector(".tool-form-category-filter button.admin-category-filter-trigger");
+          return button?.isConnected && visible(button) && !button.disabled ? button : null;
+        },
+        "category selector ready"
+      );
+      click(trigger);
       const option = await waitFor(
-        () => Array.from(document.querySelectorAll(".admin-category-select-option"))
-          .find((button) => text(button) === category),
+        () => Array.from(form.querySelectorAll(".admin-category-select-option"))
+          .find((button) => button.isConnected && visible(button) && text(button) === category),
         "category " + category
       );
       checkCategoryMenuSpacing(option.closest(".admin-category-filter-popover"));
@@ -2016,14 +2023,43 @@ async function installCriticalFlowHelpers(client) {
         );
         const originalFetch = window.fetch;
         const requestBodies = [];
+        const draftBodies = [];
         window.fetch = async (...args) => {
           const input = args[0];
           const init = args[1] || {};
           const url = typeof input === "string" ? input : input?.url || "";
           const method = String(init.method || input?.method || "GET").toUpperCase();
+          if (!resourceId && url.includes("/api/admin/telegram-messages/")) {
+            if (method === "PATCH") {
+              const body = JSON.parse(String(init.body || "{}"));
+              draftBodies.push(body);
+              resultMessage = {
+                ...body,
+                exists: false,
+                targetChanged: false,
+                resourceExists: true,
+                syncStatus: "not_pushed",
+                defaultBodyMarkdown: body.bodyMarkdown,
+                defaultMediaUrl: "",
+                deliveryUncertain: true
+              };
+              await sleep(650);
+              return new Response(JSON.stringify({ message: resultMessage }), {
+                status: 200,
+                headers: { "Content-Type": "application/json" }
+              });
+            }
+            if (method === "GET" && resultMessage.deliveryUncertain) {
+              return new Response(JSON.stringify({ message: resultMessage }), {
+                status: 200,
+                headers: { "Content-Type": "application/json" }
+              });
+            }
+          }
           if (method === (resourceId ? "PUT" : "POST") && url.includes("/api/admin/telegram-messages/")) {
             requestBodies.push(JSON.parse(String(init.body || "{}")));
-            if (requestBodies.length === 1) {
+            if (requestBodies.length <= 2) {
+              if (requestBodies.length === 2) await sleep(650);
               return new Response(
                 JSON.stringify({
                   error: "Telegram push result is uncertain.",
@@ -2035,7 +2071,7 @@ async function installCriticalFlowHelpers(client) {
                 }
               );
             }
-            return new Response(JSON.stringify({ message: resultMessage }), {
+            return new Response(JSON.stringify({ message: { ...resultMessage, deliveryUncertain: false } }), {
               status: 201,
               headers: { "Content-Type": "application/json" }
             });
@@ -2044,7 +2080,7 @@ async function installCriticalFlowHelpers(client) {
         };
         try {
           click(dialog.querySelector(".dialog-footer .primary-button:not(:disabled)"));
-          const retryDialog = await waitFor(
+          let retryDialog = await waitFor(
             () => document.querySelector(".admin-confirm-dialog"),
             "Telegram uncertain retry confirmation"
           );
@@ -2055,11 +2091,78 @@ async function installCriticalFlowHelpers(client) {
           ) {
             throw new Error("Telegram uncertain retry confirmation is incomplete.");
           }
+          const retryButton = retryDialog.querySelector(".dialog-footer .primary-button");
+          click(retryButton);
+          retryButton.click();
+          await waitFor(
+            () => requestBodies.length === 2 && retryDialog.querySelector(".dialog-footer .primary-button:disabled"),
+            "Telegram confirmed retry is busy"
+          );
+          retryDialog.querySelector(".dialog-footer .ghost-button").click();
+          retryDialog.querySelector(".dialog-header button").click();
+          retryDialog.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+          await sleep(80);
+          if (
+            !retryDialog.isConnected ||
+            document.querySelectorAll(".admin-confirm-dialog").length !== 1 ||
+            !text(retryDialog).includes("正在重新推送，请稍候。") ||
+            requestBodies.length !== 2
+          ) {
+            throw new Error("重试等待时弹窗关闭、丢失忙碌说明或发生重复请求。");
+          }
+          await waitFor(
+            () => !retryDialog.querySelector(".dialog-footer .primary-button:disabled") && text(retryDialog).includes("本次重试仍无法确认是否送达"),
+            "Telegram repeated uncertain result"
+          );
+          if (
+            !retryDialog.isConnected ||
+            document.querySelectorAll(".admin-confirm-dialog").length !== 1 ||
+            !text(retryDialog).includes("暂不重试")
+          ) {
+            throw new Error("连续不确定结果没有保留同一个确认弹窗。");
+          }
+          if (!resourceId) {
+            click(retryDialog.querySelector(".dialog-footer .ghost-button"));
+            await waitFor(() => !document.querySelector(".admin-confirm-dialog"), "取消未知结果重试");
+            const modes = dialog.querySelectorAll(".article-publish-mode-field button");
+            click(modes[modes.length - 1]);
+            const saveButton = await waitFor(
+              () => modes[modes.length - 1].getAttribute("aria-pressed") === "true"
+                && dialog.querySelector(".dialog-footer .primary-button:not(:disabled)"),
+              "未知送达后切换草稿保存"
+            );
+            click(saveButton);
+            saveButton.click();
+            await waitFor(() => !document.querySelector(".dialog-panel"), "未知送达草稿保存完成");
+            if (
+              draftBodies.length !== 1 ||
+              draftBodies[0].bodyMarkdown !== requestBodies[0].bodyMarkdown ||
+              draftBodies[0].confirmUncertainRetry !== undefined ||
+              requestBodies.length !== 2 ||
+              !findToast("草稿已保存，上次推送是否送达仍待确认。")
+            ) {
+              throw new Error("未知送达草稿保存发生重复请求、内容丢失或提示错误。");
+            }
+            click(item.querySelector(".admin-telegram-button:not(:disabled)"));
+            const reopened = await waitFor(
+              () => document.querySelector('[aria-describedby="telegram-quick-push-description"] .dialog-footer .primary-button:not(:disabled)')?.closest(".dialog-panel"),
+              "重开未知送达草稿"
+            );
+            if (!text(reopened.querySelector(".dialog-description")).includes("上次推送是否送达仍待确认")) {
+              throw new Error("重开草稿后丢失未知送达说明。");
+            }
+            click(reopened.querySelector(".dialog-footer .primary-button"));
+            retryDialog = await waitFor(() => document.querySelector(".admin-confirm-dialog"), "已知未知结果先确认");
+            if (requestBodies.length !== 2) {
+              throw new Error("重开已知未知草稿后，人工确认前发送了额外请求。");
+            }
+          }
           click(retryDialog.querySelector(".dialog-footer .primary-button"));
           await waitFor(() => !document.querySelector(".dialog-panel"), "Telegram confirmed retry");
           if (
-            requestBodies.length !== 2 ||
-            requestBodies[1]?.confirmUncertainRetry !== true
+            requestBodies.length !== 3 ||
+            requestBodies[1]?.confirmUncertainRetry !== true ||
+            requestBodies[2]?.confirmUncertainRetry !== true
           ) {
             throw new Error("Telegram confirmed retry did not send the takeover flag.");
           }
@@ -2068,7 +2171,7 @@ async function installCriticalFlowHelpers(client) {
           window.fetch = originalFetch;
         }
       },
-      async saveQuickDraft({ title }) {
+      async saveQuickDraft({ title, defaultCategoryLabel }) {
         const item = await waitForCard(title);
         if (item.classList.contains("content-item-card")) {
           click(item.querySelector(".content-item-select") ?? item);
@@ -2136,18 +2239,67 @@ async function installCriticalFlowHelpers(client) {
         ) {
           throw new Error("Quick push preview content is present but not visible.");
         }
-        const modes = dialog.querySelectorAll(".article-publish-mode-field button");
-        const draftButton = await waitFor(
-          () => {
-            const button = modes[modes.length - 1];
-            return button && !button.disabled ? button : null;
-          },
-          "ready quick push draft mode"
-        );
-        click(draftButton);
-        await waitFor(() => modes[modes.length - 1]?.getAttribute("aria-pressed") === "true", "draft mode");
-        click(dialog.querySelector(".dialog-footer .primary-button"));
-        await waitFor(() => !document.querySelector(".dialog-panel"), "draft save", 20000);
+        const categoryWrites = [];
+        const draftRequests = [];
+        window.fetch = (...args) => {
+          const input = args[0];
+          const init = args[1] || {};
+          const url = typeof input === "string" ? input : input?.url || "";
+          const method = String(init.method || input?.method || "GET").toUpperCase();
+          if (method !== "GET" && url.includes("/api/admin/categories")) categoryWrites.push(url);
+          if (method === "PATCH" && url.includes("/api/admin/telegram-messages/")) {
+            draftRequests.push({ url, body: JSON.parse(String(init.body || "{}")) });
+          }
+          return originalFetch.apply(window, args);
+        };
+        try {
+          if (text(dialog.querySelector(".admin-category-filter-value")) !== defaultCategoryLabel) {
+            throw new Error("首次快捷推送没有显示对应来源的默认分类。");
+          }
+          click(dialog.querySelector(".tool-form-category-filter .admin-category-filter-trigger"));
+          const defaultOption = await waitFor(
+            () => [...dialog.querySelectorAll(".admin-category-select-option")].find((button) => text(button) === defaultCategoryLabel),
+            "默认推送分类选项"
+          );
+          if (defaultOption.getAttribute("aria-selected") !== "true" || defaultOption.closest(".admin-category-filter-option").querySelector(".admin-category-option-action")) {
+            throw new Error("默认推送分类未选中或错误提供了删除、排序操作。");
+          }
+          click(defaultOption);
+          for (const [index, category] of ["Regression", "Regression", ""].entries()) {
+            if (index !== 1) await selectCategory(dialog, category || defaultCategoryLabel);
+            const modes = dialog.querySelectorAll(".article-publish-mode-field button");
+            const draftButton = await waitFor(
+              () => modes[modes.length - 1] && !modes[modes.length - 1].disabled && modes[modes.length - 1],
+              "ready quick push draft mode"
+            );
+            click(draftButton);
+            await waitFor(() => modes[modes.length - 1]?.getAttribute("aria-pressed") === "true", "draft mode");
+            click(dialog.querySelector(".dialog-footer .primary-button"));
+            await waitFor(() => !document.querySelector(".dialog-panel"), "draft save", 20000);
+            if (draftRequests.length !== index + 1 || draftRequests[index].body.category !== category || draftRequests[index].body.resource?.category !== category) {
+              throw new Error("快捷推送保存时丢失自定义分类或把默认分类写成了实际名称。");
+            }
+            if (index < 2) {
+              click(pushButton);
+              dialog = await waitFor(
+                () => document.querySelector('[aria-describedby="telegram-quick-push-description"] .dialog-footer .primary-button:not(:disabled)')?.closest(".dialog-panel"),
+                "重开已保存自定义分类草稿"
+              );
+              if (text(dialog.querySelector(".admin-category-filter-value")) !== "Regression") {
+                throw new Error("快捷推送重开后没有回填草稿的真实分类。");
+              }
+            }
+          }
+          const response = await fetch(draftRequests[2].url, {
+            headers: { Authorization: "Bearer " + localStorage.getItem("htools_token") }
+          });
+          const saved = await response.json();
+          if (!response.ok || saved.message?.resource?.category !== "" || categoryWrites.length) {
+            throw new Error("切回默认分类后存储值不为空或错误修改了分类设置。");
+          }
+        } finally {
+          window.fetch = originalFetch;
+        }
         return true;
       },
       async createArticle({ title, summary, slug, content, category }) {
@@ -2235,7 +2387,26 @@ async function installCriticalFlowHelpers(client) {
         const item = await waitForCard(title);
         click(item.querySelector(".telegram-push-view-link"));
         const dialog = await waitFor(() => document.querySelector(".dialog-panel"), "push preview dialog");
-        await waitFor(() => dialog.querySelector(".telegram-message-preview"), "push preview");
+        await waitFor(() => dialog.querySelector(".telegram-message-preview .markdown-content"), "push preview");
+        await Promise.all(dialog.getAnimations().map((animation) => animation.finished.catch(() => {})));
+        const heading = dialog.querySelector(".dialog-header h2");
+        const originalHeading = heading.textContent;
+        heading.textContent = "InteroperabilityConfigurationReference".repeat(4).slice(0, 140);
+        try {
+          const panelRect = dialog.getBoundingClientRect();
+          for (const selector of [".dialog-header", ".dialog-body"]) {
+            const rect = dialog.querySelector(selector).getBoundingClientRect();
+            if (rect.left < panelRect.left - 1 || rect.right > panelRect.right + 1) {
+              throw new Error("连续长标题撑宽了公共浏览弹窗：" + selector);
+            }
+          }
+          const closeRect = dialog.querySelector(".dialog-header button").getBoundingClientRect();
+          if (innerWidth >= 921 && (!closeRect.width || closeRect.right > panelRect.right || closeRect.left < panelRect.left)) {
+            throw new Error("连续长标题挤走了桌面浏览弹窗关闭按钮。");
+          }
+        } finally {
+          heading.textContent = originalHeading;
+        }
         await closeDialog();
         return true;
       },
@@ -3266,13 +3437,14 @@ async function runCriticalFlows(options) {
         title: "Regression Tool"
       })
     );
-    await runStep("推送结果不确定确认重试", () =>
+    await runStep("推送结果不确定确认重试与草稿保存", () =>
       runCriticalBrowserAction(client, "inspectQuickUncertainRetry", {
         title: "Regression Tool"
       })
     );
     await runStep("工具保存推送草稿", () => runCriticalBrowserAction(client, "saveQuickDraft", {
-      title: "Regression Tool"
+      title: "Regression Tool",
+      defaultCategoryLabel: "工具库（默认）"
     }));
 
     await openCriticalFlowRoute(client, server.origin, "/admin/articles");
@@ -3294,7 +3466,8 @@ async function runCriticalFlows(options) {
       title: "Regression Article"
     }));
     await runStep("文章保存推送草稿", () => runCriticalBrowserAction(client, "saveQuickDraft", {
-      title: "Regression Article"
+      title: "Regression Article",
+      defaultCategoryLabel: "文章管理（默认）"
     }));
 
     await openCriticalFlowRoute(client, server.origin, "/admin/content");
@@ -3321,7 +3494,8 @@ async function runCriticalFlows(options) {
       })
     );
     await runStep("订阅内容保存推送草稿", () => runCriticalBrowserAction(client, "saveQuickDraft", {
-      title: "Regression Content"
+      title: "Regression Content",
+      defaultCategoryLabel: "订阅内容（默认）"
     }));
     await runStep("更新订阅条目来源数据", () =>
       runCriticalBrowserAction(client, "migrateContentCategory", {
@@ -3348,7 +3522,7 @@ async function runCriticalFlows(options) {
         title: "Regression Tool"
       })
     );
-    await runStep("浏览推送", () => runCriticalBrowserAction(client, "viewPush", {
+    await runStep("浏览推送与连续长标题边界", () => runCriticalBrowserAction(client, "viewPush", {
       title: "Regression Content"
     }));
     await runStep("编辑推送并同步 Markdown", () => runCriticalBrowserAction(client, "editPush", {

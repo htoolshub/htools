@@ -353,26 +353,22 @@ function normalizeComparableArticleText(value: string) {
     .replace(/[^\p{L}\p{N}]+/gu, "");
 }
 
-function isSimilarArticleText(value: string, reference: string) {
-  const normalizedValue = normalizeComparableArticleText(value);
-  const normalizedReference = normalizeComparableArticleText(reference);
+function normalizeArticleSummaryWhitespace(value: string) {
+  return value
+    .replace(/(?<=\p{Script=Han})\s+|\s+(?=\p{Script=Han})/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-  if (!normalizedValue || !normalizedReference) {
-    return false;
-  }
+export function getArticleDisplaySummary(summary: string, contentText: string) {
+  const displaySummary = cleanArticleDisplayText(summary);
+  const comparableSummary = normalizeArticleSummaryWhitespace(displaySummary);
+  // 正文已由 Markdown 解析器提取为文字，不能再次清理其中的代码字面量。
+  const comparableContent = normalizeArticleSummaryWhitespace(contentText);
 
-  if (normalizedValue === normalizedReference) {
-    return true;
-  }
-
-  const minLength = Math.min(normalizedValue.length, normalizedReference.length);
-
-  return (
-    minLength >= 12 &&
-    (normalizedValue.startsWith(normalizedReference) ||
-      normalizedReference.startsWith(normalizedValue) ||
-      (normalizedValue.length >= 24 && normalizedReference.includes(normalizedValue)))
-  );
+  return comparableSummary && comparableContent.startsWith(comparableSummary)
+    ? ""
+    : displaySummary;
 }
 
 export function normalizeMarkdownImageUrl(value: string) {
@@ -385,7 +381,6 @@ export function normalizeMarkdownImageUrl(value: string) {
 export function stripLeadingArticleDuplicates(
   content: string,
   title: string,
-  summary: string,
   coverImage = ""
 ) {
   let nextContent = content
@@ -404,9 +399,12 @@ export function stripLeadingArticleDuplicates(
       continue;
     }
 
-    const headingMatch = nextContent.match(/^#{1,6}\s+(.+?)(?:\n+|$)/);
+    const headingMatch = nextContent.match(/^#{1,6}[ \t]+(.+?)(?:\r?\n+|$)/);
 
-    if (headingMatch && isSimilarArticleText(headingMatch[1], title)) {
+    if (
+      headingMatch &&
+      cleanArticleDisplayText(headingMatch[1].replace(/[ \t]+#+[ \t]*$/, "")) === cleanArticleDisplayText(title)
+    ) {
       nextContent = nextContent.slice(headingMatch[0].length).replace(/^\s+/, "");
       continue;
     }
@@ -429,35 +427,6 @@ export function stripLeadingArticleDuplicates(
     if (imageMatch) {
       preservedBlocks.push(imageMatch[0].trim());
       nextContent = nextContent.slice(imageMatch[0].length).replace(/^\s+/, "");
-      continue;
-    }
-
-    const blockquoteMatch = nextContent.match(/^>\s*(.+?)(?:\n{2,}|$)/s);
-    const blockquote = blockquoteMatch?.[1]?.trim() ?? "";
-
-    if (
-      blockquote &&
-      (isSimilarArticleText(blockquote, summary) ||
-        isSimilarArticleText(blockquote, title))
-    ) {
-      nextContent = nextContent
-        .slice(blockquoteMatch?.[0].length ?? 0)
-        .replace(/^\s+/, "");
-      continue;
-    }
-
-    const paragraphMatch = nextContent.match(/^([^\n#>`|][\s\S]*?)(?:\n{2,}|$)/);
-    const paragraph = paragraphMatch?.[1]?.trim() ?? "";
-
-    if (
-      paragraph &&
-      !paragraph.startsWith("![") &&
-      (isSimilarArticleText(paragraph, summary) ||
-        isSimilarArticleText(paragraph, title))
-    ) {
-      nextContent = nextContent
-        .slice(paragraphMatch?.[0].length ?? 0)
-        .replace(/^\s+/, "");
       continue;
     }
 

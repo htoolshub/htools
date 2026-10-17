@@ -162,6 +162,8 @@ function TelegramPushRecordCard({
 }) {
   const actions = useAdminCardActionMenu(`telegram-push:${record.id}`);
   const pushed = record.syncStatus !== "not_pushed";
+  const statusLabel = record.deliveryUncertain ? text.statusUncertain
+    : pushed ? text.statusPushed : text.pushAction;
   const displayDate = formatAdminDate(record.sentAt || record.updatedAt);
   const summary = cleanArticleDisplayText(
     record.resource?.description || record.messageMarkdown
@@ -178,27 +180,30 @@ function TelegramPushRecordCard({
           </div>
           <div className="admin-tool-title-meta">
             {displayDate ? <span>{displayDate}</span> : null}
+            {record.deliveryUncertain ? <span>{text.statusUncertain}</span> : null}
           </div>
         </div>
         <div className="admin-tool-card-actions" ref={actions.rootRef}>
-          <button aria-label={pushed ? text.statusPushed : text.pushAction}
-            aria-pressed={pushed}
+          <button aria-label={statusLabel}
+            aria-pressed={pushed && !record.deliveryUncertain}
             className={`icon-button admin-article-publish-button ${
-              pushed ? "is-active" : ""
+              pushed && !record.deliveryUncertain ? "is-active" : ""
             }`}
-            disabled={!pushed && !serviceEnabled}
-            title={pushed ? text.statusPushed : text.pushAction}
+            disabled={(!pushed || record.deliveryUncertain) && !serviceEnabled}
+            title={statusLabel}
             type="button"
             onClick={() => {
               actions.close();
-              if (pushed) {
+              if (pushed && record.deliveryUncertain) {
+                onEdit();
+              } else if (pushed) {
                 onPushedStatus();
               } else {
                 onPush();
               }
             }}
           >
-            {pushed ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+            {pushed && !record.deliveryUncertain ? <CheckCircle2 size={16} /> : <Circle size={16} />}
           </button>
           <AdminCardActionMenu
             actions={actions}

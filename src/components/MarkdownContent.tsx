@@ -1,4 +1,5 @@
 import { ArrowUpRight, Check, ChevronDown, ChevronUp, Copy } from "lucide-react";
+import type { Nodes as HtmlNodes, Root as HtmlRoot } from "hast";
 import type { Nodes } from "mdast";
 import { useEffect, useMemo, useState } from "react";
 import type { HTMLAttributes, ImgHTMLAttributes } from "react";
@@ -8,7 +9,8 @@ import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
-import { unified } from "unified";
+import { unified, type PluggableList } from "unified";
+import { getArticleDisplaySummary } from "../article-helpers";
 import { DEFAULT_PROXY_MODE, DEFAULT_PROXY_SCOPE, proxifyUrl } from "../proxy";
 import type { ProxySettings } from "../types";
 import type { Locale } from "../i18n";
@@ -33,6 +35,8 @@ const markdownSanitizeSchema = {
 const originalLinkHeadingPattern = "(?:原文链接|Original Link|鍘熸枃閾炬帴)";
 const collapsibleCodeLineThreshold = 6;
 const markdownParser = unified().use(remarkParse).use(remarkGfm);
+const markdownRemarkPlugins: PluggableList = [remarkGfm, remarkBreaks];
+const markdownRehypePlugins: PluggableList = [rehypeRaw, [rehypeSanitize, markdownSanitizeSchema]];
 
 const defaultProxySettings: ProxySettings = {
   enabled: false,
@@ -40,6 +44,80 @@ const defaultProxySettings: ProxySettings = {
   mode: DEFAULT_PROXY_MODE,
   scope: DEFAULT_PROXY_SCOPE
 };
+
+function getArticleSummaryText(node: HtmlNodes): string {
+  if (node.type === "text") {
+    return node.value;
+  }
+  if (node.type === "element" &&
+      (node.properties.dataFootnoteRef !== undefined || node.properties.dataFootnotes !== undefined)) {
+    return "";
+  }
+  if ("children" in node) {
+    const text = node.children.map(getArticleSummaryText).join("");
+    const block = node.type === "element" &&
+      /^(?:p|div|blockquote|h[1-6]|li|tr|td|th|pre|dl|dt|dd|section|summary|br|hr)$/.test(node.tagName);
+    return block ? `\n${text}\n` : text;
+  }
+  return "";
+}
+
+function rehypeArticleSummary({ summary, trailingText }: { summary: string; trailingText: string }) {
+  return (tree: HtmlRoot) => {
+    // 只读取与正文相同流程净化后的文字，不再清理 HTML 或代码字面量。
+    const displaySummary = getArticleDisplaySummary(summary, `${getArticleSummaryText(tree)}\n${trailingText}`);
+    tree.children = displaySummary ? [{
+      type: "element",
+      tagName: "p",
+      properties: {},
+      children: [{ type: "text", value: displaySummary }]
+    }] : [];
+  };
+}
+
+export function ArticleSummary({ content, summary }: { content: string; summary: string }) {
+  const { body, linkSections, originalLink } = useMemo(() => prepareMarkdownContent(content), [content]);
+  const trailingText = [
+    ...linkSections.flatMap((section) => [section.title, ...section.links.map((link) => link.label)]),
+    ...(originalLink ? [originalLink.title, originalLink.label] : [])
+  ].join("\n");
+
+  return (
+    <ReactMarkdown
+      remarkPlugins={markdownRemarkPlugins}
+      rehypePlugins={[...markdownRehypePlugins, [rehypeArticleSummary, { summary, trailingText }]]}
+    >
+      {body}
+    </ReactMarkdown>
+  );
+}
+
+function prepareMarkdownContent(content: string) {
+  const protectedCode = protectMarkdownCode(content.replace(/\r\n?/g, "\n"));
+  const extractedOriginalLink = extractOriginalMarkdownLink(protectedCode.body, protectedCode.marker);
+  const extractedLinkSections = extractMarkdownLinkSections(
+    extractedOriginalLink.body,
+    protectedCode.marker
+  );
+
+  return {
+    body: protectedCode.restore(extractedLinkSections.body),
+    linkSections: extractedLinkSections.linkSections.map((section) => ({
+      ...section,
+      title: protectedCode.restore(section.title),
+      links: section.links.map((link) => ({
+        ...link,
+        label: protectedCode.restore(link.label)
+      }))
+    })),
+    originalLink: extractedOriginalLink.originalLink
+      ? {
+          ...extractedOriginalLink.originalLink,
+          label: protectedCode.restore(extractedOriginalLink.originalLink.label)
+        }
+      : null
+  };
+}
 
 export default function MarkdownContent({
   content,
@@ -51,32 +129,7 @@ export default function MarkdownContent({
   proxySettings?: ProxySettings;
 }) {
   const { body, linkSections, originalLink } = useMemo(
-    () => {
-      const protectedCode = protectMarkdownCode(content.replace(/\r\n?/g, "\n"));
-      const extractedOriginalLink = extractOriginalMarkdownLink(protectedCode.body, protectedCode.marker);
-      const extractedLinkSections = extractMarkdownLinkSections(
-        extractedOriginalLink.body,
-        protectedCode.marker
-      );
-
-      return {
-        body: protectedCode.restore(extractedLinkSections.body),
-        linkSections: extractedLinkSections.linkSections.map((section) => ({
-          ...section,
-          title: protectedCode.restore(section.title),
-          links: section.links.map((link) => ({
-            ...link,
-            label: protectedCode.restore(link.label)
-          }))
-        })),
-        originalLink: extractedOriginalLink.originalLink
-          ? {
-              ...extractedOriginalLink.originalLink,
-              label: protectedCode.restore(extractedOriginalLink.originalLink.label)
-            }
-          : null
-      };
-    },
+    () => prepareMarkdownContent(content),
     [content]
   );
 
@@ -84,8 +137,8 @@ export default function MarkdownContent({
     <div className="markdown-content">
       {body ? (
         <ReactMarkdown
-          remarkPlugins={[remarkGfm, remarkBreaks]}
-          rehypePlugins={[rehypeRaw, [rehypeSanitize, markdownSanitizeSchema]]}
+          remarkPlugins={markdownRemarkPlugins}
+          rehypePlugins={markdownRehypePlugins}
           components={{
             a({ href, children, ...props }) {
               const safeHref = sanitizeMarkdownHref(href);

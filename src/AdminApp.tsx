@@ -258,6 +258,19 @@ function getTelegramStoredCategory(value: string) {
     : normalized;
 }
 
+function getTelegramDefaultCategoryLabel(
+  resourceType: TelegramResourceType,
+  telegramText: ReturnType<typeof getTelegramText>
+) {
+  const sourceLabel = {
+    tool: telegramText.management.typeTool,
+    article: telegramText.management.typeArticle,
+    content: telegramText.management.typeContent,
+    custom: ""
+  }[resourceType];
+  return sourceLabel ? telegramText.defaultCategoryLabel(sourceLabel) : undefined;
+}
+
 function createOptimisticTelegramMessage(
   resource: TelegramPushResource,
   footerMarkdown: string,
@@ -274,6 +287,7 @@ function createOptimisticTelegramMessage(
   return {
     exists: false,
     targetChanged: false,
+    deliveryUncertain: false,
     syncStatus: "not_pushed",
     bodyMarkdown,
     mediaEnabled: false,
@@ -321,7 +335,10 @@ function combineAdminRefreshResults(results: AdminRefreshResult[]): AdminRefresh
   return results.includes("superseded") ? "superseded" : "success";
 }
 
-type TelegramUncertainRetryContext = "record" | "quick" | "editor";
+type TelegramUncertainRetry = {
+  context: "record" | "quick" | "editor";
+  retried: boolean;
+};
 
 function isTelegramPushUncertainError(error: unknown) {
   return typeof error === "object" &&
@@ -696,7 +713,7 @@ export default function AdminApp({
     useState<TelegramPushRecord | null>(null);
   const [isPushingTelegramRecord, setIsPushingTelegramRecord] = useState(false);
   const [pendingTelegramUncertainRetry, setPendingTelegramUncertainRetry] =
-    useState<TelegramUncertainRetryContext | null>(null);
+    useState<TelegramUncertainRetry | null>(null);
   const [pendingTelegramResend, setPendingTelegramResend] =
     useState<"deleted" | "target-changed" | null>(null);
   const [pendingTelegramSourceSync, setPendingTelegramSourceSync] = useState(false);
@@ -1018,6 +1035,20 @@ export default function AdminApp({
   const categoryText = workspaceText.category;
   const articleText = getArticleText(locale);
   const telegramText = getTelegramText(locale);
+  const isTelegramPushConfirmBusy = pendingTelegramUncertainRetry?.context === "quick"
+    ? telegramQuickSaving
+    : pendingTelegramUncertainRetry?.context === "editor"
+      ? telegramMessageSaving
+      : isPushingTelegramRecord;
+  const telegramPushConfirmDescription = pendingTelegramUncertainRetry
+    ? isTelegramPushConfirmBusy
+      ? telegramText.uncertainRetryPending
+      : pendingTelegramUncertainRetry.retried
+        ? telegramText.uncertainRetryFailed
+        : telegramText.uncertainRetryDescription
+    : isPushingTelegramRecord
+      ? telegramText.pushPending
+      : telegramText.management.pushConfirmDescription;
 
   function getAiAppliedStatus(result: {
     githubRepository?: string;
@@ -2578,6 +2609,11 @@ export default function AdminApp({
       setTelegramPushLoadError(null);
       setViewingTelegramPush(null);
       setPendingDeleteTelegramPush(null);
+      setPendingPushTelegramRecord(null);
+      setPendingTelegramUncertainRetry(null);
+      setPendingTelegramResend(null);
+      setTelegramQuickResource(null);
+      setTelegramQuickMessage(null);
       setTelegramResource(null);
       setTelegramMessage(null);
       setIsCreatingTelegramPush(false);
@@ -2898,7 +2934,7 @@ export default function AdminApp({
 
   function closeTelegramMessageDialog() {
     if (telegramMessageSaving) return;
-    if (pendingTelegramUncertainRetry === "editor") {
+    if (pendingTelegramUncertainRetry?.context === "editor") {
       setPendingTelegramUncertainRetry(null);
     }
     telegramGitHub.reset();
@@ -2924,6 +2960,10 @@ export default function AdminApp({
   async function confirmPushTelegramRecord(confirmUncertainRetry = false) {
     const record = pendingPushTelegramRecord;
     if (!record || isPushingTelegramRecord) return;
+    if (record.deliveryUncertain && !confirmUncertainRetry) {
+      setPendingTelegramUncertainRetry({ context: "record", retried: false });
+      return;
+    }
 
     const actionKey = getAdminWriteEntityKey(
       getTelegramWriteEntityScope(record.resourceType),
@@ -2955,9 +2995,13 @@ export default function AdminApp({
       void refreshTelegramPushRecords();
     } catch (error) {
       if (isTelegramPushUncertainError(error)) {
-        setPendingTelegramUncertainRetry("record");
+        setPendingTelegramUncertainRetry({ context: "record", retried: confirmUncertainRetry });
+        setTelegramPushRecords((current) => current.map((item) => item.id === record.id
+          ? { ...item, deliveryUncertain: true }
+          : item));
         setStatus("");
       } else {
+        setPendingTelegramUncertainRetry(null);
         setStatus(getLocalizedErrorMessage(error, t));
       }
     } finally {
@@ -2991,6 +3035,7 @@ export default function AdminApp({
     setTelegramMessage({
       exists: false,
       targetChanged: false,
+      deliveryUncertain: false,
       syncStatus: "not_pushed",
       bodyMarkdown: defaultBody,
       mediaEnabled: false,
@@ -3037,6 +3082,7 @@ export default function AdminApp({
         locale
       );
       setTelegramQuickMessage(message);
+      setTelegramQuickCategory(getTelegramStoredCategory(message.resource.category));
     } catch (error) {
       setStatus(getLocalizedErrorMessage(error, t));
       setTelegramQuickResource(null);
@@ -3048,7 +3094,7 @@ export default function AdminApp({
 
   function closeTelegramQuickPush() {
     if (telegramQuickSaving) return;
-    if (pendingTelegramUncertainRetry === "quick") {
+    if (pendingTelegramUncertainRetry?.context === "quick") {
       setPendingTelegramUncertainRetry(null);
     }
     setTelegramQuickResource(null);
@@ -3060,6 +3106,10 @@ export default function AdminApp({
     const resource = telegramQuickResource;
     const message = telegramQuickMessage;
     if (!resource || !message || telegramQuickLoading || telegramQuickSaving) return;
+    if (telegramQuickMode === "published" && message.deliveryUncertain && !confirmUncertainRetry) {
+      setPendingTelegramUncertainRetry({ context: "quick", retried: false });
+      return;
+    }
 
     const actionKey = getAdminWriteEntityKey(
       getTelegramWriteEntityScope(resource.type),
@@ -3085,7 +3135,7 @@ export default function AdminApp({
         );
         setStatus(telegramText.sent);
       } else {
-        await saveTelegramMessage(
+        const savedMessage = await saveTelegramMessage(
           resource.type,
           resource.id,
           message.bodyMarkdown,
@@ -3095,7 +3145,7 @@ export default function AdminApp({
           token,
           { resource: pushResource, category: storedCategory }
         );
-        setStatus(telegramText.saved);
+        setStatus(savedMessage.deliveryUncertain ? telegramText.draftSavedUncertain : telegramText.saved);
       }
       setTelegramQuickResource(null);
       setTelegramQuickMessage(null);
@@ -3103,10 +3153,12 @@ export default function AdminApp({
       setPendingTelegramUncertainRetry(null);
       if (adminView === "push") void refreshTelegramPushRecords();
     } catch (error) {
-      if (isTelegramPushUncertainError(error)) {
-        setPendingTelegramUncertainRetry("quick");
+      if (telegramQuickMode === "published" && isTelegramPushUncertainError(error)) {
+        setTelegramQuickMessage((current) => current ? { ...current, deliveryUncertain: true } : current);
+        setPendingTelegramUncertainRetry({ context: "quick", retried: confirmUncertainRetry });
         setStatus("");
       } else {
+        setPendingTelegramUncertainRetry(null);
         setStatus(getLocalizedErrorMessage(error, t));
       }
     } finally {
@@ -3258,7 +3310,8 @@ export default function AdminApp({
       setTelegramMediaEnabled(message.mediaEnabled);
       setTelegramMediaUrl(message.mediaUrl);
       setStatus(
-        message.targetChanged ? telegramText.targetChanged : telegramText.saved
+        message.deliveryUncertain ? telegramText.savedUncertain
+          : message.targetChanged ? telegramText.targetChanged : telegramText.saved
       );
       if (adminView === "push") void refreshTelegramPushRecords();
     } catch (error) {
@@ -3278,6 +3331,10 @@ export default function AdminApp({
       !telegramMediaValid ||
       telegramPreviewLength > telegramContentLimit
     ) {
+      return;
+    }
+    if (telegramMessage.deliveryUncertain && !confirmUncertainRetry) {
+      setPendingTelegramUncertainRetry({ context: "editor", retried: false });
       return;
     }
     const actionKey = getAdminWriteEntityKey(
@@ -3321,6 +3378,7 @@ export default function AdminApp({
               confirmUncertainRetry
             }
           );
+      setPendingTelegramUncertainRetry(null);
       setTelegramMessage(message);
       setTelegramResource(message.resource);
       setTelegramDescription(message.resource.description);
@@ -3351,12 +3409,15 @@ export default function AdminApp({
       setTelegramBodyMarkdown("");
       setTelegramMediaEnabled(false);
       setTelegramMediaUrl("");
-      setPendingTelegramUncertainRetry(null);
     } catch (error) {
       if (isTelegramPushUncertainError(error)) {
-        setPendingTelegramUncertainRetry("editor");
+        if (!telegramMessage.exists) {
+          setTelegramMessage((current) => current ? { ...current, deliveryUncertain: true } : current);
+        }
+        setPendingTelegramUncertainRetry({ context: "editor", retried: confirmUncertainRetry });
         setStatus("");
       } else {
+        setPendingTelegramUncertainRetry(null);
         setStatus(getLocalizedErrorMessage(error, t));
       }
     } finally {
@@ -3366,9 +3427,8 @@ export default function AdminApp({
   }
 
   function confirmTelegramUncertainRetry() {
-    const context = pendingTelegramUncertainRetry;
-    if (!context) return;
-    setPendingTelegramUncertainRetry(null);
+    const context = pendingTelegramUncertainRetry?.context;
+    if (!context || isTelegramPushConfirmBusy) return;
     if (context === "record") {
       void confirmPushTelegramRecord(true);
     } else if (context === "quick") {
@@ -4800,7 +4860,12 @@ export default function AdminApp({
               onCreate={openCreateTelegramPush}
               onLoadMore={() => void loadMoreTelegramPushRecords()}
               onOpenSettings={openServiceSettings}
-              onPush={setPendingPushTelegramRecord}
+              onPush={(record) => {
+                setPendingPushTelegramRecord(record);
+                if (record.deliveryUncertain) {
+                  setPendingTelegramUncertainRetry({ context: "record", retried: false });
+                }
+              }}
               onPushedStatus={() =>
                 onNotify({
                   message: telegramText.management.pushedNotice,
@@ -4882,7 +4947,11 @@ export default function AdminApp({
           closeDisabled={telegramQuickSaving}
           closeLabel={t.actions.close}
           description={
-            telegramQuickMessage?.exists
+            telegramQuickMessage?.deliveryUncertain
+              ? telegramQuickMessage.exists
+                ? telegramText.quickPush.deliveryUncertain
+                : telegramText.deliveryUncertain
+              : telegramQuickMessage?.exists
               ? telegramText.quickPush.alreadyPushed
               : telegramText.quickPush.description
           }
@@ -4939,6 +5008,7 @@ export default function AdminApp({
                     categoryText={categoryText}
                     className="tool-form-category-filter"
                     disabled={telegramQuickLoading || telegramQuickSaving}
+                    emptyOptionLabel={getTelegramDefaultCategoryLabel(telegramQuickResource.type, telegramText)}
                     onChange={(category) => {
                       setTelegramQuickCategory(category);
                       void rememberAdminCategory("push", category);
@@ -4985,7 +5055,9 @@ export default function AdminApp({
           title={telegramText.title}
           closeLabel={t.actions.close}
           description={
-            telegramResource.type === "custom"
+            telegramMessage?.deliveryUncertain
+              ? telegramText.deliveryUncertain
+              : telegramResource.type === "custom"
               ? telegramText.customDescription
               : telegramText.description
           }
@@ -5262,6 +5334,7 @@ export default function AdminApp({
                   categories={pushCategoryOptions}
                   categoryText={categoryText}
                   className="tool-form-category-filter"
+                  emptyOptionLabel={getTelegramDefaultCategoryLabel(telegramResource.type, telegramText)}
                   onDeleteCategory={(category) => void deleteAdminCategory("push", category)}
                   onChange={(category) => {
                     setTelegramCategory(category);
@@ -6421,19 +6494,29 @@ export default function AdminApp({
         />
       ) : null}
 
-      {pendingPushTelegramRecord ? (
+      {pendingPushTelegramRecord || pendingTelegramUncertainRetry ? (
         <AdminConfirmDialog
-          cancelLabel={t.status.deleteCancel}
+          cancelLabel={pendingTelegramUncertainRetry
+            ? telegramText.uncertainRetryCancel
+            : t.status.deleteCancel}
           closeLabel={t.actions.close}
-          confirmLabel={t.actions.confirm}
+          confirmLabel={pendingTelegramUncertainRetry
+            ? telegramText.uncertainRetryAction
+            : t.actions.confirm}
           descriptionId="push-telegram-record-dialog-description"
-          description={telegramText.management.pushConfirmDescription}
-          disabled={isPushingTelegramRecord}
+          description={telegramPushConfirmDescription}
+          disabled={isTelegramPushConfirmBusy}
           onCancel={() => {
-            if (!isPushingTelegramRecord) setPendingPushTelegramRecord(null);
+            if (isTelegramPushConfirmBusy) return;
+            setPendingTelegramUncertainRetry(null);
+            setPendingPushTelegramRecord(null);
           }}
-          onConfirm={() => void confirmPushTelegramRecord()}
-          title={telegramText.management.pushConfirmTitle}
+          onConfirm={pendingTelegramUncertainRetry
+            ? confirmTelegramUncertainRetry
+            : () => void confirmPushTelegramRecord()}
+          title={pendingTelegramUncertainRetry
+            ? telegramText.uncertainRetryTitle
+            : telegramText.management.pushConfirmTitle}
         />
       ) : null}
 
@@ -6480,26 +6563,6 @@ export default function AdminApp({
               ? telegramText.resendDeletedTitle
               : telegramText.resendTargetChangedTitle
           }
-        />
-      ) : null}
-
-      {pendingTelegramUncertainRetry ? (
-        <AdminConfirmDialog
-          cancelLabel={t.status.deleteCancel}
-          closeLabel={t.actions.close}
-          confirmLabel={telegramText.uncertainRetryAction}
-          descriptionId="telegram-uncertain-retry-dialog-description"
-          description={telegramText.uncertainRetryDescription}
-          disabled={
-            pendingTelegramUncertainRetry === "record"
-              ? isPushingTelegramRecord
-              : pendingTelegramUncertainRetry === "quick"
-                ? telegramQuickSaving
-                : telegramMessageSaving
-          }
-          onCancel={() => setPendingTelegramUncertainRetry(null)}
-          onConfirm={confirmTelegramUncertainRetry}
-          title={telegramText.uncertainRetryTitle}
         />
       ) : null}
 
@@ -7352,6 +7415,7 @@ function AdminCategoryFilter({
   className = "",
   deletableFixedCategories = [],
   disabled = false,
+  emptyOptionLabel,
   fixedCategories = [],
   labelFor,
   onChange,
@@ -7369,6 +7433,8 @@ function AdminCategoryFilter({
   className?: string;
   deletableFixedCategories?: string[];
   disabled?: boolean;
+  /** 启用一个保存值为空的固定选项，同时用该名称回显空值。 */
+  emptyOptionLabel?: string;
   fixedCategories?: string[];
   labelFor?: (category: string) => string;
   onChange: (category: string) => void;
@@ -7399,8 +7465,17 @@ function AdminCategoryFilter({
     [deletableFixedCategories]
   );
   const resolveLabel = useCallback(
-    (category: string) => labelFor?.(category) ?? getCategoryLabel(category, t),
-    [labelFor, t]
+    (category: string) => !category && emptyOptionLabel
+      ? emptyOptionLabel
+      : labelFor?.(category) ?? getCategoryLabel(category, t),
+    [emptyOptionLabel, labelFor, t]
+  );
+  const normalizedCategories = useMemo(
+    () => Array.from(new Set([
+      ...(emptyOptionLabel ? [""] : []),
+      ...categories.map(normalizeAdminCategoryValue)
+    ])),
+    [categories, emptyOptionLabel]
   );
   const normalizedValue = normalizeAdminCategoryValue(value);
   // ponytail: a lookup table instead of nested ternaries, so adding a fifth
@@ -7413,33 +7488,32 @@ function AdminCategoryFilter({
     push: categoryText.pushLabel
   };
   const scopeCategoryLabel = scope ? scopeCategoryLabels[scope] : "";
-  const resolvedEmptyLabel = scopeCategoryLabel
+  const resolvedEmptyLabel = emptyOptionLabel ?? (scopeCategoryLabel
     ? categoryText.selectOrCreateLabel(scopeCategoryLabel)
-    : getCategoryLabel("All", t);
+    : getCategoryLabel("All", t));
   const selectedLabel = normalizedValue
     ? isAllCategoryValue(normalizedValue) && allLabel
       ? allLabel
       : resolveLabel(normalizedValue)
     : resolvedEmptyLabel;
-  const displaySelectedLabel = getAdminCategoryDisplayLabel(selectedLabel);
+  const displaySelectedLabel = !normalizedValue && emptyOptionLabel
+    ? selectedLabel
+    : getAdminCategoryDisplayLabel(selectedLabel);
   const createCategoryName = query.trim();
   const isFilteringCategories = Boolean(query.trim());
   const filteredCategories = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    const uniqueCategories = Array.from(
-      new Set(categories.map(normalizeAdminCategoryValue))
-    );
 
     if (!normalizedQuery) {
-      return uniqueCategories;
+      return normalizedCategories;
     }
 
-    return uniqueCategories.filter((category) => {
+    return normalizedCategories.filter((category) => {
       const label = resolveLabel(category);
 
       return `${category} ${label}`.toLowerCase().includes(normalizedQuery);
     });
-  }, [categories, query, resolveLabel]);
+  }, [normalizedCategories, query, resolveLabel]);
   const canCreateCategory = useMemo(() => {
     const normalizedName = createCategoryName.toLowerCase();
 
@@ -7452,7 +7526,7 @@ function AdminCategoryFilter({
       return false;
     }
 
-    return !categories.some((category) => {
+    return !normalizedCategories.some((category) => {
       const label = resolveLabel(category).toLowerCase();
 
       return (
@@ -7460,7 +7534,7 @@ function AdminCategoryFilter({
         label === normalizedName
       );
     });
-  }, [allowCreate, categories, createCategoryName, resolveLabel]);
+  }, [allowCreate, normalizedCategories, createCategoryName, resolveLabel]);
   const categoryWidthChars = useMemo(() => {
     const widthLabel = allLabel ?? resolvedEmptyLabel;
     return Math.max(
@@ -7747,13 +7821,15 @@ function AdminCategoryFilter({
               <>
                 {filteredCategories.map((category) => {
                   const selected = category === normalizedValue;
-                  const fixed = normalizedFixedCategories.has(category);
+                  const fixed = normalizedFixedCategories.has(category) ||
+                    (!category && Boolean(emptyOptionLabel));
                   const canDelete = Boolean(onDeleteCategory) && (
                     !fixed || normalizedDeletableFixedCategories.has(category)
                   );
                   const categoryLabel = resolveLabel(category);
-                  const displayCategoryLabel =
-                    getAdminCategoryDisplayLabel(categoryLabel);
+                  const displayCategoryLabel = !category && emptyOptionLabel
+                    ? categoryLabel
+                    : getAdminCategoryDisplayLabel(categoryLabel);
                   const movableCategories = filteredCategories.filter(
                     isPersistableAdminCategory
                   );

@@ -552,7 +552,7 @@ test("admin dialogs reuse shared top actions, publish mode, footer and confirmat
   ];
   assert.equal(actionTags.length, 6);
   assert.equal(actionTags.filter((tag) => /closeLabel=/.test(tag)).length, 1);
-  assert.equal((adminSource.match(/<AdminConfirmDialog\b/g) ?? []).length, 14);
+  assert.equal((adminSource.match(/<AdminConfirmDialog\b/g) ?? []).length, 13);
   const panelClassNames = [
     ...adminSource.matchAll(/panelClassName="([^"]+)"/g),
     ...dialogComponentSource.matchAll(/panelClassName="([^"]+)"/g)

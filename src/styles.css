@@ -3211,6 +3211,7 @@ html[data-theme="dark"] .skeleton-shimmer::after {
   display: grid;
   width: min(100%, 680px);
   max-height: min(90svh, 860px);
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr) auto;
   overflow: hidden;
   border: 1px solid var(--border);
@@ -3669,6 +3670,7 @@ html[data-theme="dark"] .skeleton-shimmer::after {
   color: var(--text);
   font-size: 24px;
   line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .dialog-drawer-grip {
@@ -8697,7 +8699,8 @@ html[data-theme="dark"] .admin-workspace .link-check-table th {
   max-width: 100%;
   min-width: 0;
   align-content: start;
-  gap: 0;
+  gap: 2px;
+  padding: 8px;
 }
 
 .content-flow-load-more {
@@ -8715,10 +8718,9 @@ html[data-theme="dark"] .admin-workspace .link-check-table th {
   min-width: 0;
   max-width: 100%;
   border: 0;
-  border-bottom: 1px solid var(--border);
-  border-radius: 0;
+  border-radius: 8px;
   background: transparent;
-  padding: 14px 16px;
+  padding: 14px 8px;
   transition: background 0.16s ease;
 }
 
@@ -9391,7 +9393,7 @@ html[data-theme="dark"] .admin-workspace .content-flow-skeleton .content-source-
     position: absolute;
     display: block;
     top: 14px;
-    right: 16px;
+    right: 8px;
   }
 
   .content-item-mobile-actions .admin-tool-card-actions {

@@ -202,7 +202,7 @@ test("card-level featured and publish toggles require confirmation before mutati
   assert.match(adminSource, /toggle-published-dialog-description/);
   assert.equal(
     (adminSource.match(/confirmLabel=\{t\.actions\.confirm\}/g) ?? []).length,
-    11
+    10
   );
   assert.doesNotMatch(adminSource, /deleteContinue/);
   assert.match(

@@ -235,43 +235,134 @@ test("markdown image URLs shed their wrapping brackets and quotes", () => {
   assert.equal(normalize(""), "");
 });
 
-test("leading duplicates of the title, cover, and summary are stripped from content", () => {
+test("正文只移除完全重复的开头标题与封面", () => {
   const strip = articleHelpers.stripLeadingArticleDuplicates;
 
-  assert.equal(strip("# 标题\n正文", "标题", ""), "正文");
-  assert.equal(strip("![](c.png)\n\n正文", "T", "", "c.png"), "正文");
-  assert.equal(strip("![](<c.png>)\n\n正文", "T", "", "c.png"), "正文");
-  assert.equal(strip("×\n\n# 标题\n\n正文", "标题", ""), "正文");
-  assert.equal(strip("正文开始", "标题", "摘要"), "正文开始");
+  assert.equal(strip("# 标题\n正文", "标题"), "正文");
+  assert.equal(strip("![](c.png)\n\n正文", "T", "c.png"), "正文");
+  assert.equal(strip("![](<c.png>)\n\n正文", "T", "c.png"), "正文");
+  assert.equal(strip("×\n\n# 标题\n\n正文", "标题"), "正文");
+  assert.equal(strip("正文开始", "标题"), "正文开始");
 });
 
-test("a duplicated summary paragraph is stripped only when a blank line ends it", () => {
+test("普通段落与引用即使和标题相同也完整保留", () => {
   const strip = articleHelpers.stripLeadingArticleDuplicates;
-
-  assert.equal(strip("摘要文本内容够长\n\n正文", "标题", "摘要文本内容够长"), "正文");
-  assert.equal(
-    strip("摘要文本内容够长\n正文", "标题", "摘要文本内容够长"),
-    "摘要文本内容够长\n正文"
-  );
+  for (const content of [
+    "标题文本内容够长\n\n后续正文",
+    "标题文本内容够长\n后续正文",
+    "> 标题文本内容够长\n> 引用续行包含 [链接](https://example.com)。\n\n后续正文"
+  ]) {
+    assert.equal(strip(content, "标题文本内容够长"), content);
+  }
 });
 
-test("a duplicated blockquote is stripped, an unrelated one is kept", () => {
+test("重复标题兼容合法 ATX 结尾井号和 Windows 换行", () => {
   const strip = articleHelpers.stripLeadingArticleDuplicates;
+  for (const [heading, title] of [
+    ["# Article #", "Article"],
+    ["## Read docs ##  ", "Read docs"],
+    ["### Article\t###\t", "Article"],
+    ["# C# #", "C#"],
+    ["# C++ ##", "C++"]
+  ]) {
+    for (const newline of ["\n", "\r\n"]) {
+      assert.equal(strip(`${heading}${newline}${newline}Body`, title), "Body");
+    }
+  }
+});
 
-  assert.equal(strip("> 摘要文本内容够长\n\n正文", "标题", "摘要文本内容够长"), "正文");
-  assert.equal(strip("> 标题文本内容够长\n\n正文", "标题文本内容够长", ""), "正文");
-  assert.equal(strip("> 别的话\n\n正文", "标题", "摘要"), "> 别的话\n\n正文");
+test("不把标题中的字面井号或不同的代码符号当成结束标记", () => {
+  const strip = articleHelpers.stripLeadingArticleDuplicates;
+  for (const [heading, title] of [
+    ["# Article#", "Article"],
+    ["# Article \\#", "Article"],
+    ["# Article \\###", "Article"],
+    ["# Article # text", "Article"],
+    ["# C# #", "C"],
+    ["# C++ ##", "C"]
+  ]) {
+    const content = `${heading}\n\nBody`;
+    assert.equal(strip(content, title), content);
+  }
+});
+
+test("部分相似或符号不同的标题不会被误删", () => {
+  const strip = articleHelpers.stripLeadingArticleDuplicates;
+  for (const [heading, title] of [
+    ["这是一个足够长的文章标题以及补充说明", "这是一个足够长的文章标题"],
+    ["C++", "C"],
+    ["v1.0", "v10"]
+  ]) {
+    const content = `# ${heading}\n\n正文`;
+    assert.equal(strip(content, title), content);
+  }
 });
 
 test("non-cover leading images are preserved and split across lines are rejoined", () => {
   const strip = articleHelpers.stripLeadingArticleDuplicates;
 
-  assert.equal(strip("![](x.png)\n\n正文", "T", "", "c.png"), "![](x.png)\n\n正文");
-  assert.equal(strip("![](x.png)\n\n正文", "T", ""), "![](x.png)\n\n正文");
+  assert.equal(strip("![](x.png)\n\n正文", "T", "c.png"), "![](x.png)\n\n正文");
+  assert.equal(strip("![](x.png)\n\n正文", "T"), "![](x.png)\n\n正文");
   assert.equal(
-    strip("[\n![](a.png)\n](http://x)\n\n正文", "T", ""),
+    strip("[\n![](a.png)\n](http://x)\n\n正文", "T"),
     "[![](a.png)](http://x)\n\n正文"
   );
+});
+
+test("正文摘录只隐藏简介，多段正文与长段末尾保持完整", () => {
+  const paragraphs = [
+    "之前一直在用 lemon-live，后来它不能用了，找了一圈也没找到特别顺手的替代品，索性就自己做了这个网页直播聚合站。",
+    "客户端和 PC 端其实都有不少现成开源项目，也支持这些平台。但我不想为了看一个直播，把各种客户端、软件一个个装上去，只想用网页版，打开浏览器就能看，点开即用最省事。这也是我做这个网页版的主要原因。",
+    "其实我要的很简单，就是安安静静看个直播，弹幕也不想发。".repeat(5)
+  ];
+  const longParagraph = "这是正文的一部分，需要完整保留，不能因为摘要重复就裁掉。".repeat(12) + "关键结尾必须保留";
+  for (const content of [paragraphs.join("\n\n"), `${longParagraph}\n\n后续正文`]) {
+    const summary = clean(content).slice(0, 260);
+    const body = articleHelpers.stripLeadingArticleDuplicates(content, "文章标题");
+    assert.equal(body, content);
+    assert.equal(articleHelpers.getArticleDisplaySummary(summary, body), "");
+  }
+});
+
+test("独立简介、正文不完整与仅在正文中间匹配时保留简介", () => {
+  for (const [summary, content] of [
+    ["这是一段独立简介", "正文讲述具体步骤"],
+    ["共同开头，以及只有简介中才有的信息", "共同开头"],
+    ["第二段相同内容", "第一段其他内容。\n\n第二段相同内容"],
+    ["C 与 C++ 的区别", "C与C的区别及使用方法"],
+    ["独立简介", ""]
+  ]) {
+    assert.equal(articleHelpers.getArticleDisplaySummary(summary, content), summary);
+  }
+  assert.equal(articleHelpers.getArticleDisplaySummary("", "正文"), "");
+});
+
+test("简介比较保留英文词间边界", () => {
+  for (const [summary, content] of [
+    ["We need a part.", "We need apart."],
+    ["We are now here.", "We are nowhere."],
+    ["We need apart.", "We need a part."],
+    ["Version 1 2 is ready.", "Version 12 is ready."]
+  ]) {
+    assert.equal(articleHelpers.getArticleDisplaySummary(summary, content), summary);
+  }
+});
+
+test("简介比较兼容排版空白但不清理正文代码字面量", () => {
+  for (const [summary, content] of [
+    ["We need a part.", "We\nneed\ta   part.\nMore details."],
+    ["第一段。第二段介绍工具。", "第一段。\n\n第二段介绍\n工具。"]
+  ]) {
+    assert.equal(articleHelpers.getArticleDisplaySummary(summary, content), "");
+  }
+  for (const [summary, content] of [
+    ["Read docs.", "Read [docs][d]."],
+    ["Read docs.", "Read <tag>docs</tag>."],
+    ["Use xy.", "Use x_y."],
+    ["First item.", "* First item."]
+  ]) {
+    assert.equal(articleHelpers.getArticleDisplaySummary(summary, content), summary);
+  }
 });
 
 test("Chinese locale detection compares object identity, not content", () => {
